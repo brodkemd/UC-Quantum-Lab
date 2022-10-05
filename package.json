@@ -1,0 +1,73 @@
+{
+  "name": "uc-quantum-lab",
+  "displayName": "UC Quantum Lab",
+  "description": "An extension to make quantum development easier",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.71.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:python",
+    "onCommand:uc-quantum-lab.open"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": [
+      {
+        "title": "UC Quantum Menu Bar configuration",
+        "properties": {
+          "uc-quantum-lab.open": {
+            "title": "Open",
+            "type": "boolean",
+            "default": true,
+            "description": "Open Viewer"
+          }
+        }
+      }
+    ],
+    "commands": [
+      {
+        "command": "uc-quantum-lab.open",
+        "title": "Open",
+        "category": "UC Quantum",
+        "icon": {
+          "light": "media/uc_light.svg",
+          "dark" : "media/uc.svg"
+        }
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "when": "editorLangId == python",
+          "command": "uc-quantum-lab.open",
+          "group" : "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.0.0",
+    "@types/mocha": "^10.0.0",
+    "@types/node": "^16.11.64",
+    "@types/vscode": "^1.71.0",
+    "@typescript-eslint/eslint-plugin": "^5.38.1",
+    "@typescript-eslint/parser": "^5.38.1",
+    "@vscode/test-electron": "^2.1.5",
+    "eslint": "^8.24.0",
+    "glob": "^8.0.3",
+    "mocha": "^10.0.0",
+    "typescript": "^4.8.4"
+  }
+}
