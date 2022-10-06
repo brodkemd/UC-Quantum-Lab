@@ -4,6 +4,8 @@ src/**
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md
+templates/**
+python_package/**
 **/tsconfig.json
 **/.eslintrc.json
 **/*.map

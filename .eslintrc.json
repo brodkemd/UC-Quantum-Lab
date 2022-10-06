@@ -19,7 +19,8 @@
     "ignorePatterns": [
         "out",
         "dist",
-        "test_dir",
+        "templates",
+        "python_package",
         "**/*.d.ts"
     ]
 }

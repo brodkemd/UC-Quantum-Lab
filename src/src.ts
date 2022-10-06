@@ -1,12 +1,15 @@
 import * as path from 'path';
 import * as fs from "fs"
 import * as vscode from 'vscode';
-import { OutgoingMessage } from 'http';
+import * as cp from "child_process";
+import * as util from "util";
+const execProm = util.promisify(cp.exec);
 
 //Create output channel
 export let out = vscode.window.createOutputChannel("UC_Q");
+export function print(msg:string) { out.appendLine(msg); }
 
-export async function check_if_in_dir(dir_path : vscode.Uri, to_find : string) {
+export async function check_if_in_dir(dir_path : vscode.Uri, to_find : string):Promise<boolean>  {
     let got_it : boolean = false;
     try {
         // Get the files as an array
@@ -32,6 +35,7 @@ export async function check_if_in_dir(dir_path : vscode.Uri, to_find : string) {
         vscode.window.showErrorMessage(`${e}`);
     }
     if (got_it) { return true; }
+    return false;
 }
 
 export async function build_config_dir(config_dir:string, mirror_dir:string) {
@@ -63,3 +67,59 @@ export async function build_config_dir(config_dir:string, mirror_dir:string) {
         }
     }
 }
+
+
+export async function check_if_python_installed():Promise<boolean> {
+    print("Checking if python install")
+    let command:string = "python3 --version";
+    let to_return:boolean = false;
+    try {
+        await execProm(command).then(
+            (err) => {
+                if (!(err.stderr.length)) { to_return = true; }
+                return;
+            }
+        );
+    } catch ( e ) {  }
+    return to_return;
+}
+
+export async function check_if_pip_installed():Promise<boolean> {
+    print("Checking if pip install")
+    let command:string = "pip3 --version";
+    let to_return:boolean = false;
+    try {
+        await execProm(command).then(
+            (err) => {
+                if (!(err.stderr.length)) { to_return = true; }
+                return;
+            }
+        );
+    } catch ( e ) {  }
+    return to_return;
+}
+
+export async function check_if_python_package_installed(name : string):Promise<boolean> {
+    print(`Checking if ${name} is installed for python`)
+    let command:string = `python -c \"import ${name}\"`;
+    let to_return:boolean = false;
+    try {
+        await execProm(command).then(
+            (err) => {
+                if (!(err.stderr.length)) { to_return = true; }
+                return;
+            }
+        );
+    } catch ( e ) {  }
+    return to_return;
+}
+
+export const execShell = (cmd: string) =>
+    new Promise<string>((resolve, reject) => {
+        cp.exec(cmd, (err, out) => {
+            if (err) {
+                return reject(err);
+            }
+            return resolve(out);
+        });
+    });

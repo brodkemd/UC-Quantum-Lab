@@ -6,26 +6,94 @@
  */
 import * as vscode from 'vscode';
 import { UCQ } from './panel';
-import * as cp from "child_process";
 import * as src from "./src";
 import * as path from 'path';
+import * as fs from 'fs';
 
 let ext_name = "UC Quantum Lab";
-let mirror_dir = "template_config"; 
+let mirror_dir = path.join("templates", "template_config"); 
 let config_dir = ".UC_Quantum_Lab"
+let template_python_file = path.join("templates", "main.py");
+let python_package_name = "UC_Quantum_Lab";
 let circ_image = "__circ__.png";
-let statevector = "__state__.txt"
+let statevector = "__state__.txt";
 
-const execShell = (cmd: string) =>
-    new Promise<string>((resolve, reject) => {
-        cp.exec(cmd, (err, out) => {
-            if (err) {
-                return reject(err);
-            }
-            return resolve(out);
-        });
-    });
+async function init(context: vscode.ExtensionContext) {
+	src.out.appendLine("Running \"init\"");
+	if(vscode.workspace.workspaceFolders !== undefined) {
+		// performing checks
+		if (!(await src.check_if_python_installed())) {
+			vscode.window.showErrorMessage("Python was not detected on your system, please install it");
+			return false;
+		}
+		else if (!(await src.check_if_pip_installed())) {
+			vscode.window.showErrorMessage("python pip was not detected on your system, please install it");
+			return false;
+		}
+		else if (!(await src.check_if_python_package_installed(python_package_name))) {
+			let answer = await vscode.window.showInformationMessage(`The required package ${python_package_name} was not detected on your system, do you want this extension to install it?`, "yes", "no");
 
+			// if they want to automate the installation of the python module
+			if (answer === "yes") {
+				let term:vscode.Terminal|undefined = vscode.window.activeTerminal;
+				if (term !== undefined) {
+					term.sendText("echo hello\n")
+				} else {
+					term = vscode.window.createTerminal("UC Quantum Lab")
+					term.sendText("echo hello\n")
+				}
+			}
+			return false;
+		}
+		else {
+			let wf = vscode.workspace.workspaceFolders[0].uri ;
+			// checking if the config_dir is in the workspace dir
+			if (!(await src.check_if_in_dir(wf, config_dir))){
+				// if not ask if the user wants to init the dir
+				vscode.window.showInformationMessage(`Do you want to set up the current workspace for ${ext_name}?`, "yes", "no").then(
+					selection => {
+						if (selection == "yes") {
+							src.out.appendLine("Building config");
+							src.build_config_dir(
+								path.join(wf.fsPath, config_dir), 
+								path.join(context.extensionPath.toString(), mirror_dir)
+							);
+						} else { return false; }
+					}
+				);
+
+
+				// generates a python file for the user if they want to
+				let fname = template_python_file.split(path.sep).at(-1);
+				if (fname !== undefined) {
+					let _fname:string = fname;
+					if (!(await src.check_if_in_dir(wf, fname))) {
+						vscode.window.showInformationMessage(`Do you want an example main file?`, "yes", "no").then(
+							selection => {
+								if (selection == "yes") {
+									src.out.appendLine("Making main file");
+									fs.copyFile(path.join(context.extensionPath.toString(), template_python_file), 
+												_fname.toString(), 
+												(err) => {
+										if (err){
+											src.out.appendLine(`Error copying ${path.join(context.extensionPath.toString(), template_python_file)} to ${_fname.toString()}`);
+										}
+									});
+								}
+							}
+						);
+					}
+				}
+				
+			} else { return false; }
+		} 
+	}
+	else {
+		src.out.appendLine("NOT in a workspace");
+		vscode.window.showErrorMessage(`${ext_name}: Working folder not found, open a folder and try again`);
+		return false;
+	}
+}
 
 
 // This method is called when your extension is activated
@@ -53,44 +121,15 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 	context.subscriptions.push(
 		vscode.commands.registerCommand("uc-quantum-lab.open", async () => {
-			src.out.appendLine("Creating Window");
-			UCQ.createOrShow(context.extensionUri);
-			
-			vscode.commands.executeCommand("uc-quantum-lab.init");
+			if (await init(context)) {
+				src.out.appendLine("Creating Window");
+				UCQ.createOrShow(context.extensionUri);
+			}
 		})
 	);
 	context.subscriptions.push(
 		vscode.commands.registerCommand('uc-quantum-lab.init', async () => {
-			src.out.appendLine("Running \"init\"");
-			if(vscode.workspace.workspaceFolders !== undefined) {
-				src.out.appendLine("In a workspace");
-				let wf = vscode.workspace.workspaceFolders[0].uri ;
-				
-				// checking if the config_dir is in the workspace dir
-				if (!(await src.check_if_in_dir(wf, config_dir))){
-					vscode.window.showInformationMessage(`Do you want to set up the current workspace for ${ext_name}?`, "yes", "no").then(
-						selection => {
-							if (selection == "yes") {
-								src.out.appendLine("Building config")
-								src.build_config_dir(
-									path.join(wf.fsPath, config_dir), 
-									path.join(context.extensionPath.toString(), "template_config")
-								);
-							} else {
-								src.out.appendLine("no");
-							}
-						}
-					);
-					
-				} else {
-
-				}
-			} 
-			else {
-				src.out.appendLine("NOT in a workspace");
-				vscode.window.showErrorMessage(`${ext_name}: Working folder not found, open a folder an try again`);
-			}
-
+			init(context);
 		})
 	);
 }
