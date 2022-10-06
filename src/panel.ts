@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as path from 'path';
+import { out } from "./src";
 
 export class UCQ {
   /**
@@ -7,7 +8,7 @@ export class UCQ {
    */
   public static currentPanel: UCQ | undefined;
 
-  public static readonly viewType = "hello-world";
+  public static readonly viewType = "uc-quantum-lab";
 
   private readonly _panel: vscode.WebviewPanel;
   private readonly _extensionUri: vscode.Uri;
@@ -29,7 +30,7 @@ export class UCQ {
     const panel = vscode.window.createWebviewPanel(
       UCQ.viewType,
       "UCQ Viewer ",
-      column || vscode.ViewColumn.One,
+      vscode.ViewColumn.Two,
       {
         // Enable javascript in the webview
         enableScripts: true,
@@ -125,9 +126,9 @@ export class UCQ {
 
   private _getHtmlForWebview(webview: vscode.Webview) {
     // // And the uri we use to load this script in the webview
-    const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, "out", "helloworld.js")
-    );
+    // const scriptUri = webview.asWebviewUri(
+    //   vscode.Uri.joinPath(this._extensionUri, "out", "helloworld.js")
+    // );
 
     // Uri to load styles into webview
     const stylesResetUri = webview.asWebviewUri(vscode.Uri.joinPath(
@@ -141,30 +142,28 @@ export class UCQ {
       "vscode.css"
     ));
 
-    const cssUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, "out", "compiled/swiper.css")
-    );
+    // const cssUri = webview.asWebviewUri(
+    //   vscode.Uri.joinPath(this._extensionUri, "out", "compiled/swiper.css")
+    // );
 
     // Use a nonce to only allow specific scripts to be run
-    const onDiskPath = vscode.Uri.file(
-        "/home/marekbrodke/Documents/vscode_exts/uc-quantum-lab/media/uc.png"
-    );
-    const image_src = webview.asWebviewUri(onDiskPath);
+    const image_src = webview.asWebviewUri(vscode.Uri.joinPath(
+      this._extensionUri,
+      "media",
+      "uc.png"
+    ));
+    out.appendLine(`<img src=\"${image_src.fsPath}\" />`)
     return `<!DOCTYPE html>
 	<html lang="en">
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource};">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<link href="${stylesResetUri}" rel="stylesheet">
-		<link href="${stylesMainUri}" rel="stylesheet">
 	</head>
 	<body>
 		<h1>hello</h1>
-        <img src="${image_src}" />
+    <img src=\"${image_src.fsPath}\" alt="No Image to Display"/>
 	</body>
-	</html>`;
+</html>`;
     // `<!DOCTYPE html>
 	// 		<html lang="en">
 	// 		<head>
@@ -183,5 +182,8 @@ export class UCQ {
     //     <body>
     //     </body>
     //     </html>`;
+    //		<meta http-equiv="Content-Security-Policy">
+		//<link href="${stylesResetUri}" rel="stylesheet">
+		//<link href="${stylesMainUri}" rel="stylesheet">
   }
 }

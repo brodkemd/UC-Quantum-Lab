@@ -11,7 +11,8 @@
   ],
   "activationEvents": [
     "onLanguage:python",
-    "onCommand:uc-quantum-lab.open"
+    "onCommand:uc-quantum-lab.open",
+    "onCommand:uc-quantum-lab.init"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -35,8 +36,13 @@
         "category": "UC Quantum",
         "icon": {
           "light": "media/uc_light.svg",
-          "dark" : "media/uc.svg"
+          "dark": "media/uc.svg"
         }
+      },
+      {
+        "command": "uc-quantum-lab.init",
+        "title": "Inits a directory if not already a UC Quantum directory",
+        "category": "UC Quantum"
       }
     ],
     "menus": {
@@ -44,7 +50,7 @@
         {
           "when": "editorLangId == python",
           "command": "uc-quantum-lab.open",
-          "group" : "navigation"
+          "group": "navigation"
         }
       ]
     }
