@@ -68,6 +68,37 @@ export async function build_config_dir(config_dir:string, mirror_dir:string) {
     }
 }
 
+export async function get_conda_envs():Promise<string[]>{
+    let arr:string[] = [];
+    print("Getting conda envs")
+    let command:string = "conda env list";
+    let output:string = "";
+    try {
+        await execProm(command).then(
+            (err) => {
+                output = err.stdout; 
+                return;
+            }
+        );
+    } catch ( e ) {}
+    for (let path of output.replace("# conda environments:\n#\n", "").replace("*", "").split("\n")) {
+        let split_p = path.replace("\n", "").split(" ");
+        while (true) {
+            let index = split_p.indexOf("");
+            if (index !== -1) {
+                split_p.splice(index, 1);
+            } else {
+                break;
+            }
+        }
+        for (let i =0; i < split_p.length; i++) {
+            if (split_p[i] !== "" && split_p[i].search("/")===-1) {
+                arr.push(`${split_p[i]} ${split_p[i+1]}`);
+            }
+        }
+    }
+    return arr;
+}
 
 export async function check_if_python_installed():Promise<boolean> {
     print("Checking if python install")
@@ -87,6 +118,21 @@ export async function check_if_python_installed():Promise<boolean> {
 export async function check_if_pip_installed():Promise<boolean> {
     print("Checking if pip install")
     let command:string = "pip3 --version";
+    let to_return:boolean = false;
+    try {
+        await execProm(command).then(
+            (err) => {
+                if (!(err.stderr.length)) { to_return = true; }
+                return;
+            }
+        );
+    } catch ( e ) {  }
+    return to_return;
+}
+
+export async function check_if_conda_installed():Promise<boolean> {
+    print("Checking if conda install")
+    let command:string = "conda --version";
     let to_return:boolean = false;
     try {
         await execProm(command).then(
