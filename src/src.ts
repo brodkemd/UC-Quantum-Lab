@@ -7,69 +7,160 @@ const execProm = util.promisify(cp.exec);
 
 //Create output channel
 export let out = vscode.window.createOutputChannel("UC_Q");
-export function print(msg:string) { out.appendLine(msg); }
+export function print(msg:string) { out.appendLine(`- ${msg}`); }
 
-export async function check_if_in_dir(dir_path : vscode.Uri, to_find : string):Promise<boolean>  {
-    let got_it : boolean = false;
+export async function try_command(command:string):Promise<boolean> {
+    let to_return:boolean = false;
     try {
-        // Get the files as an array
-        const files = await fs.promises.readdir(dir_path.fsPath);
+        await execProm(command).then(
+            (err) => {
+                if (!(err.stderr.length)) { to_return = true; }
+                return;
+            }
+        );
+    } catch ( e ) {}
+    return to_return;
+}
 
+export async function check_if_in_dir(dir_path : string, to_find : string):Promise<boolean>  {
+    try {
         // Loop them all with the new for...of
-        for( const entry of files ) {
+        for( const entry of await fs.promises.readdir(dir_path) ) {
             // Get the full paths
             if (entry == to_find){
-                let p = path.join(dir_path.fsPath, entry);
-                const stat = await fs.promises.stat(p);
-                if(!stat.isDirectory() ){
-                    vscode.window.showErrorMessage(`"${to_find}" is not a directory please delete it from the current directory`);
+                if(!((await fs.promises.stat(path.join(dir_path, entry))).isDirectory())){
+                    print(`"${to_find}" is in your current directory and is not a directory please delete it from the current directory`);
+                    vscode.window.showErrorMessage(`"${to_find}" is in your current directory and is not a directory please delete it from the current directory`);
                     return false;
-                }
-                got_it = true;
-                break;
+                } else { return true; }
             }
         }
     }
-    catch( e ) {
-        // Catch anything bad that happens
-        vscode.window.showErrorMessage(`${e}`);
-    }
-    if (got_it) { return true; }
+    // Catch anything bad that happens
+    catch( e ) { print(`${e}`); }
+    // default return
     return false;
 }
 
-export async function build_config_dir(config_dir:string, mirror_dir:string) {
-    out.appendLine(`Building from ${mirror_dir} to ${config_dir}`)
-    // making config directory
-    fs.mkdir(config_dir, (err) => {
+
+export async function check_config_dir(config_dir:string, mirror_dir:string):Promise<boolean> {
+    print(`Checking ${config_dir} against ${mirror_dir}`);
+    let exited_good:boolean = true;
+    //making config directory, catches errors, if no errors then continues to building
+    fs.readdir(mirror_dir, (err, files) => {
         if (err) {
-            out.appendLine(`Error making ${config_dir}`);
+            print(`Error in reading dir ${mirror_dir}`); 
+            exited_good = false;
+        } 
+        else {
+            // Loop them all with the new for...of
+            for( const entry of files ) {
+                // Get the full paths
+                try {
+                    if (!(fs.existsSync(path.join(config_dir, entry)))) {
+                        fs.copyFile(path.join(mirror_dir, entry), path.join(config_dir, entry), (err) => {
+                            if (err){
+                                print(`> Error copying ${path.join(mirror_dir, entry)} to ${path.join(config_dir, entry)}`);
+                                exited_good = false;
+                                return;
+                            } else {
+                                print(`> Copied ${path.join(mirror_dir, entry)} to ${path.join(config_dir, entry)}`);
+                            }
+                        });
+                    } else {
+                        print(`> Skipped ${entry} because it already exists in ${config_dir}`);
+                    }
+                } catch ( e ) { 
+                    print(`> ${e}`); 
+                    exited_good = false;
+                    return;
+                }
+            }
         }
     });
-    out.appendLine(`Made config dir: ${config_dir}`);
-    
-    const files = await fs.promises.readdir(mirror_dir);
-    // Loop them all with the new for...of
-    for( const entry of files ) {
-        // Get the full paths
-        out.appendLine(`-- At entry ${entry} in ${config_dir}`)
-        try {
-            fs.copyFile(path.join(mirror_dir, entry), path.join(config_dir, entry), (err) => {
-                if (err){
-                    out.appendLine(`Error copying ${path.join(mirror_dir, entry)} to ${path.join(config_dir, entry)}`);
-                }
-            });
-            //fs.promises.copyFile(path.join(mirror_dir, entry), config_dir).then( () => {
-            //    out.appendLine(`Copied ${path.join(mirror_dir, entry)} to ${config_dir}`);
-            //});
-        } catch ( e ) {
-            vscode.window.showErrorMessage(`${e}`);
-        }
-    }
+    return exited_good;
 }
 
-export async function get_conda_envs():Promise<string[]>{
-    let arr:string[] = [];
+export async function build_config_dir(config_dir:string, mirror_dir:string):Promise<boolean> {
+    print(`Building from ${mirror_dir} to ${config_dir}`)
+    let exited_good:boolean = true;
+    //making config directory, catches errors, if no errors then continues to building
+    fs.mkdir(config_dir, (err) => {
+        if (err) {
+            print(`Error making ${config_dir}`); 
+            exited_good = false;
+        }
+        else {
+            print(`Made config dir: ${config_dir}`);
+            fs.readdir(mirror_dir, (err, files) => {
+                if (err) {
+                    print(`Error in reading dir ${mirror_dir}`); 
+                    exited_good = false;
+                    return;
+                } 
+                else {
+                    // Loop them all with the new for...of
+                    for( const entry of files ) {
+                        // Get the full paths
+                        print(`-- At entry ${entry} in ${config_dir}`);
+                        try {
+                            if (!(fs.existsSync(path.join(config_dir, entry)))) {
+                                fs.copyFile(path.join(mirror_dir, entry), path.join(config_dir, entry), (err) => {
+                                    if (err){
+                                        print(`> Error copying ${path.join(mirror_dir, entry)} to ${path.join(config_dir, entry)}`);
+                                        exited_good = false;
+                                        return;
+                                    } else {
+                                        print(`> Copied ${path.join(mirror_dir, entry)} to ${path.join(config_dir, entry)}`);
+                                    }
+                                });
+                            } else {
+                                print(`> Skipped ${entry} because it already exists in ${config_dir}`);
+                            }
+                        } catch ( e ) { 
+                            print(`> ${e}`);
+                            //vscode.window.showErrorMessage(`${e}`);
+                            exited_good = false;
+                            return;
+                        }
+                    }
+                }
+            });
+        }
+    });
+    return exited_good;
+}
+
+
+export async function install_in_sys_python(package_name:string):Promise<boolean> {
+    if (!(await check_if_python_installed())) {
+        print("Python was not detected on your system, please install it");
+        vscode.window.showErrorMessage("Python was not detected on your system, please install it");
+    } else {
+        if (!(await check_if_pip_installed())) {
+            print("python pip was not detected on your system, please install it");
+            vscode.window.showErrorMessage("python pip was not detected on your system, please install it");
+        } else {
+            if (!(await try_command(`python3 -c \"import ${package_name}\"`))){
+                print(`the package "${package_name}" is not detected for your python installation, do you want to install it?`);
+                let choice:string|undefined = await vscode.window.showInformationMessage(`the package "${package_name}" is not detected for your python installation, do you want to install it?`, "yes", "no");
+                if (choice === "yes") {
+                    print(`> Would install package ${package_name}`);
+                    return true;
+                } else {
+                    print(`User skipped installation of package ${package_name}`);
+                }
+            } else {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
+export async function get_conda_envs():Promise<{[name:string] : {"path" : string, "exe" : string, "pip" : string, "has_qiskit" : boolean}} >{
+    let to_return:{[name:string] : {"path" : string, "exe" : string, "pip" : string, "has_qiskit" : boolean}} = {};
     print("Getting conda envs")
     let command:string = "conda env list";
     let output:string = "";
@@ -81,106 +172,29 @@ export async function get_conda_envs():Promise<string[]>{
             }
         );
     } catch ( e ) {}
-    for (let _path of output.replace("# conda environments:\n#\n", "").replace("*", "").split("\n")) {
-        let split_p = _path.replace("\n", "").split(" ");
-        while (true) {
-            let index = split_p.indexOf("");
-            if (index !== -1) {
-                split_p.splice(index, 1);
-            } else {
-                break;
-            }
-        }
-        for (let i =0; i < split_p.length; i++) {
-            if (split_p[i] !== "" && split_p[i].search("/")===-1) {
-                // getting python path
-                command = path.join(split_p[i+1], "bin", "python");
-                command.concat(" -c \"import qiskit\"");
-                let to_append:string = "";
-                try {
-                    await execProm(command).then(
-                        (err) => {
-                            print(err.stderr.length.toString());
-                            if (!(err.stderr.length)) {
-                                to_append = " (qiskit found here)";
-                            }
-                            return;
-                        }
-                    );
-                } catch ( e ) {}
-                arr.push(`${split_p[i]} ${split_p[i+1]}${to_append}`);
-            }
+    
+    let arr:string[] = output.split("\n");
+    for (let val of arr.slice(2, arr.indexOf(""))) {
+        let new_split = val.replace(/\s+/, " ").split(" ");
+        to_return[new_split[0]] = {"path" : new_split[1], "exe" : `${new_split[1]}${path.sep}bin${path.sep}python`, "pip" : `${new_split[1]}${path.sep}bin${path.sep}pip`, "has_qiskit" : false};
+        if (await try_command(`${to_return[new_split[0]]["exe"]} -c "import qiskit"`)) {
+            to_return[new_split[0]]["has_qiskit"] = true;
         }
     }
-    return arr;
+    return to_return;
 }
+
 
 export async function check_if_python_installed():Promise<boolean> {
-    print("Checking if python install")
-    let command:string = "python3 --version";
-    let to_return:boolean = false;
-    try {
-        await execProm(command).then(
-            (err) => {
-                if (!(err.stderr.length)) { to_return = true; }
-                return;
-            }
-        );
-    } catch ( e ) {  }
-    return to_return;
+    return await try_command("python3 --version");
 }
+
 
 export async function check_if_pip_installed():Promise<boolean> {
-    print("Checking if pip install")
-    let command:string = "pip3 --version";
-    let to_return:boolean = false;
-    try {
-        await execProm(command).then(
-            (err) => {
-                if (!(err.stderr.length)) { to_return = true; }
-                return;
-            }
-        );
-    } catch ( e ) {  }
-    return to_return;
+    return await try_command("pip3 --version");
 }
+
 
 export async function check_if_conda_installed():Promise<boolean> {
-    print("Checking if conda install")
-    let command:string = "conda --version";
-    let to_return:boolean = false;
-    try {
-        await execProm(command).then(
-            (err) => {
-                if (!(err.stderr.length)) { to_return = true; }
-                return;
-            }
-        );
-    } catch ( e ) {  }
-    return to_return;
+    return await try_command("conda --version");
 }
-
-export async function check_if_python_package_installed(name : string):Promise<boolean> {
-    print(`Checking if ${name} is installed for python`)
-    let command:string = `python -c \"import ${name}\"`;
-    let to_return:boolean = false;
-    try {
-        await execProm(command).then(
-            (err) => {
-                if (!(err.stderr.length)) { to_return = true; }
-                return;
-            }
-        );
-    } catch ( e ) {  }
-    return to_return;
-}
-
-export const execShell = (cmd: string) =>
-    new Promise<string>((resolve, reject) => {
-        cp.exec(cmd, (err, out) => {
-            if (err) {
-                return reject(err);
-            }
-            return resolve(out);
-        });
-    });

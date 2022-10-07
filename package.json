@@ -10,7 +10,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onLanguage:python",
+    "workspaceContains:**/.*",
     "onCommand:uc-quantum-lab.open",
     "onCommand:uc-quantum-lab.init"
   ],
