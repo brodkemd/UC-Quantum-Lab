@@ -19,28 +19,32 @@ let python_package_name = "UC_Quantum_Lab";
 let circ_image = "__circ__.png";
 let statevector = "__state__.txt";
 
+async function checks(context:  vscode.ExtensionContext) {
+	if (await src.check_if_conda_installed()){
+		let answer = await vscode.window.showInformationMessage(`Detected conda, do you want to use it with this extension (this is the recommend method)?`, "yes", "no");
+		if (answer === "yes") {	
+			let arr:string[] = await src.get_conda_envs();
+			const result = await vscode.window.showQuickPick(arr, {placeHolder: 'choose the conda environment from the list'});
+			src.print(`Setting up conda envrionment ${result}`);
+			return
+		}
+		
+	}
+	if (!(await src.check_if_python_installed())) {
+		vscode.window.showErrorMessage("Python was not detected on your system, please install it");
+		return false;
+	}
+	if (!(await src.check_if_pip_installed())) {
+		vscode.window.showErrorMessage("python pip was not detected on your system, please install it");
+		return false;
+	}
+}
+
 async function init(context: vscode.ExtensionContext) {
 	src.out.appendLine("Running \"init\"");
 	if(vscode.workspace.workspaceFolders !== undefined) {
 		// performing checks
-
-		if (await src.check_if_conda_installed()){
-			let answer = await vscode.window.showInformationMessage(`Detect conda, do you want to use it with this extension (this is the recommend method)?`, "yes", "no");
-			if (answer === "yes") {	
-				let arr:string[] = await src.get_conda_envs();
-				const result = await vscode.window.showQuickPick(arr, {placeHolder: 'choose the conda environment from the list'});
-				src.print(`Setting up conda envrionment ${result}`);
-			}
-			return false;
-		}
-		if (!(await src.check_if_python_installed())) {
-			vscode.window.showErrorMessage("Python was not detected on your system, please install it");
-			return false;
-		}
-		if (!(await src.check_if_pip_installed())) {
-			vscode.window.showErrorMessage("python pip was not detected on your system, please install it");
-			return false;
-		}
+		
 		if (!(await src.check_if_python_package_installed(python_package_name))) {
 			let answer = await vscode.window.showInformationMessage(`The required package ${python_package_name} was not detected on your system, do you want this extension to install it?`, "yes", "no");
 

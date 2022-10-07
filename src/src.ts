@@ -81,8 +81,8 @@ export async function get_conda_envs():Promise<string[]>{
             }
         );
     } catch ( e ) {}
-    for (let path of output.replace("# conda environments:\n#\n", "").replace("*", "").split("\n")) {
-        let split_p = path.replace("\n", "").split(" ");
+    for (let _path of output.replace("# conda environments:\n#\n", "").replace("*", "").split("\n")) {
+        let split_p = _path.replace("\n", "").split(" ");
         while (true) {
             let index = split_p.indexOf("");
             if (index !== -1) {
@@ -93,7 +93,22 @@ export async function get_conda_envs():Promise<string[]>{
         }
         for (let i =0; i < split_p.length; i++) {
             if (split_p[i] !== "" && split_p[i].search("/")===-1) {
-                arr.push(`${split_p[i]} ${split_p[i+1]}`);
+                // getting python path
+                command = path.join(split_p[i+1], "bin", "python");
+                command.concat(" -c \"import qiskit\"");
+                let to_append:string = "";
+                try {
+                    await execProm(command).then(
+                        (err) => {
+                            print(err.stderr.length.toString());
+                            if (!(err.stderr.length)) {
+                                to_append = " (qiskit found here)";
+                            }
+                            return;
+                        }
+                    );
+                } catch ( e ) {}
+                arr.push(`${split_p[i]} ${split_p[i+1]}${to_append}`);
             }
         }
     }
