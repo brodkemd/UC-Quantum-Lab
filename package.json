@@ -10,8 +10,7 @@
     "Other"
   ],
   "activationEvents": [
-    "workspaceContains:**/.*",
-    "onCommand:uc-quantum-lab.open",
+    "onCommand:uc-quantum-lab.execute",
     "onCommand:uc-quantum-lab.init"
   ],
   "main": "./out/extension.js",
@@ -31,8 +30,8 @@
     ],
     "commands": [
       {
-        "command": "uc-quantum-lab.open",
-        "title": "Open",
+        "command": "uc-quantum-lab.execute",
+        "title": "execute",
         "category": "UC Quantum",
         "icon": {
           "light": "media/uc_light.svg",
@@ -48,8 +47,8 @@
     "menus": {
       "editor/title": [
         {
-          "when": "editorLangId == python",
-          "command": "uc-quantum-lab.open",
+          "when": "workspaceFolderCount >= 1",
+          "command": "uc-quantum-lab.execute",
           "group": "navigation"
         }
       ]

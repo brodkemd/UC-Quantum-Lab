@@ -9,6 +9,15 @@ const execProm = util.promisify(cp.exec);
 export let out = vscode.window.createOutputChannel("UC_Q");
 export function print(msg:string) { out.appendLine(`- ${msg}`); }
 
+export type infoInnerType = {"path" : string, "exe" : string, "pip" : string, "has_qiskit" : boolean}
+export type infoType = {[name:string] : infoInnerType};
+
+export type configType = {[key : string] : string|boolean};
+
+export async function readJsonFile(path:string) {
+    return JSON.parse(await fs.promises.readFile(path, "utf8"));
+}
+
 export async function try_command(command:string):Promise<boolean> {
     let to_return:boolean = false;
     try {
@@ -22,14 +31,36 @@ export async function try_command(command:string):Promise<boolean> {
     return to_return;
 }
 
-export async function check_if_in_dir(dir_path : string, to_find : string):Promise<boolean>  {
+export async function get_version_of_python_module_with_name(pip:string, module:string):Promise<string> {
+    let to_return:string = "";
+    try {
+        await execProm(`${pip} show ${module}`).then(
+            (err) => {
+                if (err.stdout.length) { 
+                    let arr:string[] = err.stdout.split("\n");
+                    for (let val of arr) {
+                        if (val.indexOf("Version")>=0){
+                            to_return = val.replace("Version:", "").trim();
+                            return;
+                        }
+                    }
+                    
+                }
+            }
+        );
+    } catch ( e ) {}
+    return to_return;
+}
+
+
+export async function check_if_file_in_dir(dir_path : string, to_find : string):Promise<boolean>  {
     try {
         // Loop them all with the new for...of
         for( const entry of await fs.promises.readdir(dir_path) ) {
             // Get the full paths
             if (entry == to_find){
-                if(!((await fs.promises.stat(path.join(dir_path, entry))).isDirectory())){
-                    print(`"${to_find}" is in your current directory and is not a directory please delete it from the current directory`);
+                if(!((await fs.promises.stat(path.join(dir_path, entry))).isFile())){
+                    print(`"${to_find}" is in your current directory and is not a file please delete it from the current directory`);
                     vscode.window.showErrorMessage(`"${to_find}" is in your current directory and is not a directory please delete it from the current directory`);
                     return false;
                 } else { return true; }
@@ -87,14 +118,14 @@ export async function build_config_dir(config_dir:string, mirror_dir:string):Pro
     //making config directory, catches errors, if no errors then continues to building
     fs.mkdir(config_dir, (err) => {
         if (err) {
-            print(`Error making ${config_dir}`); 
+            print(`Error making ${config_dir} with message: ${err.message}`); 
             exited_good = false;
         }
         else {
             print(`Made config dir: ${config_dir}`);
-            fs.readdir(mirror_dir, (err, files) => {
-                if (err) {
-                    print(`Error in reading dir ${mirror_dir}`); 
+            fs.readdir(mirror_dir, (err_0, files) => {
+                if (err_0) {
+                    print(`Error in reading dir ${mirror_dir} with message: ${err_0.message}`); 
                     exited_good = false;
                     return;
                 } 
@@ -105,9 +136,9 @@ export async function build_config_dir(config_dir:string, mirror_dir:string):Pro
                         print(`-- At entry ${entry} in ${config_dir}`);
                         try {
                             if (!(fs.existsSync(path.join(config_dir, entry)))) {
-                                fs.copyFile(path.join(mirror_dir, entry), path.join(config_dir, entry), (err) => {
-                                    if (err){
-                                        print(`> Error copying ${path.join(mirror_dir, entry)} to ${path.join(config_dir, entry)}`);
+                                fs.copyFile(path.join(mirror_dir, entry), path.join(config_dir, entry), (err_1) => {
+                                    if (err_1){
+                                        print(`> Error copying ${path.join(mirror_dir, entry)} to ${path.join(config_dir, entry)} with message: ${err_1.message}`);
                                         exited_good = false;
                                         return;
                                     } else {
@@ -159,8 +190,8 @@ export async function install_in_sys_python(package_name:string):Promise<boolean
 }
 
 
-export async function get_conda_envs():Promise<{[name:string] : {"path" : string, "exe" : string, "pip" : string, "has_qiskit" : boolean}} >{
-    let to_return:{[name:string] : {"path" : string, "exe" : string, "pip" : string, "has_qiskit" : boolean}} = {};
+export async function get_conda_envs():Promise<infoType>{
+    let to_return:infoType = {};
     print("Getting conda envs")
     let command:string = "conda env list";
     let output:string = "";
