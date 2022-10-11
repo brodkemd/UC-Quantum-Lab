@@ -3,6 +3,7 @@ import * as fs from "fs"
 import * as vscode from 'vscode';
 import * as cp from "child_process";
 import * as util from "util";
+import { Config } from './config';
 const execProm = util.promisify(cp.exec);
 
 //Create output channel
@@ -14,8 +15,13 @@ export type infoType = {[name:string] : infoInnerType};
 
 export type configType = {[key : string] : string|boolean};
 
-export async function readJsonFile(path:string) {
-    return JSON.parse(await fs.promises.readFile(path, "utf8"));
+export function get_last_from_path(_path:string) {
+    return _path.slice(_path.lastIndexOf(path.sep)+1, _path.length);
+}
+
+export function error(msg:string) {
+    print(msg);
+    vscode.window.showErrorMessage(msg);
 }
 
 export async function try_command(command:string):Promise<boolean> {
@@ -60,8 +66,7 @@ export async function check_if_file_in_dir(dir_path : string, to_find : string):
             // Get the full paths
             if (entry == to_find){
                 if(!((await fs.promises.stat(path.join(dir_path, entry))).isFile())){
-                    print(`"${to_find}" is in your current directory and is not a file please delete it from the current directory`);
-                    vscode.window.showErrorMessage(`"${to_find}" is in your current directory and is not a directory please delete it from the current directory`);
+                    error(`"${to_find}" is in your current directory and is not a directory please delete it from the current directory`);
                     return false;
                 } else { return true; }
             }
@@ -112,78 +117,78 @@ export async function check_config_dir(config_dir:string, mirror_dir:string):Pro
     return exited_good;
 }
 
-export async function build_config_dir(config_dir:string, mirror_dir:string):Promise<boolean> {
-    print(`Building from ${mirror_dir} to ${config_dir}`)
+export async function mkDir(dir:string):Promise<boolean> {
+    //print(`Building from ${mirror_dir} to ${config_dir}`)
     let exited_good:boolean = true;
     //making config directory, catches errors, if no errors then continues to building
-    fs.mkdir(config_dir, (err) => {
+    fs.mkdir(dir, (err) => {
         if (err) {
-            print(`Error making ${config_dir} with message: ${err.message}`); 
+            error(`Error making ${dir} with message: ${err.message}`)
             exited_good = false;
         }
-        else {
-            print(`Made config dir: ${config_dir}`);
-            fs.readdir(mirror_dir, (err_0, files) => {
-                if (err_0) {
-                    print(`Error in reading dir ${mirror_dir} with message: ${err_0.message}`); 
-                    exited_good = false;
-                    return;
-                } 
-                else {
-                    // Loop them all with the new for...of
-                    for( const entry of files ) {
-                        // Get the full paths
-                        print(`-- At entry ${entry} in ${config_dir}`);
-                        try {
-                            if (!(fs.existsSync(path.join(config_dir, entry)))) {
-                                fs.copyFile(path.join(mirror_dir, entry), path.join(config_dir, entry), (err_1) => {
-                                    if (err_1){
-                                        print(`> Error copying ${path.join(mirror_dir, entry)} to ${path.join(config_dir, entry)} with message: ${err_1.message}`);
-                                        exited_good = false;
-                                        return;
-                                    } else {
-                                        print(`> Copied ${path.join(mirror_dir, entry)} to ${path.join(config_dir, entry)}`);
-                                    }
-                                });
-                            } else {
-                                print(`> Skipped ${entry} because it already exists in ${config_dir}`);
-                            }
-                        } catch ( e ) { 
-                            print(`> ${e}`);
-                            //vscode.window.showErrorMessage(`${e}`);
-                            exited_good = false;
-                            return;
-                        }
-                    }
-                }
-            });
-        }
+        // else {
+        //     print(`Made config dir: ${config_dir}`);
+        //     fs.readdir(mirror_dir, (err_0, files) => {
+        //         if (err_0) {
+        //             print(`Error in reading dir ${mirror_dir} with message: ${err_0.message}`); 
+        //             exited_good = false;
+        //             return;
+        //         } 
+        //         else {
+        //             // Loop them all with the new for...of
+        //             for( const entry of files ) {
+        //                 // Get the full paths
+        //                 print(`-- At entry ${entry} in ${config_dir}`);
+        //                 try {
+        //                     if (!(fs.existsSync(path.join(config_dir, entry)))) {
+        //                         fs.copyFile(path.join(mirror_dir, entry), path.join(config_dir, entry), (err_1) => {
+        //                             if (err_1){
+        //                                 print(`> Error copying ${path.join(mirror_dir, entry)} to ${path.join(config_dir, entry)} with message: ${err_1.message}`);
+        //                                 exited_good = false;
+        //                                 return;
+        //                             } else {
+        //                                 print(`> Copied ${path.join(mirror_dir, entry)} to ${path.join(config_dir, entry)}`);
+        //                             }
+        //                         });
+        //                     } else {
+        //                         print(`> Skipped ${entry} because it already exists in ${config_dir}`);
+        //                     }
+        //                 } catch ( e ) { 
+        //                     print(`> ${e}`);
+        //                     //vscode.window.showErrorMessage(`${e}`);
+        //                     exited_good = false;
+        //                     return;
+        //                 }
+        //             }
+        //         }
+        //     });
+        // }
     });
     return exited_good;
 }
 
 
-export async function install_in_sys_python(package_name:string):Promise<boolean> {
-    if (!(await check_if_python_installed())) {
-        print("Python was not detected on your system, please install it");
+export async function setupSysPython(config:Config):Promise<boolean> {
+    print("Setting up for sys python");
+    if (!(await try_command("python3 --version"))) {
+        print("Python was not detected");
         vscode.window.showErrorMessage("Python was not detected on your system, please install it");
     } else {
-        if (!(await check_if_pip_installed())) {
-            print("python pip was not detected on your system, please install it");
+        config.userConfig.python = "python3";
+        if (!(await try_command("pip3 --version"))) {
+            print("python pip was not detected");
             vscode.window.showErrorMessage("python pip was not detected on your system, please install it");
         } else {
-            if (!(await try_command(`python3 -c \"import ${package_name}\"`))){
-                print(`the package "${package_name}" is not detected for your python installation, do you want to install it?`);
-                let choice:string|undefined = await vscode.window.showInformationMessage(`the package "${package_name}" is not detected for your python installation, do you want to install it?`, "yes", "no");
-                if (choice === "yes") {
-                    print(`> Would install package ${package_name}`);
+            config.userConfig.pip = "pip3";
+            if (!(await try_command(`python3 -c \"import ${config.pythonModuleName}\"`))){
+                let choice:string|undefined = await vscode.window.showInformationMessage(`the package "${config.pythonModuleName}" is not detected for your python installation, do you want to install it?`, config.yes, config.no);
+                if (choice === config.yes) {
+                    print(`> Would install package ${config.pythonModuleName} from ${config.pythonModulePath}`);
                     return true;
                 } else {
-                    print(`User skipped installation of package ${package_name}`);
+                    print(`User skipped installation of package ${config.pythonModuleName}`);
                 }
-            } else {
-                return true;
-            }
+            } else { return true; }
         }
     }
     return false;

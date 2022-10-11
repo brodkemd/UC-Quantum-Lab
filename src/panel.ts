@@ -1,8 +1,7 @@
 import * as vscode from "vscode";
 import * as path from 'path';
-import { out } from "./src";
-import { fstat, readFileSync, writeFileSync } from "fs";
-
+import { Config } from "./config";
+import { get_main_html } from "./compile_html";
 export class UCQ {
     /**
      * Track the currently panel. Only allow a single panel to exist at a time.
@@ -12,14 +11,12 @@ export class UCQ {
     public static readonly viewType = "uc-quantum-lab";
 
     private readonly _panel: vscode.WebviewPanel;
-    private readonly _extensionUri: vscode.Uri;
     private _disposables: vscode.Disposable[] = [];
 
     public open:boolean = false;
-    public _text_files:string[] = [];
-    public _images:string[] = [];
+    public config:Config;
 
-    public static createOrShow(context: vscode.ExtensionContext, resource_dir:string, images:string[], text_files:string[]) {
+    public static createOrShow(config:Config) {
         const column = vscode.window.activeTextEditor
             ? vscode.window.activeTextEditor.viewColumn
             : undefined;
@@ -40,12 +37,13 @@ export class UCQ {
                 enableScripts : true,
                 // And restrict the webview to only loading content from our extension's `media` directory.
                 localResourceRoots: [
-                    vscode.Uri.file(resource_dir)
+                    vscode.Uri.file(config.workspacePath),
+                    vscode.Uri.file(config.extensionInstallPath)
                 ],
             }
         );
 
-        UCQ.currentPanel = new UCQ(panel, context, images, text_files);
+        UCQ.currentPanel = new UCQ(panel, config);
     }
 
     public static kill() {
@@ -53,16 +51,13 @@ export class UCQ {
         UCQ.currentPanel = undefined;
     }
 
-    public static revive(panel: vscode.WebviewPanel, context: vscode.ExtensionContext, images:string[], text_files:string[]) {
-        UCQ.currentPanel = new UCQ(panel, context, images, text_files);
+    public static revive(panel: vscode.WebviewPanel, config:Config) {
+        UCQ.currentPanel = new UCQ(panel, config);
     }
 
-    private constructor(panel: vscode.WebviewPanel, context: vscode.ExtensionContext, images:string[], text_files:string[]) {
+    private constructor(panel: vscode.WebviewPanel, config:Config) {
         this._panel = panel;
-        this._extensionUri = context.extensionUri;
-        this._text_files = text_files;
-        this._images = images;
-
+        this.config = config;
 
         // Set the webview's initial html content
         this.update();
@@ -106,43 +101,49 @@ export class UCQ {
 
     private _getHtmlForWebview(webview: vscode.Webview) {
         // Uri to load styles into webview
-        const stylesResetUri = webview.asWebviewUri(vscode.Uri.joinPath(
-            this._extensionUri,
+        const stylesResetUri = webview.asWebviewUri(vscode.Uri.file(path.join(
+            this.config.extensionInstallPath,
             "media",
             "reset.css"
-        ));
-        const stylesMainUri = webview.asWebviewUri(vscode.Uri.joinPath(
-            this._extensionUri,
+        )));
+        const stylesMainUri = webview.asWebviewUri(vscode.Uri.file(path.join(
+            this.config.extensionInstallPath,
             "media",
             "vscode.css"
-        ));
+        )));
 
         // Use a nonce to only allow specific scripts to be run
-        const image_src = webview.asWebviewUri(vscode.Uri.joinPath(
-            this._extensionUri,
+        const image_src = webview.asWebviewUri(vscode.Uri.file(path.join(
+            this.config.extensionInstallPath,
             "media",
             "uc.png"
-        ));
+        )));
         //		<h1>hello</h1>
         // <img src=\"${image_src.fsPath}\" alt="No Image to Display"/>
-        let source:string = `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-	<body>
-`;
-        for (let file of this._text_files) {
-            let to_add:string = "h:matrix>";
-            let contents:string = readFileSync(file).toString();
-            for (let element of contents.split("\n")) {
-                to_add.concat(element.split(":")[0], "|", element.split(":")[-1], ";");
-            }
-            to_add.concat("</h:matrix>");
-
-        }
+//         let source:string = `<!DOCTYPE html>
+// <html lang="en">
+// <head><meta charset="UTF-8">
+// <meta name="viewport" content="width=device-width, initial-scale=1.0">
+// </head>
+// 	<body>
+// `;
+//         for (let file of this._text_files) {
+//             let to_add:string = "h:matrix>";
+//             let contents:string = readFileSync(file).toString();
+//             for (let element of contents.split("\n")) {
+//                 to_add.concat(element.split(":")[0], "|", element.split(":")[-1], ";");
+//             }
+//             to_add = to_add.slice(0, to_add.length -1)
+//             to_add.concat("</h:matrix>");
+            
+//         }
         
-        source.concat(`</body>\n</html>`);
-        return source;
+        //source.concat(`</body>\n</html>`);
+        let source:string = get_main_html(this.config);
+        if (source.length) {
+            return source;
+        } else {
+            return `<!DOCTYPE html>\n<html>\n<body>\n<h1>Error setting html</h1>\n</body>\n</html>`;
+        }
     }
 }

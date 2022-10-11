@@ -39,7 +39,7 @@ def state(circuit:QuantumCircuit, show=True):
             for ii, item in enumerate(_state):
                 to_return[_options[ii]] = item
                 item = str(item).replace("(", "").replace(")", "")
-                f.write(f"{_options[ii]} : {item}\n")
+                f.write(f"{_options[ii]}:{item}\n")
     
     else:
         for ii, item in enumerate(_state):

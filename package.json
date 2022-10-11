@@ -42,6 +42,11 @@
         "command": "uc-quantum-lab.init",
         "title": "Inits a directory if not already a UC Quantum directory",
         "category": "UC Quantum"
+      },
+      {
+        "command": "uc-quantum-lab.reinit",
+        "title": "Reinits a directory if UCQ is broken, will delete old config dir",
+        "category": "UC Quantum"
       }
     ],
     "menus": {
