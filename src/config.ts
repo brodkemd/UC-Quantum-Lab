@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import * as fs from "fs"
 import path = require("path");
 import { isBooleanObject, isStringObject } from "util/types";
+import { print } from "./src";
 
 export class UserConfig {
     userFile:string = "";
@@ -15,12 +16,7 @@ export class UserConfig {
 
     constructor(user_config_file:string|undefined) {
         if (user_config_file!==undefined) {
-            if (fs.existsSync(user_config_file)) {
-                this.userFile = user_config_file;
-            } else {
-                this.errorEncountered = true;
-                this.errorMessage = `user config file ${user_config_file} does not exist`;
-            }
+            this.userFile = user_config_file;
         }
     }
     get() {
@@ -54,7 +50,7 @@ export class UserConfig {
         // checks pip exe
         if (read_in["pip"] !== undefined) {
             if (fs.existsSync(read_in["pip"])) { 
-                this.python = read_in["pip"]; 
+                this.pip = read_in["pip"]; 
             } else {
                 this.errorEncountered = true;
                 this.errorMessage = `the pip path from user config ${read_in["pip"]} does not exist, config file is ${this.userFile}`;
@@ -63,7 +59,17 @@ export class UserConfig {
             this.errorEncountered = true;
             this.errorMessage = `pip was not found in the user config file, config file is ${this.userFile}`;
         }
-        this.save();
+        //this.save();
+    }
+
+    toDict():{[name:string] : string|boolean} {
+        let to_return:{[name:string] : string|boolean} = {};
+        to_return["show_histogram"] = this.showHistogram;
+        to_return["show_state_vector"] = this.showStateVector;
+        to_return["show_circ"] = this.showCirc;
+        to_return["pip"] = this.pip;
+        to_return["python"] = this.python;
+        return to_return
     }
 
     setFromDict(dict:{[name:string] : string|boolean}) {
@@ -121,6 +127,7 @@ export class UserConfig {
     }
 
     save() {
+        print(`saving user config to ${this.userFile}`);
         let config:{[name:string]:string|boolean} = {"show_histogram" : this.showHistogram,
                                                      "show_state_vector" :this.showStateVector, "show_circ" : this.showCirc, 
                                                      "python" : this.python, 
@@ -151,6 +158,7 @@ export class Config {
     stateHtmlFormatFile:string = "";
     imageHtmlFormatFile:string = "";
     mainHtmlFormatFile:string = "";
+    testHtmlFile:string = "";
     mathJS:string = "";
     noDataImage:string = "";
     outStateHtmlFile:string = "";
@@ -194,7 +202,7 @@ export class Config {
 // mirror_dir = path.join(ext_path, "templates", "template_config");
 // template_python_file = path.join(ext_path, "templates", "main.py");
 
-export async function get_config(context:vscode.ExtensionContext, get_user_config:boolean=true):Promise<Config> {
+export async function get_config(context:vscode.ExtensionContext):Promise<Config> {
     if (vscode.workspace.workspaceFolders !== undefined) {
         let config:Config = new Config(vscode.workspace.workspaceFolders[0].uri.fsPath, context.extensionPath);
         // setting paths
@@ -204,12 +212,13 @@ export async function get_config(context:vscode.ExtensionContext, get_user_confi
         config.templateConfigFile = path.join(config.extensionInstallPath, "templates", "template_config");
         config.templatePythonFile = path.join(config.extensionInstallPath, "templates", "main.py");
         config.stateHtmlFormatFile = path.join(config.extensionInstallPath, "media", "state.html");
-        config.imageHtmlFormatFile = path.join(config.extensionInstallPath, "media", "image.html");
+        config.imageHtmlFormatFile = path.join(config.extensionInstallPath, "media", "images.html");
         config.mathJS = path.join(config.extensionInstallPath, "media", "mathjax", "tex-chtml.js");
         config.noDataImage = path.join(config.extensionInstallPath, "media", "no_img.jpg");
         config.outImageHtmlFile = path.join(config.configDir, "__images__.html");
         config.outStateHtmlFile = path.join(config.configDir, "__state__.html");
         config.mainHtmlFormatFile = path.join(config.extensionInstallPath, "media", "index.html");
+        config.testHtmlFile = path.join(config.extensionInstallPath, "media", "test.html");
         config.validImageExt = ".png";
 
         config.yes = "yes";
@@ -223,10 +232,10 @@ export async function get_config(context:vscode.ExtensionContext, get_user_confi
         // initializing user config
         config.initUserConfig();
 
-        if (get_user_config) {
+        //if (get_user_config) {
             // if we should load from file, it is loaded
-            config.setUserConfig();
-        }
+        //    config.setUserConfig();
+        //}
         return config
     } else {
         return new Config(undefined, undefined);

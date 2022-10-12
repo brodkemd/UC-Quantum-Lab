@@ -1,7 +1,8 @@
 import * as vscode from "vscode";
 import * as path from 'path';
 import { Config } from "./config";
-import { get_main_html } from "./compile_html";
+import {compile_html } from "./compile_html";
+import { print } from "./src";
 export class UCQ {
     /**
      * Track the currently panel. Only allow a single panel to exist at a time.
@@ -42,7 +43,7 @@ export class UCQ {
                 ],
             }
         );
-
+        print("Creating new instance");
         UCQ.currentPanel = new UCQ(panel, config);
     }
 
@@ -96,10 +97,11 @@ export class UCQ {
 
     public async update() {
         const webview = this._panel.webview;
-        this._panel.webview.html = this._getHtmlForWebview(webview);
+        this._panel.webview.html = await this._getHtmlForWebview(webview);
     }
 
-    private _getHtmlForWebview(webview: vscode.Webview) {
+    private async _getHtmlForWebview(webview: vscode.Webview) {
+        print("getting html for the page")
         // Uri to load styles into webview
         const stylesResetUri = webview.asWebviewUri(vscode.Uri.file(path.join(
             this.config.extensionInstallPath,
@@ -118,28 +120,8 @@ export class UCQ {
             "media",
             "uc.png"
         )));
-        //		<h1>hello</h1>
-        // <img src=\"${image_src.fsPath}\" alt="No Image to Display"/>
-//         let source:string = `<!DOCTYPE html>
-// <html lang="en">
-// <head><meta charset="UTF-8">
-// <meta name="viewport" content="width=device-width, initial-scale=1.0">
-// </head>
-// 	<body>
-// `;
-//         for (let file of this._text_files) {
-//             let to_add:string = "h:matrix>";
-//             let contents:string = readFileSync(file).toString();
-//             for (let element of contents.split("\n")) {
-//                 to_add.concat(element.split(":")[0], "|", element.split(":")[-1], ";");
-//             }
-//             to_add = to_add.slice(0, to_add.length -1)
-//             to_add.concat("</h:matrix>");
-            
-//         }
         
-        //source.concat(`</body>\n</html>`);
-        let source:string = get_main_html(this.config);
+        let source:string = await compile_html(this.config);
         if (source.length) {
             return source;
         } else {

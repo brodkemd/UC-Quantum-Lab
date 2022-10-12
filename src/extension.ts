@@ -173,11 +173,14 @@ async function init(config:Config):Promise<boolean> {
 			let choice:string|undefined = await vscode.window.showInformationMessage(`Do you want to initialize your current directory for this extension (will make the dir ${src.get_last_from_path(config.configDir)} here)`, config.yes, config.no);
 			if (choice === config.yes) {
 				if (!(await src.mkDir(config.configDir))) { return false; }
+				
 			} else {
 				print("User blocked config directory creation, returning");
 				vscode.window.showErrorMessage("Can not execute this extension without a config directory, sorry");
 				return false;
 			}
+			
+			config.userConfig.save();
 			let fname = src.get_last_from_path(config.templatePythonFile);
 			if (!(await src.check_if_file_in_dir(config.workspacePath, fname))) {
 				let selection:string|undefined = await vscode.window.showInformationMessage(`Do you want an example main file?`, config.yes, config.no)
@@ -248,7 +251,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// );
 	context.subscriptions.push(
 		vscode.commands.registerCommand("uc-quantum-lab.execute", async () => {
-			let config:Config = await get_config(context, false);
+			let config:Config = await get_config(context);
 			if (config.errorEncountered) {
 				src.error(config.errorMessage);
 				return;
@@ -286,7 +289,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('uc-quantum-lab.init', async () => {
-			let config:Config = await get_config(context, false);
+			let config:Config = await get_config(context);
 			if (config.errorEncountered) {
 				src.error(config.errorMessage);
 				return;
@@ -299,7 +302,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('uc-quantum-lab.reinit', async () => {
-			let config:Config = await get_config(context, false);
+			let config:Config = await get_config(context);
 			if (config.errorEncountered) {
 				src.error(config.errorMessage);
 				return;
