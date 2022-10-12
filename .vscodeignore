@@ -6,6 +6,7 @@ src/**
 vsc-extension-quickstart.md
 templates/**
 python_package/**
+packages/**
 **/tsconfig.json
 **/.eslintrc.json
 **/*.map

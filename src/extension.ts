@@ -40,67 +40,6 @@ async function verifyPython(config:Config):Promise<boolean> {
 			return false;
 		}
 	}
-	
-	// loading config from json file
-	// let config:{[name : string] : string|boolean}= {};
-	// if (fs.existsSync(config_file)) {
-	// 	let read_in = await src.readJsonFile(config_file)
-	// 	for (let val in read_in) {
-	// 		config[val] = read_in[val];
-	// 	}
-	// } else {
-	// 	print(`Could not find config file ${config_file}`);
-	// 	vscode.window.showErrorMessage(`Could not find config file ${config_file}`);
-	// 	return false;
-	// }
-	// if (config["python"] === undefined || config["pip"] === undefined) {
-	// 	vscode.window.showErrorMessage("python was not found in your config file, need to reinit, answer the following prompts");
-	// 	await checks_init(context, package_name, config);
-	// }
-	// if (config["python"] === undefined && config["pip"] === undefined) {
-	// 	print("Error: python and pip still not set");
-	// 	return false;
-	// } else {
-	// if (await src.try_command(`${config["python"]} -c "import ${package_name}"`)) {
-	// 	if (await src.get_version_of_python_module_with_name(config["pip"].toString(), package_name) !== cur_python_mod_ver) {
-	// 		print(`Setting up ${package_name} for ${config["python"]}`);
-	// 		if (await src.try_command(`${config["pip"]} install ${context.extensionPath.toString()}${path.sep}python_package`)) {
-	// 			vscode.window.showInformationMessage(`Success setup ${package_name}`);
-	// 		}
-	// 		else {
-	// 			vscode.window.showErrorMessage(`error installing ${package_name} for ${config["python"]}`);
-	// 		}
-	// 	} else {
-	// 		print(`Package is already there for ${config["python"]} and of the right version, do not need to install`);
-	// 	}
-	// } else {
-	// 	print(`Setting up ${package_name} for ${config["python"]}`);
-	// 	if (await src.try_command(`${config["pip"]} install ${context.extensionPath.toString()}${path.sep}python_package`)) {
-	// 		vscode.window.showInformationMessage(`Successfully setup ${package_name} for ${config["python"]}`);
-	// 	}
-	// 	else {
-	// 		vscode.window.showErrorMessage(`error setting up ${package_name} for ${config["python"]}`);
-	// 	}
-	// }
-	//}
-
-	// if (config["show_histogram"] === undefined) {
-	// 	config["show_histogram"] = false;
-	// }
-	// if (config["show_state_vector"] === undefined) {
-	// 	config["show_state_vector"] = false;
-	// }
-	// if (config["show_circ"] === undefined) {
-	// 	config["show_circ"] = false;
-	// }
-	// let to_return:boolean = true;
-	// // write JSON string to a file
-	// fs.writeFile(config.configFile, JSON.stringify(config, null, 4), err => {
-	// 	if (err) {
-	// 		vscode.window.showErrorMessage("could not save config back to file");
-	// 		to_return = false;
-	// 	}
-	// });
 	return true;
 }
 
@@ -198,12 +137,6 @@ async function init(config:Config):Promise<boolean> {
 			}
 		} else { return false; }
 	} else { 
-		// print(`Workspace already setup, performing quick checks`);
-		// if (!(await src.check_config_dir(config_dir, mirror_dir))) {
-		// 	print(`Error checking ${config_dir}`);
-		// 	vscode.window.showErrorMessage(`Error checking ${config_dir}`);
-		// 	return false;
-		// } else {
 		config.userConfig.get();
 		if (!(await verifyPython(config))) { 
 			print("detected faulty config");
@@ -217,7 +150,6 @@ async function init(config:Config):Promise<boolean> {
 			}
 			return false;
 		}
-		// }
 	}
 
 	return true;
@@ -228,27 +160,6 @@ async function init(config:Config):Promise<boolean> {
 // Your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
 	print("In activate");
-
-	// activates extension on python file
-	// const handler = async (doc: vscode.TextDocument) => {
-	// 	if(!doc.fileName.endsWith('.py')) {
-	//  		return;
-	//  	}
-	// };
-	
-	// const didOpen = vscode.workspace.onDidOpenTextDocument(doc => handler(doc));
-	// //const didChange = vscode.workspace.onDidChangeTextDocument(e => handler(e.document));
-	
-	// If we have an activeTextEditor when we open the workspace, trigger the handler
-	// if (vscode.window.activeTextEditor) {
-	// 	await handler(vscode.window.activeTextEditor.document);
-	// }
-	
-	// // Push all of the disposables that should be cleaned up when the extension is disabled
-	// context.subscriptions.push(
-	// 	didOpen
-	// 	//didChange
-	// );
 	context.subscriptions.push(
 		vscode.commands.registerCommand("uc-quantum-lab.execute", async () => {
 			let config:Config = await get_config(context);
@@ -257,6 +168,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 			if (UCQ.currentPanel && vscode.window.activeTextEditor) {
+				config.userConfig.get();
 				print("Window is activate");
 				if (vscode.window.activeTextEditor.document !== undefined) {
 					if (!(vscode.window.activeTextEditor.document.fileName.endsWith(".py"))) {
@@ -273,10 +185,18 @@ export async function activate(context: vscode.ExtensionContext) {
 							let term = vscode.window.createTerminal();
 							term.sendText(`${config.userConfig.python} ${vscode.window.activeTextEditor.document.fileName}`);
 						}
+						print("Checking active terminal");
+						if (vscode.window.activeTerminal !== undefined) {
+							print("there is an activate terminal");
+							if (vscode.window.activeTerminal.exitStatus !== undefined) {
+								UCQ.currentPanel.update();
+								return;
+							}
+						}
+						print("did not get status of active terminal");
 					}
 				} else { return; }
 
-				UCQ.currentPanel.update();
 			} else { 
 				if (await init(config)) {
 					print("Creating Window");
@@ -329,96 +249,3 @@ export async function activate(context: vscode.ExtensionContext) {
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
-
-				// if (fs.existsSync(config.configFile)) {
-				// 	print("config file exists");
-				// 	let read_in = await src.readJsonFile(config_file)
-				// 	if (read_in["python"] === undefined) {
-				// 		print(`Config file does not have python`)
-				// 		vscode.window.showErrorMessage("Could not get python command from you config");
-				// 		return;
-				// 	} else {
-				// 		print("python in config");
-				// 		if (!(fs.existsSync(read_in["python"]))) {
-				// 			print(`python interpreter in config ${read_in["python"]} does not exist`);
-				// 			vscode.window.showErrorMessage(`python interpreter in config ${read_in["python"]} does not exist`);
-				// 			return;
-				// 		} else {
-				// 			print("python from config is valid");
-				/*			}
-					}
-				} else {
-					print(`Could not find config file ${config_file}`);
-					vscode.window.showErrorMessage(`Could not find config file ${config_file}`);
-					return;
-				}
-				*/
-				//print("Running \"init\"");
-// 	let config:Config = await get_config(context, false);
-// 	if (!config.errorEncountered) {
-// 		if (!(fs.existsSync(config.configDir))) {
-// 			if (await checks_init(context, package_name)) {
-// 				if (!(fs.existsSync(config_dir))) {
-// 					//print(`Do you want to initialize your current directory for this extension (will make the dir ${config_dir.slice(config_dir.lastIndexOf(path.sep)+1, config_dir.length)} here)`);
-// 					let choice:string|undefined = await vscode.window.showInformationMessage(`Do you want to initialize your current directory for this extension (will make the dir ${config_dir.slice(config_dir.lastIndexOf(path.sep)+1, config_dir.length)} here)`, "yes", "no");
-// 					if (choice === "yes") {
-// 						src.build_config_dir(config_dir, mirror_dir);
-// 					} else {
-// 						print("Can not execute this extension without a config directory, sorry");
-// 						vscode.window.showErrorMessage("Can not execute this extension without a config directory, sorry");
-// 						return false;
-// 					}
-// 				} else {
-// 					print(`Config path ${config_dir} exists, checking it`);
-// 					// makes sure that the config path is configured correctly
-// 					if (!(await src.check_config_dir(config_dir, mirror_dir))) {
-// 						print(`Error checking ${config_dir}`);
-// 						vscode.window.showErrorMessage(`Error checking ${config_dir}`);
-// 						return false;
-// 					} else {
-// 						print("Checks passed");
-// 					}
-// 				}
-// 				let fname = template_python_file.slice(template_python_file.lastIndexOf(path.sep)+1, template_python_file.length);
-// 				if (!(await src.check_if_file_in_dir(cur_path, fname))) {
-// 					let selection:string|undefined = await vscode.window.showInformationMessage(`Do you want an example main file?`, "yes", "no")
-
-// 					if (selection === "yes") {
-// 						print("Making main file");
-// 						fs.copyFile(template_python_file, 
-// 									path.join(cur_path, fname), 
-// 									(err) => {
-// 							if (err){
-// 								src.out.appendLine(`Error copying ${template_python_file} to ${fname}`);
-// 								return false;
-// 							}
-// 						});
-// 					}
-// 				}
-// 			} else {
-// 				print("Error in checks function");
-// 				vscode.window.showErrorMessage("error in checks function");
-// 				return false;
-// 			}
-// 		} else { 
-// 			print(`Workspace already setup, performing quick checks`);
-// 			if (!(await src.check_config_dir(config_dir, mirror_dir))) {
-// 				print(`Error checking ${config_dir}`);
-// 				vscode.window.showErrorMessage(`Error checking ${config_dir}`);
-// 				return false;
-// 			} else {
-// 				if (!(await check_config(context, package_name, config_file))) {
-// 					print(`Error checking configuration`);
-// 					vscode.window.showErrorMessage(`Error checking configuration`);
-// 					return false;
-// 				}
-// 				print("Checks passed");
-// 			}
-// 		}
-// 	} else {
-// 		print(config.errorMessage);
-// 		vscode.window.showErrorMessage(config.errorMessage);
-// 		return false;
-// 	}
-// 	return true;
-// }

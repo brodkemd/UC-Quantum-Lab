@@ -163,7 +163,7 @@ export class Config {
     noDataImage:string = "";
     outStateHtmlFile:string = "";
     outImageHtmlFile:string = "";
-
+    cssFilesPath:string = "";
 
     curPythonModVer:string = "";
     pythonModulePath:string = "";
@@ -213,12 +213,13 @@ export async function get_config(context:vscode.ExtensionContext):Promise<Config
         config.templatePythonFile = path.join(config.extensionInstallPath, "templates", "main.py");
         config.stateHtmlFormatFile = path.join(config.extensionInstallPath, "media", "state.html");
         config.imageHtmlFormatFile = path.join(config.extensionInstallPath, "media", "images.html");
-        config.mathJS = path.join(config.extensionInstallPath, "media", "mathjax", "tex-chtml.js");
+        config.mathJS = path.join(config.extensionInstallPath, "packages", "mathjax", "tex-chtml.js");
         config.noDataImage = path.join(config.extensionInstallPath, "media", "no_img.jpg");
         config.outImageHtmlFile = path.join(config.configDir, "__images__.html");
         config.outStateHtmlFile = path.join(config.configDir, "__state__.html");
         config.mainHtmlFormatFile = path.join(config.extensionInstallPath, "media", "index.html");
         config.testHtmlFile = path.join(config.extensionInstallPath, "media", "test.html");
+        config.cssFilesPath = path.join(config.extensionInstallPath, "media");
         config.validImageExt = ".png";
 
         config.yes = "yes";

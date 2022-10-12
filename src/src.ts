@@ -20,7 +20,7 @@ export function get_last_from_path(_path:string) {
 }
 
 export function error(msg:string) {
-    print(msg);
+    print(`Error: ${msg}`);
     vscode.window.showErrorMessage(msg);
 }
 

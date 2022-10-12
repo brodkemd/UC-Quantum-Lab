@@ -5,40 +5,31 @@ import { Config } from "./config";
 import * as src from "./src"
 
 async function readFile(fname:string):Promise<string> {
-    let contents:string = "";
-    fs.readFile(fname, (err, file)=> {
-        if (err) {
-            src.error(`can not read file ${fname}, with message ${err.message}`);
-            return;
-        } else {
-            contents = file.toString();
-        }
-    });
-    return contents;
+    try {
+        return (await fs.promises.readFile(fname)).toString();
+    } catch ( e ) { 
+        src.error((e as Error).message); 
+        return "";
+    }
 }
 
 async function writeFile(fname:string, data:string):Promise<boolean> {
-    let to_return:boolean = true;
-    fs.writeFile(fname, data, (err) => {
-        if (err) {
-            src.error(`can not write to ${fname}, with message ${err.message}`);
-            to_return = false;
-        }
-    });
-    return to_return;
+    try {
+        await fs.promises.writeFile(fname, data);
+        return false;
+    } catch ( e ) {
+        src.error((e as Error).message);
+        return true;
+    }
 }
 
 async function readDir(dir_path:string):Promise<string[]> {
-    let to_return:string[] = [];
-    fs.readdir(dir_path, (err, files)=>{
-        if (err) {
-            src.error(`can not read config dir, with message ${err.message}`);
-            return;
-        } else {
-            to_return = files;
-        }
-    });
-    return to_return;
+    try {
+        return await fs.promises.readdir(dir_path);
+    } catch( e ) {
+        src.error((e as Error).message);
+        return [];
+    }
 }
 
 export async function compile_html(config:Config):Promise<string> {
@@ -50,41 +41,31 @@ export async function compile_html(config:Config):Promise<string> {
 
     let arr:string[] = [];
     if (config.userConfig.showStateVector) {
+        src.print("Including state vector");
         let state_format:string = await readFile(config.stateHtmlFormatFile);
-        if (!(state_format.length)) {return ""};
-        // fs.readFile(config.stateHtmlFormatFile, (err, file)=> {
-        //     if (err) {
-        //         src.error(`can not read file ${config.stateHtmlFormatFile}`);
-        //         return;
-        //     } else {
-        //         state_format = file.toString();
-        //     }
-        // });
+        if (!(state_format.length)) {
+            src.print("no data was returned from state data file");
+            return "";
+        }
+
         let state_data:string = "";
         src.print("Reading state data file")
         if (fs.existsSync(config.stateDataFile)) {
             state_data = await readFile(config.stateDataFile);
             if (!(state_data.length)) { return ""; }
-            // fs.readFile(config.stateDataFile, (err, file)=>{
-            //     if (err) {
-            //         src.error(`can not read file ${config.stateDataFile}`);
-            //         return;
-            //     } else {
-            //         state_data = file.toString();
-            //     }
-            // });
+
             for (let line of state_data.split("\n")) {
                 arr.push(line.replace(":", "&").replace("j", "\\mathrm{i}"));
             }
-    
+            
             let exit_code = await writeFile(config.outStateHtmlFile, state_format.replace("INSERT_HERE", arr.join("\\\\")).replace("MATH_JS", config.mathJS));
-            // fs.writeFile(config.outStateHtmlFile, state_format.replace("INSERT_HERE", arr.join("\\\\")).replace("MATH_JS", config.mathJS), (err) => {
-            //     if (err) {
-            //         src.error(`can not write to ${config.outStateHtmlFile}, with message ${err.message}`);
-            //     }
-            // });
+            if (exit_code) {
+                src.error("Could not write data to state out html file");
+                return "";
+            }
             frames.push(`<frame src = "${config.outStateHtmlFile}" name = "state page" scrolling="yes"/>`);
             cols.push("200");
+            src.print("done loading into state htmle file")
         } else {
             src.print(`State data file ${config.stateDataFile} does not exist, skipping`)
         }       
@@ -96,71 +77,43 @@ export async function compile_html(config:Config):Promise<string> {
     if (config.userConfig.showCirc || config.userConfig.showHistogram) {
         let image_format:string = await readFile(config.imageHtmlFormatFile);
         if (!(image_format.length)) { return "";}
-        // fs.readFile(config.imageHtmlFormatFile, (err, file) => {
-        //     if (err) {
-        //         src.error(`can not read file ${config.imageHtmlFormatFile}`);
-        //         return;
-        //     } else {
-        //         image_format = file.toString();
-        //     }
-        // });
         arr = [];
         for (let file of await readDir(config.configDir)) {
             if (file.endsWith(config.validImageExt)) {
                 arr.push(`<img src="${path.join(config.configDir, file)}" alt="could not find image">`);
             }
         }
-        // fs.readdir(config.configDir, (err, files)=>{
-        //     if (err) {
-        //         src.error(`can not read config dir, with message ${err.message}`);
-        //         return;
-        //     } else {
-        //         for (let file of files) {
-        //             if (file.endsWith(config.validImageExt)) {
-        //                 arr.push(`<img src="${path.join(config.configDir, file)}" alt="could not find image">`)
-        //             }
-        //         }
-        //     }
-        // });
+
 
         if (!arr.length) {
             arr.push(`<img src="${config.noDataImage}" alt="no image available">`);
         }
         let exit_code:boolean = await writeFile(config.outImageHtmlFile, image_format.replace("INSERT_HERE", arr.join("\n")));
-        if (exit_code) {return "";}
+        if (exit_code) { return ""; }
         frames.push(`<frame src = "${config.outImageHtmlFile}" name = "image page" scrolling="yes"/>`);
         cols.push("*");
-        // fs.writeFile(config.outImageHtmlFile, image_format.replace("INSERT_HERE", arr.join("\n")), (err)=>{
-        //     if (err) {
-        //         src.error(`error writing to image html file, with message ${err.message}`);
-        //         return;
-        //     } else {
-        //         frames.push(`<frame src = "${config.outImageHtmlFile}" name = "image page" scrolling="yes"/>`)
-        //         cols.push("*");
-        //         return;
-        //     }
-        // });
+
     } else {
         src.print("omitting images from viewer");
     }
-    src.print("reading in main html content")
-    let main_format:string = await readFile(config.mainHtmlFormatFile);
-    
-    // fs.readFile(config.mainHtmlFormatFile, (err, file)=>{
-    //     if (err) {
-    //         src.error(`error reading main format file, with message ${err.message}`);
-    //         return;
-    //     } else {
-    //         src.print("here");
-    //         main_format = file.toString();
-    //     }
-    // });
-    src.print(`source:${main_format}`);
-    main_format = main_format.replace("COLS", cols.join(", "));
-    main_format = main_format.replace("FRAMES", frames.join("\n"));
 
-    src.print(`source:${main_format}`);
-    return main_format;
+    let styles:string[] = []
+    for (let file of await readDir(config.cssFilesPath)) {
+        if (file.endsWith(".css")) {
+            styles.push(`<link rel="stylesheet" href="${path.join(config.cssFilesPath, file)}">`);
+        }
+    }
+
+    if (frames.length) {
+        src.print("reading in main html content")
+        let main_format:string = await readFile(config.mainHtmlFormatFile);
+        main_format = main_format.replace("STYLES", styles.join("\n"));
+        main_format = main_format.replace("COLS", cols.join(", "));
+        main_format = main_format.replace("FRAMES", frames.join("\n"));
+        return main_format;
+    } else {
+        return "";
+    }
 }
 
 async function test_html(config:Config):Promise<string> {

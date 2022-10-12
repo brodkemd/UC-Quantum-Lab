@@ -22,6 +22,7 @@
         "templates",
         "python_package",
         "**/*.d.ts",
-        "local_test"
+        "local_test",
+        "packages"
     ]
 }

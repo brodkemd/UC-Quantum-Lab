@@ -98,6 +98,9 @@ export class UCQ {
     public async update() {
         const webview = this._panel.webview;
         this._panel.webview.html = await this._getHtmlForWebview(webview);
+        print("Updating webview panel");
+        print(this._panel.webview.html);
+
     }
 
     private async _getHtmlForWebview(webview: vscode.Webview) {
@@ -125,7 +128,7 @@ export class UCQ {
         if (source.length) {
             return source;
         } else {
-            return `<!DOCTYPE html>\n<html>\n<body>\n<h1>Error setting html</h1>\n</body>\n</html>`;
+            return `<!DOCTYPE html>\n<html>\n<body>\n<h1>No Content to Display</h1>\n</body>\n</html>`;
         }
     }
 }
