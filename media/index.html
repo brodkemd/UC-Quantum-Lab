@@ -1,10 +1,327 @@
-<!DOCTYPE html>
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <!-- FontAwesome CSS-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.css">
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+	STYLES
+	<style>
+
+		aside.sidebar-left#resizable {
+			height: 100%;
+			min-width: 50px;
+		}
+		
+		/* @media (min-width: 100px) {
+			.wrapper .sidebar-left {
+			top: 0;
+			}
+		} */
+		
+		/* @media (min-width: 100px) {
+			aside.sidebar-left {
+			width: 10em;
+			}
+		} */
+		
+		aside.sidebar-left {
+			width: 17em;
+			top: 0;
+			float: left;
+			box-shadow: -5px 0 0 #f7f7f7 inset;
+			z-index: 1000;
+		}
+		
+		aside.sidebar-left .draghandle {
+			position: absolute;
+			z-index: 100;
+			width: 8px;
+			top: 0;
+			bottom: 0;
+			right: 0;
+			cursor: col-resize;
+			float: right;
+		}
+		
+		.wrapper {
+			min-height: 100vh;
+			width: 100%;
+			height: 100%;
+			table-layout: fixed;
+			overflow: scroll;
+			padding-top: 0;
+		}
+		
+		.wrapper #mainArea.content {
+			margin-left: 17em;
+		}
+		
+		@media (min-width: 1vh) {
+			.wrapper #mainArea.content {
+			margin-left: 17em;
+			}
+		}
+		
+		.mt-wrapper {
+			position: relative;
+			z-index: 1;
+		}
+		
+		ul {
+			list-style-type: none;
+		}
+		
+		.nav {
+			position: relative;
+			top: 0;
+			height: 100vh;
+			padding-top: .5vh;
+			overflow-x: hidden;
+		
+		}
+		
+		.nav a {
+			font-weight: 500;
+			color: white;
+		}
+		
+		.nav h5 {
+			margin-right: 4px;
+			color: white;
+			font-size: 1rem;
+			text-transform: uppercase;
+		}
+		
+		h1 {
+			font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+			color: #f1f1f1;
+		}
+		
+		body {
+			background: #14161D;
+			color: white;
+		}
+		
+		hr {
+			border-top: 1px solid rgba(255, 255, 255, .4);
+		}
+
+		img {
+			padding-bottom: 3vh;
+			padding-top: 3vh;
+		}
+		
+	</style>
+    <title>Create a resizable left navigation</title>
+  </head>
+
+  <body>
+
+    <div class="wrapper">
+      <aside id="resizable" class="sidebar-left movable-div position-fixed bottom-0 left-0 animated">
+        <div class="nano has-scrollbar">
+          <nav class="nano-content" tabindex="0" style="right: -17px;">
+            <ul class="nav nav-main">
+              <li id="dashboard-nav" class="p-0 w-100">
+                <div class="sidebar-sticky">
+				  <h5 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+				  	<script id="MathJax-script" async src="MATHJS"></script>
+				  	VECTOR
+				  </h5>
+                </div>
+              </li>
+            </ul>
+          </nav>
+          <div class="nano-pane" style="display: none;">
+            <div class="nano-slider" style="height: 1246px; transform: translate(0px, 0px);"></div>
+          </div>
+        </div>
+        <div class="draghandle" style="width: 6px; height: 100vh;"></div>
+      </aside>
+      <div id="mainArea" class="content marginLeft d-flex h-100 flex-column">
+        <article class="col-lg-8 content-page--text">
+          <div class="row">
+            <div class="col-12 col-centered">
+              IMAGES
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      $(document).ready(function() {
+        var element = document.getElementById('resizable');
+        if (element) {
+          var resizer = document.createElement('div');
+          resizer.className = 'draghandle';
+          resizer.style.width = '6px';
+          resizer.style.height = '100vh';
+          element.appendChild(resizer);
+          resizer.addEventListener('mousedown', initResize, false);
+        }
+
+        function initResize(e) {
+          window.addEventListener('mousemove', Resize, false);
+          window.addEventListener('mouseup', stopResize, false);
+          $('#mainArea.content, #tabs iframe').addClass('marginLeft');
+        }
+
+        function Resize(e) {
+          element.style.width = (e.clientX - element.offsetLeft) + 'px';
+          $('#mainArea.content').css('margin-left', (e.clientX - element.offsetLeft) + 'px');
+          $('#tabs iframe').css('margin-left', (element.offsetLeft + 40) + 'px');
+        }
+
+        function stopResize(e) {
+          window.removeEventListener('mousemove', Resize, false);
+          window.removeEventListener('mouseup', stopResize, false);
+          $('#tabs iframe').css('margin-left', element.offsetLeft + 'px');
+        }
+      });
+
+      //mobile toggle
+      $('.toggle-mobile').click(function() {
+        $('.overlay').toggleClass('hidden');
+      });
+
+    </script>
+  </body>
+
+</html>
+<!-- <!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>2 Column Frames Layout &mdash; Left Menu</title>
+      STYLES
+		<style type="text/css">
+		
+		body{
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+			height: 100%; 
+			max-height: 100%; 
+			font-family:Sans-serif;
+			line-height: 1.5em;
+		}
+		
+		#nav{
+			position: absolute;
+			top: 0;
+			bottom: 0; 
+			left: 0;
+			width: 10%; /* Width of navigation frame */
+			height: 100%;
+			max-width: 50%;
+			overflow: scroll; /* Disables scrollbars on the navigation frame. To enable scrollbars, change "hidden" to "scroll" */
+			border: 100px;
+			border-color: red;
+			background: #eee;
+			resize: both;
+		}
+		
+		main{
+			position: fixed;
+			top: 0; 
+			left: 10%;  /*Set this to the width of the navigation frame */
+			right: 0;
+			bottom: 0;
+			overflow: auto;
+			resize: horizontal;
+			border-left: 100px;
+			border-left-color: red;
+			/*background: #fff;*/
+		}
+		
+		.innertube{
+			margin: 15px; /* Provides padding for the content */
+		}
+		
+		/* p {
+			color: #555;
+		} */
+
+		nav ul {
+			list-style-type: none;
+			margin: 0;
+			padding: 0;
+			resize: horizontal;
+		}
+		
+		nav ul a {
+			/*color: darkgreen;*/
+			text-decoration: none;
+		}
+				
+		/*IE6 fix*/
+		* html body{
+			padding: 0 0 0 10%; /* Set the last value to the width of the navigation frame */
+		}
+		
+		* html main{ 
+			height: 100%; 
+			width: 100%; 
+		}
+		
+		</style>
+		
+		<script type="text/javascript">
+			/* =============================
+			This script generates sample text for the body content. 
+			You can remove this script and any reference to it. 
+			 ============================= */
+			var bodyText=["The smaller your reality, the more convinced you are that you know everything.", "If the facts don't fit the theory, change the facts.", "The past has no power over the present moment.", "This, too, will pass.", "</p><p>You will not be punished for your anger, you will be punished by your anger.", "Peace comes from within. Do not seek it without.", "<h3>Heading</h3><p>The most important moment of your life is now. The most important person in your life is the one you are with now, and the most important activity in your life is the one you are involved with now."]
+			function generateText(sentenceCount){
+				for (var i=0; i<sentenceCount; i++)
+				document.write(bodyText[Math.floor(Math.random()*7)]+" ")
+			}
+		</script>	
+	
+	</head>
+	
+	<body>		
+				
+		<main>
+			<div class="innertube">
+				
+				<h1>Heading</h1>
+				IMAGES
+				
+			</div>
+		</main>
+	
+		<nav id="nav">
+			<div class="vertical-menu">
+			<ul>
+				<script id="MathJax-script" async src="MATH_JS"></script>
+            \[\begin{matrix}VECTOR\end{matrix}\]
+			</ul>
+			</div>
+		</nav>
+	
+	</body>
+</html> -->
+ <!-- <!DOCTYPE html>
 <html>
    <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width">
       <title>Home</title>
-      <!--STYLES -->
+      STYLES
    </head>
    <frameset cols = "COLS">
       FRAMES
@@ -14,4 +331,4 @@
          </body>
       </noframes>
    </frameset>
-</html>
+</html> -->

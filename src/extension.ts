@@ -18,6 +18,7 @@ async function verifyPython(config:Config):Promise<boolean> {
 	if (await src.try_command(`${config.userConfig.python} -c "import ${config.pythonModuleName}"`)) {
 		if (await src.get_version_of_python_module_with_name(config.userConfig.pip, config.pythonModuleName) !== config.curPythonModVer) {
 			print(`Setting up ${config.pythonModuleName} for ${config.userConfig.python}`);
+			vscode.window.showInformationMessage(`Setting up the python module ${config.pythonModuleName}`);
 			if (await src.try_command(`${config.userConfig.pip} install ${config.pythonModulePath}`)) {
 				vscode.window.showInformationMessage(`Successfully setup ${config.pythonModuleName}`);
 				print(`Successfully setup ${config.pythonModuleName}`);
@@ -31,7 +32,7 @@ async function verifyPython(config:Config):Promise<boolean> {
 		}
 	} else {
 		print(`Setting up ${config.pythonModuleName} for ${config.userConfig.python}`);
-		if (await src.try_command(`${config.userConfig.pip} install ${config.pythonModulePath}`)) {
+		if (await src.try_command(`${config.userConfig.pip} install --use-feature=in-tree-build ${config.pythonModulePath}`)) {
 			vscode.window.showInformationMessage(`Successfully setup ${config.pythonModuleName} for ${config.userConfig.python}`);
 			print(`Successfully setup ${config.pythonModuleName} for ${config.userConfig.python}`);
 		}
@@ -125,15 +126,26 @@ async function init(config:Config):Promise<boolean> {
 				let selection:string|undefined = await vscode.window.showInformationMessage(`Do you want an example main file?`, config.yes, config.no)
 				if (selection === config.yes) {
 					print("Making main file");
+					let to_return:boolean = true
 					fs.copyFile(config.templatePythonFile, 
 								path.join(config.workspacePath, fname), 
 								(err) => {
 						if (err){
 							src.error(`Error copying ${config.templatePythonFile} to ${fname}`);
-							return false;
+							to_return = false;
 						}
 					});
+					if (to_return) {
+						if (!(await src.try_command(`code ${path.join(config.workspacePath, fname)}`))) {
+							src.error(`could not open "${path.join(config.workspacePath, fname)} in code"`);
+						} else {
+							vscode.commands.executeCommand("uc-quantum-lab.execute");
+						}
+					}
+					return to_return;
 				}
+			} else {
+				src.error(`"${fname}" is in your current directory and is not a directory please delete it from the current directory`);
 			}
 		} else { return false; }
 	} else { 
@@ -162,15 +174,16 @@ export async function activate(context: vscode.ExtensionContext) {
 	print("In activate");
 	context.subscriptions.push(
 		vscode.commands.registerCommand("uc-quantum-lab.execute", async () => {
+			print("--- executing ---");
 			let config:Config = await get_config(context);
 			if (config.errorEncountered) {
 				src.error(config.errorMessage);
 				return;
 			}
 			if (UCQ.currentPanel && vscode.window.activeTextEditor) {
-				config.userConfig.get();
 				print("Window is activate");
 				if (vscode.window.activeTextEditor.document !== undefined) {
+					config.userConfig.get();
 					if (!(vscode.window.activeTextEditor.document.fileName.endsWith(".py"))) {
 						src.error(`${vscode.window.activeTextEditor.document.fileName} is not a python file, can not execute it`);
 						return;
@@ -185,15 +198,9 @@ export async function activate(context: vscode.ExtensionContext) {
 							let term = vscode.window.createTerminal();
 							term.sendText(`${config.userConfig.python} ${vscode.window.activeTextEditor.document.fileName}`);
 						}
-						print("Checking active terminal");
-						if (vscode.window.activeTerminal !== undefined) {
-							print("there is an activate terminal");
-							if (vscode.window.activeTerminal.exitStatus !== undefined) {
-								UCQ.currentPanel.update();
-								return;
-							}
-						}
-						print("did not get status of active terminal");
+						print("Waiting for trigger file");
+						await src.wait_for_trigger_file(config);
+						UCQ.currentPanel.update(config);
 					}
 				} else { return; }
 

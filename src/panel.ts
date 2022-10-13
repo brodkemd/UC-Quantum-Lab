@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as path from 'path';
 import { Config } from "./config";
-import {compile_html } from "./compile_html";
+import {compile_html, test_html } from "./compile_html";
 import { print } from "./src";
 export class UCQ {
     /**
@@ -15,7 +15,6 @@ export class UCQ {
     private _disposables: vscode.Disposable[] = [];
 
     public open:boolean = false;
-    public config:Config;
 
     public static createOrShow(config:Config) {
         const column = vscode.window.activeTextEditor
@@ -25,7 +24,7 @@ export class UCQ {
         // If we already have a panel, show it.
         if (UCQ.currentPanel) {
             UCQ.currentPanel._panel.reveal(column);
-            UCQ.currentPanel.update();
+            UCQ.currentPanel.update(config);
             return;
         }
         // Otherwise, create a new panel.
@@ -35,12 +34,12 @@ export class UCQ {
             {viewColumn : vscode.ViewColumn.Two, preserveFocus : false},
             {
                 // Enable javascript in the webview
-                enableScripts : true
+                enableScripts : true,
                 // And restrict the webview to only loading content from our extension's `media` directory.
-                // localResourceRoots: [
-                //     vscode.Uri.file(config.workspacePath),
-                //     vscode.Uri.from(path.join(config.extensionInstallPath, "media"));
-                // ],
+                localResourceRoots: [
+                     vscode.Uri.file(config.workspacePath),
+                     vscode.Uri.file(path.join(config.extensionInstallPath))
+                ],
             }
         );
         print("Creating new instance");
@@ -58,27 +57,13 @@ export class UCQ {
 
     private constructor(panel: vscode.WebviewPanel, config:Config) {
         this._panel = panel;
-        this.config = config;
 
         // Set the webview's initial html content
-        this.update();
+        this.update(config);
 
         // Listen for when the panel is disposed
         // This happens when the user closes the panel or when the panel is closed programatically
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
-
-        // // Handle messages from the webview
-        // this._panel.webview.onDidReceiveMessage(
-        //     (message) => {
-        //         switch (message.command) {
-        //             case "alert":
-        //                 vscode.window.showErrorMessage(message.text);
-        //                 return;
-        //         }
-        //     },
-        //     null,
-        //     this._disposables
-        // );
     }
 
     public dispose() {
@@ -95,36 +80,20 @@ export class UCQ {
         }
     }
 
-    public async update() {
+    public async update(config:Config) {
         const webview = this._panel.webview;
-        this._panel.webview.html = await this._getHtmlForWebview(webview);
+        config.userConfig.get();
+        // updates user options
+        this._panel.webview.html = await this._getHtmlForWebview(webview, config);
         print("Updating webview panel");
-        print(this._panel.webview.html);
+        //print(this._panel.webview.html);
 
     }
 
-    private async _getHtmlForWebview(webview: vscode.Webview) {
+    private async _getHtmlForWebview(webview: vscode.Webview, config:Config) {
         print("getting html for the page")
-        // Uri to load styles into webview
-        const stylesResetUri = webview.asWebviewUri(vscode.Uri.file(path.join(
-            this.config.extensionInstallPath,
-            "media",
-            "reset.css"
-        )));
-        const stylesMainUri = webview.asWebviewUri(vscode.Uri.file(path.join(
-            this.config.extensionInstallPath,
-            "media",
-            "vscode.css"
-        )));
-
-        // Use a nonce to only allow specific scripts to be run
-        const image_src = webview.asWebviewUri(vscode.Uri.file(path.join(
-            this.config.extensionInstallPath,
-            "media",
-            "uc.png"
-        )));
         
-        let source:string = await compile_html(this.config);
+        let source:string = await compile_html(this._panel.webview, config);
         if (source.length) {
             return source;
         } else {

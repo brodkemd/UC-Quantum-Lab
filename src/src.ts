@@ -24,18 +24,48 @@ export function error(msg:string) {
     vscode.window.showErrorMessage(msg);
 }
 
+function delay(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
+}
+
 export async function try_command(command:string):Promise<boolean> {
+    print(`Trying command "${command}"`);
     let to_return:boolean = false;
     try {
         await execProm(command).then(
             (err) => {
-                if (!(err.stderr.length)) { to_return = true; }
-                return;
+                if (err.stderr.length) {
+                    if (err.stderr.indexOf("DEPRECATION") === -1) { // accounts for pip package problems
+                        to_return = false; 
+                        print(`Encountered error "${err.stderr.toString()}"`);
+                    } else {
+                        print(`ignoring error "${err.stderr.toString()}"`);
+                    }
+                }
+                else { to_return = true; }
+                //else { error(`from try command ${err.stderr.toString()}`); }
             }
         );
-    } catch ( e ) {}
+    } catch ( e ) {
+        print(`caught "${(e as Error).message}" in try command`);
+        to_return = false;
+    }
     return to_return;
 }
+
+export async function wait_for_trigger_file(config:Config) {
+    while (true) {
+        if (await fs.existsSync(config.triggerFile)) { break; } 
+        else { await delay(100); }
+    }
+    try { 
+        print("removing trigger file");
+        await fs.promises.rm(config.triggerFile); 
+    } 
+    catch ( e ) {
+        error(`caught error in waiting for trigger file: ${(e as Error).message}`);
+    }
+}   
 
 export async function get_version_of_python_module_with_name(pip:string, module:string):Promise<string> {
     let to_return:string = "";
@@ -64,16 +94,14 @@ export async function check_if_file_in_dir(dir_path : string, to_find : string):
         // Loop them all with the new for...of
         for( const entry of await fs.promises.readdir(dir_path) ) {
             // Get the full paths
-            if (entry == to_find){
-                if(!((await fs.promises.stat(path.join(dir_path, entry))).isFile())){
-                    error(`"${to_find}" is in your current directory and is not a directory please delete it from the current directory`);
-                    return false;
-                } else { return true; }
+            if (entry == to_find) {
+                if(!((await fs.promises.stat(path.join(dir_path, entry))).isFile())){ return false; } 
+                else { return true; }
             }
         }
     }
     // Catch anything bad that happens
-    catch( e ) { print(`${e}`); }
+    catch( e ) { print(`caught error in check_if_file_in_dir: ${e}`); }
     // default return
     return false;
 }

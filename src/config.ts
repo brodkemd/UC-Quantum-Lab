@@ -20,6 +20,7 @@ export class UserConfig {
         }
     }
     get() {
+        print(`print reading from ${this.userFile}`);
         let read_in = JSON.parse(fs.readFileSync(this.userFile, "utf8"));
         // checking user output config
         if (read_in["show_histogram"] !== undefined) {
@@ -59,7 +60,6 @@ export class UserConfig {
             this.errorEncountered = true;
             this.errorMessage = `pip was not found in the user config file, config file is ${this.userFile}`;
         }
-        //this.save();
     }
 
     toDict():{[name:string] : string|boolean} {
@@ -153,16 +153,20 @@ export class Config {
     configFile:string = "";
     templateConfigFile:string = "";
     templatePythonFile:string = "";
-    validImageExt:string = "";
+    // validImageExt:string = "";
     stateDataFile:string = "";
-    stateHtmlFormatFile:string = "";
-    imageHtmlFormatFile:string = "";
+    circImageFile:string = "";
+    histImageFile:string = "";
+    // stateHtmlFormatFile:string = "";
+    // imageHtmlFormatFile:string = "";
     mainHtmlFormatFile:string = "";
+    testCompiledHtmlFile:string = "";
     testHtmlFile:string = "";
     mathJS:string = "";
     noDataImage:string = "";
-    outStateHtmlFile:string = "";
-    outImageHtmlFile:string = "";
+    // outStateHtmlFile:string = "";
+    // outImageHtmlFile:string = "";
+    triggerFile:string = "";
     cssFilesPath:string = "";
 
     curPythonModVer:string = "";
@@ -177,6 +181,7 @@ export class Config {
         if (workspace_path !== undefined && extension_install_path !== undefined) {
             this.workspacePath = workspace_path;
             this.extensionInstallPath = extension_install_path;
+
         } else {
             this.errorEncountered = true;
             this.errorMessage = "workspace is not valid, please open a folder";
@@ -209,18 +214,22 @@ export async function get_config(context:vscode.ExtensionContext):Promise<Config
         config.configDir = path.join(config.workspacePath, ".UCQ_config");
 		config.configFile = path.join(config.configDir, "config.json"); // needs to be json
         config.stateDataFile = path.join(config.configDir, "__state__.txt");
+        config.circImageFile = path.join(config.configDir, "__circ__.png");
+        config.histImageFile = path.join(config.configDir, "__hist__.png");
+        config.triggerFile = path.join(config.configDir, ".trigger");
         config.templateConfigFile = path.join(config.extensionInstallPath, "templates", "template_config");
         config.templatePythonFile = path.join(config.extensionInstallPath, "templates", "main.py");
-        config.stateHtmlFormatFile = path.join(config.extensionInstallPath, "media", "state.html");
-        config.imageHtmlFormatFile = path.join(config.extensionInstallPath, "media", "images.html");
+        // config.stateHtmlFormatFile = path.join(config.extensionInstallPath, "media", "state.html");
+        // config.imageHtmlFormatFile = path.join(config.extensionInstallPath, "media", "images.html");
         config.mathJS = path.join(config.extensionInstallPath, "packages", "mathjax", "tex-chtml.js");
         config.noDataImage = path.join(config.extensionInstallPath, "media", "no_img.jpg");
-        config.outImageHtmlFile = path.join(config.configDir, "__images__.html");
-        config.outStateHtmlFile = path.join(config.configDir, "__state__.html");
+        // config.outImageHtmlFile = path.join(config.configDir, "__images__.html");
+        // config.outStateHtmlFile = path.join(config.configDir, "__state__.html");
         config.mainHtmlFormatFile = path.join(config.extensionInstallPath, "media", "index.html");
         config.testHtmlFile = path.join(config.extensionInstallPath, "media", "test.html");
+        config.testCompiledHtmlFile = path.join(config.configDir, "out.html");
         config.cssFilesPath = path.join(config.extensionInstallPath, "media");
-        config.validImageExt = ".png";
+        // config.validImageExt = ".png";
 
         config.yes = "yes";
         config.no = "no";

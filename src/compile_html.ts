@@ -32,21 +32,20 @@ async function readDir(dir_path:string):Promise<string[]> {
     }
 }
 
-export async function compile_html(config:Config):Promise<string> {
+export async function compile_html(webview:vscode.Webview, config:Config):Promise<string> {
     //<frame src = "STATE_PATH" name = "menu_page" scrolling="yes"/>
     //<frame src = "IMAGE_PATH" name = "main_page" scrolling="yes"/>
+    //src.print(`Cofiguration: circ = ${config.userConfig.showCirc} hist = ${config.userConfig.showHistogram} state = ${config.userConfig.showStateVector}`);
     src.print("Compiling html");
-    let frames:string[] = [];
-    let cols:string[] = [];
 
+    let imgFormat:string = `<div class="col-12 col-centered">\n<img src="SRC" alt="could not find image">\n</div>`
+
+    src.print("reading in main html content")
+    let main_format:string = await readFile(config.mainHtmlFormatFile);
     let arr:string[] = [];
+    // if the statevector must be shown
     if (config.userConfig.showStateVector) {
         src.print("Including state vector");
-        let state_format:string = await readFile(config.stateHtmlFormatFile);
-        if (!(state_format.length)) {
-            src.print("no data was returned from state data file");
-            return "";
-        }
 
         let state_data:string = "";
         src.print("Reading state data file")
@@ -55,75 +54,72 @@ export async function compile_html(config:Config):Promise<string> {
             if (!(state_data.length)) { return ""; }
 
             for (let line of state_data.split("\n")) {
-                arr.push(line.replace(":", "&").replace("j", "\\mathrm{i}"));
+                 arr.push(line.replace(":", "&").replace("j", "\\mathrm{i}"));
             }
-            
-            let exit_code = await writeFile(config.outStateHtmlFile, state_format.replace("INSERT_HERE", arr.join("\\\\")).replace("MATH_JS", config.mathJS));
-            if (exit_code) {
-                src.error("Could not write data to state out html file");
-                return "";
-            }
+            main_format = main_format.replace("VECTOR", `\\[\\color{white}\\begin{matrix}${arr.join("\\\\")}\\end{matrix}\\]`)
+            main_format = main_format.replace("VECTOR", arr.join("\\\\")).replace("MATHJS", webview.asWebviewUri(vscode.Uri.file(config.mathJS)).toString());
 
         } else {
-            src.print(`State data file ${config.stateDataFile} does not exist, creating no data file`);
-
-            let exit_code = await writeFile(config.outStateHtmlFile, state_format.replace("\\[\\begin{matrix}INSERT_HERE\\end{matrix}\\]", "<h1>No State data to display</h1>").replace("MATH_JS", config.mathJS));
-            if (exit_code) {
-                src.error("Could not write data to state out html file");
-                return "";
-            }
+            src.print(`State data file ${config.stateDataFile} does not exist, setting no data in ui`);
+            main_format = main_format.replace("VECTOR", "<h1>No State data to display</h1>").replace("MATHJS", webview.asWebviewUri(vscode.Uri.file(config.mathJS)).toString());
         }
-        frames.push(`<frame src = "${config.outStateHtmlFile}" name = "state page" scrolling="yes"/>`);
-        cols.push("200");
-        src.print("done loading into state html file")
-
     } else {
         src.print("omitting state vector from viewer");
+        main_format = main_format.replace("VECTOR", "").replace("MATHJS", webview.asWebviewUri(vscode.Uri.file(config.mathJS)).toString());
     }
     
     arr = [];
-    if (config.userConfig.showCirc || config.userConfig.showHistogram) {
-        let image_format:string = await readFile(config.imageHtmlFormatFile);
-        if (!(image_format.length)) { return "";}
-        for (let file of await readDir(config.configDir)) {
-            if (file.endsWith(config.validImageExt)) {
-                arr.push(`<img src="${path.join(config.configDir, file)}" alt="could not find image">`);
-            }
+    if (config.userConfig.showCirc){
+        src.print("including circuit image");
+        if (fs.existsSync(config.circImageFile)) {
+            arr.push(imgFormat.replace("SRC", webview.asWebviewUri(vscode.Uri.file(config.circImageFile)).toString()));
+        } else {
+            arr.push(imgFormat.replace("SRC", webview.asWebviewUri(vscode.Uri.file(config.noDataImage)).toString()));
         }
-
-
-        if (!arr.length) {
-            arr.push(`<img src="${config.noDataImage}" alt="no image available">`);
-        }
-        let exit_code:boolean = await writeFile(config.outImageHtmlFile, image_format.replace("INSERT_HERE", arr.join("\n")));
-        if (exit_code) { return ""; }
-        frames.push(`<frame src = "${config.outImageHtmlFile}" name = "image page" scrolling="yes"/>`);
-        cols.push("*");
-
     } else {
-        src.print("omitting images from viewer");
+        src.print("omitting circ from viewer");
     }
+
+    if (config.userConfig.showHistogram) {
+        src.print("including histogram");
+        if (fs.existsSync(config.histImageFile)) {
+            arr.push(imgFormat.replace("SRC", webview.asWebviewUri(vscode.Uri.file(config.histImageFile)).toString()));
+        } else {
+            arr.push(imgFormat.replace("SRC", webview.asWebviewUri(vscode.Uri.file(config.noDataImage)).toString()));
+        }
+    } else {
+        src.print("omitting hist from viewer");
+    }
+
+    if (!arr.length) {
+        arr.push(`<h1>No Images to Display</h1>`);
+    }
+
+    main_format = main_format.replace("IMAGES", arr.join("\n"));
 
     let styles:string[] = []
     for (let file of await readDir(config.cssFilesPath)) {
         if (file.endsWith(".css")) {
-            styles.push(`<link rel="stylesheet" href="${path.join(config.cssFilesPath, file)}">`);
+            styles.push(`<link rel="stylesheet" href="${webview.asWebviewUri(vscode.Uri.file(path.join(config.cssFilesPath, file)))}">`);
         }
     }
 
-    if (frames.length) {
-        src.print("reading in main html content")
-        let main_format:string = await readFile(config.mainHtmlFormatFile);
-        main_format = main_format.replace("STYLES", styles.join("\n"));
-        main_format = main_format.replace("COLS", cols.join(", "));
-        main_format = main_format.replace("FRAMES", frames.join("\n"));
-        return main_format;
-    } else {
-        return "";
+    main_format = main_format.replace("STYLES", styles.join("\n"));
+    
+    // for testing puposes
+    if (true) {
+        try {
+            await fs.promises.writeFile(config.testCompiledHtmlFile, main_format);
+        } catch ( e ) {
+            src.error(`caught in writing compiled html to file: ${(e as Error).message}`);
+        }
     }
+    // main_format = main_format.replace("COLS", cols.join(", "));
+    // main_format = main_format.replace("FRAMES", frames.join("\n"));
+    return main_format;
 }
 
-async function test_html(config:Config):Promise<string> {
+export async function test_html(config:Config):Promise<string> {
     try {
         return fs.readFileSync(config.testHtmlFile).toString();
     } catch ( e ) {
