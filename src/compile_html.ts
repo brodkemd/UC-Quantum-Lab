@@ -63,21 +63,28 @@ export async function compile_html(config:Config):Promise<string> {
                 src.error("Could not write data to state out html file");
                 return "";
             }
-            frames.push(`<frame src = "${config.outStateHtmlFile}" name = "state page" scrolling="yes"/>`);
-            cols.push("200");
-            src.print("done loading into state htmle file")
+
         } else {
-            src.print(`State data file ${config.stateDataFile} does not exist, skipping`)
-        }       
+            src.print(`State data file ${config.stateDataFile} does not exist, creating no data file`);
+
+            let exit_code = await writeFile(config.outStateHtmlFile, state_format.replace("\\[\\begin{matrix}INSERT_HERE\\end{matrix}\\]", "<h1>No State data to display</h1>").replace("MATH_JS", config.mathJS));
+            if (exit_code) {
+                src.error("Could not write data to state out html file");
+                return "";
+            }
+        }
+        frames.push(`<frame src = "${config.outStateHtmlFile}" name = "state page" scrolling="yes"/>`);
+        cols.push("200");
+        src.print("done loading into state html file")
 
     } else {
         src.print("omitting state vector from viewer");
     }
-
+    
+    arr = [];
     if (config.userConfig.showCirc || config.userConfig.showHistogram) {
         let image_format:string = await readFile(config.imageHtmlFormatFile);
         if (!(image_format.length)) { return "";}
-        arr = [];
         for (let file of await readDir(config.configDir)) {
             if (file.endsWith(config.validImageExt)) {
                 arr.push(`<img src="${path.join(config.configDir, file)}" alt="could not find image">`);

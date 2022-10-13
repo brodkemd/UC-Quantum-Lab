@@ -35,12 +35,12 @@ export class UCQ {
             {viewColumn : vscode.ViewColumn.Two, preserveFocus : false},
             {
                 // Enable javascript in the webview
-                enableScripts : true,
+                enableScripts : true
                 // And restrict the webview to only loading content from our extension's `media` directory.
-                localResourceRoots: [
-                    vscode.Uri.file(config.workspacePath),
-                    vscode.Uri.file(config.extensionInstallPath)
-                ],
+                // localResourceRoots: [
+                //     vscode.Uri.file(config.workspacePath),
+                //     vscode.Uri.from(path.join(config.extensionInstallPath, "media"));
+                // ],
             }
         );
         print("Creating new instance");
