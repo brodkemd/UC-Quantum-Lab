@@ -35,7 +35,8 @@ async function readDir(dir_path:string):Promise<string[]> {
 export async function compile_html(webview:vscode.Webview, config:Config):Promise<string> {
     //<frame src = "STATE_PATH" name = "menu_page" scrolling="yes"/>
     //<frame src = "IMAGE_PATH" name = "main_page" scrolling="yes"/>
-    //src.print(`Cofiguration: circ = ${config.userConfig.showCirc} hist = ${config.userConfig.showHistogram} state = ${config.userConfig.showStateVector}`);
+    config.userConfig.get(); // loads again after python executed
+    src.print(`Cofiguration: circ = ${config.userConfig.showCirc} hist = ${config.userConfig.showHistogram} state = ${config.userConfig.showStateVector}`);
     src.print("Compiling html");
 
     let imgFormat:string = `<div class="col-12 col-centered">\n<img src="SRC" alt="could not find image">\n</div>`

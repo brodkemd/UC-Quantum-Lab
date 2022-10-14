@@ -183,7 +183,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			if (UCQ.currentPanel && vscode.window.activeTextEditor) {
 				print("Window is activate");
 				if (vscode.window.activeTextEditor.document !== undefined) {
-					config.userConfig.get();
+					config.userConfig.get(); // loads python
 					if (!(vscode.window.activeTextEditor.document.fileName.endsWith(".py"))) {
 						src.error(`${vscode.window.activeTextEditor.document.fileName} is not a python file, can not execute it`);
 						return;

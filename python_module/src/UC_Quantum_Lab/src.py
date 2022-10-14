@@ -31,7 +31,7 @@ def __save():
     if __config_dir in os.listdir():
         with open(os.path.join(__config_dir, "config.json"), 'w') as f:
             f.write(json.dumps(__config, indent=4))
-
+        print("saved to config")
 
 def __trigger():
     print("triggering")
