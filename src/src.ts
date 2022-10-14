@@ -24,7 +24,7 @@ export function error(msg:string) {
     vscode.window.showErrorMessage(msg);
 }
 
-function delay(ms: number) {
+export async function delay(ms: number) {
     return new Promise( resolve => setTimeout(resolve, ms) );
 }
 

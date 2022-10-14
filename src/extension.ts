@@ -200,6 +200,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						}
 						print("Waiting for trigger file");
 						await src.wait_for_trigger_file(config);
+						await src.delay(100);
 						UCQ.currentPanel.update(config);
 					}
 				} else { return; }
