@@ -1,7 +1,8 @@
 import * as vscode from "vscode";
 import * as path from 'path';
 import { Config } from "./config";
-import {compile_html, test_html } from "./compile_html";
+// import {compile_html, test_html } from "./compile_html";
+import { genHtml } from "./getHtml";
 import { print } from "./src";
 export class UCQ {
     /**
@@ -93,7 +94,7 @@ export class UCQ {
     private async _getHtmlForWebview(webview: vscode.Webview, config:Config) {
         print("getting html for the page")
         
-        let source:string = await compile_html(this._panel.webview, config);
+        let source:string = await genHtml(this._panel.webview, config);
         if (source.length) {
             return source;
         } else {

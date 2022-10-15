@@ -6,9 +6,6 @@ import { print } from "./src";
 
 export class UserConfig {
     userFile:string = "";
-    showHistogram:boolean = false;
-    showStateVector:boolean = false;
-    showCirc:boolean = false;
     python:string= "";
     pip:string = "";
     errorEncountered:boolean=false;
@@ -22,18 +19,6 @@ export class UserConfig {
     get() {
         print(`print reading from ${this.userFile}`);
         let read_in = JSON.parse(fs.readFileSync(this.userFile, "utf8"));
-        // checking user output config
-        if (read_in["show_histogram"] !== undefined) {
-            this.showHistogram = read_in["show_histogram"];
-        }
-
-        if (read_in["show_state_vector"] !== undefined) {
-            this.showStateVector = read_in["show_state_vector"];
-        }
-
-        if (read_in["show_circ"] !== undefined) {
-            this.showCirc = read_in["show_circ"];
-        }
 
         // checks python exe
         if (read_in["python"] !== undefined) {
@@ -64,39 +49,15 @@ export class UserConfig {
 
     toDict():{[name:string] : string|boolean} {
         let to_return:{[name:string] : string|boolean} = {};
-        to_return["show_histogram"] = this.showHistogram;
-        to_return["show_state_vector"] = this.showStateVector;
-        to_return["show_circ"] = this.showCirc;
+        // to_return["show_histogram"] = this.showHistogram;
+        // to_return["show_state_vector"] = this.showStateVector;
+        // to_return["show_circ"] = this.showCirc;
         to_return["pip"] = this.pip;
         to_return["python"] = this.python;
         return to_return
     }
 
     setFromDict(dict:{[name:string] : string|boolean}) {
-        // checking user output config
-        if (isBooleanObject(dict["show_histogram"])) {
-            this.showHistogram = dict["show_histogram"];
-        } else {
-            this.errorEncountered = true;
-            this.errorMessage = "show_histogram variable must be bool";
-            return;
-        }
-
-        if (isBooleanObject(dict["show_state_vector"])) {
-            this.showStateVector = dict["show_state_vector"];
-        } else {
-            this.errorEncountered = true;
-            this.errorMessage = "show_state_vector variable must be bool";
-            return;
-        }
-
-        if (isBooleanObject(dict["show_circ"])) {
-            this.showCirc = dict["show_circ"];
-        } else {
-            this.errorEncountered = true;
-            this.errorMessage = "show_circ variable must be bool";
-            return;
-        }
 
         // checks python exe
         if (isStringObject(dict["python"])) {
@@ -128,9 +89,7 @@ export class UserConfig {
 
     save() {
         print(`saving user config to ${this.userFile}`);
-        let config:{[name:string]:string|boolean} = {"show_histogram" : this.showHistogram,
-                                                     "show_state_vector" :this.showStateVector, "show_circ" : this.showCirc, 
-                                                     "python" : this.python, 
+        let config:{[name:string]:string|boolean} = {"python" : this.python, 
                                                      "pip" : this.pip};
         // write data back to file
         fs.writeFile(this.userFile, JSON.stringify(config, null, 4), err => {
@@ -151,6 +110,7 @@ export class Config {
     pythonModuleName:string = "";
     configDir:string = "";
     configFile:string = "";
+    layoutFile:string = "";
     templateConfigFile:string = "";
     templatePythonFile:string = "";
     // validImageExt:string = "";
@@ -213,19 +173,21 @@ export async function get_config(context:vscode.ExtensionContext):Promise<Config
         // setting paths
         config.configDir = path.join(config.workspacePath, ".UCQ_config");
 		config.configFile = path.join(config.configDir, "config.json"); // needs to be json
+        config.layoutFile =  path.join(config.configDir, "layout.json"); // needs to be json
         config.stateDataFile = path.join(config.configDir, "__state__.txt");
         config.circImageFile = path.join(config.configDir, "__circ__.png");
         config.histImageFile = path.join(config.configDir, "__hist__.png");
         config.triggerFile = path.join(config.configDir, ".trigger");
         config.templateConfigFile = path.join(config.extensionInstallPath, "templates", "template_config");
         config.templatePythonFile = path.join(config.extensionInstallPath, "templates", "main.py");
+
         // config.stateHtmlFormatFile = path.join(config.extensionInstallPath, "media", "state.html");
         // config.imageHtmlFormatFile = path.join(config.extensionInstallPath, "media", "images.html");
         config.mathJS = path.join(config.extensionInstallPath, "packages", "mathjax", "tex-chtml.js");
         config.noDataImage = path.join(config.extensionInstallPath, "media", "no_img.jpg");
         // config.outImageHtmlFile = path.join(config.configDir, "__images__.html");
         // config.outStateHtmlFile = path.join(config.configDir, "__state__.html");
-        config.mainHtmlFormatFile = path.join(config.extensionInstallPath, "media", "index.html");
+        config.mainHtmlFormatFile = path.join(config.extensionInstallPath, "media", "format.html");
         config.testHtmlFile = path.join(config.extensionInstallPath, "media", "test.html");
         config.testCompiledHtmlFile = path.join(config.configDir, "out.html");
         config.cssFilesPath = path.join(config.extensionInstallPath, "media");

@@ -1,7 +1,4 @@
 {
-    "show_histogram" : true,
-    "show_state_vector" : true,
-    "show_circ" : true,
     "python" : "",
     "pip" : ""
 }
