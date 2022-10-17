@@ -95,10 +95,55 @@ export class UCQ {
         print("getting html for the page")
         
         let source:string = await genHtml(this._panel.webview, config);
+        // print(webview.asWebviewUri(vscode.Uri.file("/home/marekbrodke/Documents/vscode_exts/uc-quantum-lab/packages/jquery/dist/jquery.js")).toString());
+        // print(webview.asWebviewUri(vscode.Uri.file("/home/marekbrodke/Documents/vscode_exts/uc-quantum-lab/media/extern.html")).toString());
+        // return `<!doctype html>
+        // <html lang="en">
+        //   <head>
+        //     <!-- Required meta tags -->
+        //     <meta charset="utf-8">
+        //     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        //     <script id="MathJax-script" async src="${webview.asWebviewUri(vscode.Uri.file("/home/marekbrodke/Documents/vscode_exts/uc-quantum-lab/packages/mathjax/tex-chtml.js"))}"></script>
+        //     <script src="${webview.asWebviewUri(vscode.Uri.file("/home/marekbrodke/Documents/vscode_exts/uc-quantum-lab/packages/jquery/dist/jquery.js"))}"></script> 
+        //     <script> 
+        //       $(function () {
+        //         var includes = $('[data-include]')
+        //         $.each(includes, function () {
+        //           var file = $(this).data('include')
+        //           $(this).load(file)
+        //         })
+        //       })
+        //     </script> 
+        //   </head>
+        //   <body>
+        //     <div data-include="${webview.asWebviewUri(vscode.Uri.file("/home/marekbrodke/Documents/vscode_exts/uc-quantum-lab/media/extern.html"))}"></div>
+        //   </body>
+        // </html>`;
         if (source.length) {
             return source;
         } else {
-            return `<!DOCTYPE html>\n<html>\n<body>\n<h1>No Content to Display</h1>\n</body>\n</html>`;
+            //return `<!DOCTYPE html>\n<html>\n<body>\n<h1>No Content to Display</h1>\n</body>\n</html>`;
+            return `<!doctype html>
+            <html lang="en">
+              <head>
+                <!-- Required meta tags -->
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+                <script src="${vscode.Uri.file("/home/marekbrodke/Documents/vscode_exts/uc-quantum-lab/packages/jquery/dist/jquery.js")}"></script> 
+                <script> 
+                  $(function () {
+                    var includes = $('[data-include]')
+                    $.each(includes, function () {
+                      var file = $(this).data('include')
+                      $(this).load(file)
+                    })
+                  })
+                </script> 
+              </head>
+              <body>
+                <div data-include="${vscode.Uri.file("/home/marekbrodke/Documents/vscode_exts/uc-quantum-lab/media/extern.html")}"></div>
+              </body>
+            </html>`;
         }
     }
 }

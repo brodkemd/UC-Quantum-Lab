@@ -1,7 +1,0 @@
-Metadata-Version: 2.1
-Name: UC-Quantum-Lab
-Version: 0.0.1
-Summary: Provides functionaliy for UC_Quantum_Lab
-Author: Marek Brodke with support from the University of Cincinnati
-Keywords: development
-Requires-Python: >=3.7

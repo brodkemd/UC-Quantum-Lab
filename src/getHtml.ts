@@ -58,53 +58,76 @@ async function formatMain(main:string):Promise<string> {
     main = main.replace("SIZES", sizes.join(",").trim());
     return main;
 }
-
 async function formatSource(source:string):Promise<string> {
     let imgFormat:string = `<img src="SRC" alt="could not find image">`
-    if (source.indexOf("STATEVECTOR") !== -1) {
-        print("Including state vector");
-        let state_data:string = "";
-        print("Reading state data file")
-        if (fs.existsSync(_config.stateDataFile)) {
-            state_data = await readFile(_config.stateDataFile);
-            if (!(state_data.length)) { return ""; }
-
-            let arr:string[] = [];
-            for (let line of state_data.split("\n")) {
-                 arr.push(line.replace(":", "&").replace("j", "\\mathrm{i}"));
-            }
-            source = source.replace("STATEVECTOR", `\\[\\color{white}\\begin{matrix}${arr.join("\\\\")}\\end{matrix}\\]`)
-            source = source.replace("STATEVECTOR", arr.join("\\\\")).replace("MATHJS", _webview.asWebviewUri(vscode.Uri.file(_config.mathJS)).toString());
-
-        } else {
-            print(`State data file ${_config.stateDataFile} does not exist, setting no data in ui`);
-            source = source.replace("STATEVECTOR", "<h1>No State data to display</h1>").replace("MATHJS", _webview.asWebviewUri(vscode.Uri.file(_config.mathJS)).toString());
-        }
+    let keywords = new Map<string, string>([
+        ["URI", _webview.asWebviewUri(vscode.Uri.file(_config.configFile)).toString().replace(_config.configFile, "")]
+    ]);
+    let temp:string = "";
+    let before:string = "";
+    let after:string = "";
+    let val:string|undefined;
+    let s:number;
+    while (true) {
+        s = source.search(/\{([^)]+)\}/);
+        if (s !== -1) {
+            temp = "";
+            before = source.slice(0, s);
+            after = source.slice(source.indexOf("}", s)+1, source.length);
+            val = keywords.get(source.slice(s+1, source.indexOf("}", s)));
+            if (val !== undefined) { temp = val; }
+            source = before.concat(temp, after);
+        } else { break; }
     }
-
-    if (source.indexOf("CIRCUIT") !== -1) {
-        print("including circuit image");
-        if (fs.existsSync(_config.circImageFile)) {
-            source.replace("CIRCUIT", imgFormat.replace("SRC", _webview.asWebviewUri(vscode.Uri.file(_config.circImageFile)).toString()));
-        } else {
-            source.replace("CIRCUIT", imgFormat.replace("SRC", _webview.asWebviewUri(vscode.Uri.file(_config.noDataImage)).toString()));
-        }
-
-    }
-
-    if (source.indexOf("HISTOGRAM") !== -1){
-        print("including histogram");
-        if (fs.existsSync(_config.histImageFile)) {
-            source.replace("CIRCUIT", imgFormat.replace("SRC", _webview.asWebviewUri(vscode.Uri.file(_config.histImageFile)).toString()));
-        } else {
-            source.replace("CIRCUIT", imgFormat.replace("SRC", _webview.asWebviewUri(vscode.Uri.file(_config.noDataImage)).toString()));
-        }
-    }
-
-
-    source = source.replace("HELLO", "<h>hello</h1>");
     return source;
 }
+
+// async function formatSource(source:string):Promise<string> {
+//     let imgFormat:string = `<img src="SRC" alt="could not find image">`
+//     if (source.indexOf("STATEVECTOR") !== -1) {
+//         print("Including state vector");
+//         let state_data:string = "";
+//         print("Reading state data file")
+//         if (fs.existsSync(_config.stateDataFile)) {
+//             state_data = await readFile(_config.stateDataFile);
+//             if (!(state_data.length)) { return ""; }
+
+//             let arr:string[] = [];
+//             for (let line of state_data.split("\n")) {
+//                  arr.push(line.replace(":", "&").replace("j", "\\mathrm{i}"));
+//             }
+//             source = source.replace("STATEVECTOR", `\\[\\color{white}\\begin{matrix}${arr.join("\\\\")}\\end{matrix}\\]`)
+//             source = source.replace("STATEVECTOR", arr.join("\\\\")).replace("MATHJS", _webview.asWebviewUri(vscode.Uri.file(_config.mathJS)).toString());
+
+//         } else {
+//             print(`State data file ${_config.stateDataFile} does not exist, setting no data in ui`);
+//             source = source.replace("STATEVECTOR", "<h1>No State data to display</h1>").replace("MATHJS", _webview.asWebviewUri(vscode.Uri.file(_config.mathJS)).toString());
+//         }
+//     }
+
+//     if (source.indexOf("CIRCUIT") !== -1) {
+//         print("including circuit image");
+//         if (fs.existsSync(_config.circImageFile)) {
+//             source.replace("CIRCUIT", imgFormat.replace("SRC", _webview.asWebviewUri(vscode.Uri.file(_config.circImageFile)).toString()));
+//         } else {
+//             source.replace("CIRCUIT", imgFormat.replace("SRC", _webview.asWebviewUri(vscode.Uri.file(_config.noDataImage)).toString()));
+//         }
+
+//     }
+
+//     if (source.indexOf("HISTOGRAM") !== -1){
+//         print("including histogram");
+//         if (fs.existsSync(_config.histImageFile)) {
+//             source.replace("CIRCUIT", imgFormat.replace("SRC", _webview.asWebviewUri(vscode.Uri.file(_config.histImageFile)).toString()));
+//         } else {
+//             source.replace("CIRCUIT", imgFormat.replace("SRC", _webview.asWebviewUri(vscode.Uri.file(_config.noDataImage)).toString()));
+//         }
+//     }
+
+
+//     source = source.replace("HELLO", "<h>hello</h1>");
+//     return source;
+// }
 
 class content {
     _locations:string[] = [];
