@@ -8,6 +8,7 @@ templates/**
 python_package/**
 packages/**
 media/**
+sandbox/**
 **/tsconfig.json
 **/.eslintrc.json
 **/*.map

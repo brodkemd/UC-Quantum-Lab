@@ -40,7 +40,7 @@ def state(circuit:QuantumCircuit, show=True):
     del _state
     if show:
         if len(__states):
-            if len(_options[i]) > __states.keys()[0]:
+            if len(_options[i]) > len(list(__states.keys())[0]):
                 raise KeyError("States must be obtained from the same circuit")
             for item in to_return:
                 __states[item].append(to_return[item])

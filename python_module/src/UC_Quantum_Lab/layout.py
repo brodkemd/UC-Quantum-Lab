@@ -73,14 +73,14 @@ def default():
     
     elif len(__states):
         #state_path = abs_path(os.path.join(__config_dir,  "__state__.html"))
-        msg = "\\[\\begin{{matrix}} "
+        msg = "\\[\\begin{matrix} "
         length = len(__states)
         for i, item in enumerate(list(__states)):
             if i < length - 1:
                 msg+=(f"{item} & " + "&".join(__states[item]) + "\\\\")
             else:
                 msg+=(f"{item} & " + "&".join(__states[item]))
-        msg+="\\end{{matrix}}\\]"
+        msg+="\\end{matrix}\\]"
         __layout["only"] = msg #f"<div data-include=\"{{URI}}{state_path}\"></div>"
 
     elif len(__hists) or len(__circs):

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>UCQ Viewer</title>
+		<link rel="stylesheet" href="/home/marekbrodke/Documents/vscode_extensions/UC_Quantum_Lab_V2/media/reset.css">
+        <link rel="stylesheet" href="/home/marekbrodke/Documents/vscode_extensions/UC_Quantum_Lab_V2/media/vscode.css">
+		<script src="/home/marekbrodke/Documents/vscode_extensions/UC_Quantum_Lab_V2/packages/resizable/resizable.js"></script>
+        <script src="/home/marekbrodke/Documents/vscode_extensions/UC_Quantum_Lab_V2/packages/mathjax/tex-chtml.js"></script>
+        <script src="/home/marekbrodke/Documents/vscode_extensions/UC_Quantum_Lab_V2/packages/jquery/jquery.js"></script>
+		<script> 
+			$(function () {
+			  var includes = $('[data-include]')
+			  $.each(includes, function () {
+				var file = $(this).data('include')
+				$(this).load(file)
+			  })
+			})
+		  </script> 
+		<style>
+        * {padding:0;margin:0;top:0;left:0;}
+        .contentWindow{position:absolute;}
+		body { background-color:#9999;}
+        .resizer{position:absolute;z-index:100;background-color: #000000;}
+        .verticalResizer{cursor:ns-resize;}
+        .horizontalResizer{cursor:ew-resize;}
+		
+		</style>
+	</head>
+	<body>
+		<div id="main">
+			<div class="resizable-right"  id="win1">
+                <h1> hello </h1>
+            </div>
+            <div class="resizable-left"  id="win2">
+                \[\begin{matrix}1 & 2\\ 1 & 3\end{matrix}\]
+            </div>
+		</div>
+	</body>
+	<script>
+		document.addEventListener("DOMContentLoaded", () => {
+			document.getElementById("main").style.width = window.innerWidth + "px";
+			document.getElementById("main").style.height = window.innerHeight + "px";
+			var sizes = {};
+			let resizerThickness = 2;
+			Resizable.initialise("main", sizes, resizerThickness); 
+			/*Resizable.initialise("main", {});*/
+		});
+		window.addEventListener("resize", () => {
+			Resizable.activeContentWindows[0].changeSize(window.innerWidth, window.innerHeight);
+			Resizable.activeContentWindows[0].childrenResize();
+		});
+	</script>
+</html>
+

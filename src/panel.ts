@@ -16,6 +16,7 @@ export class UCQ {
     private _disposables: vscode.Disposable[] = [];
 
     public open:boolean = false;
+    public _config:Config;
 
     public static createOrShow(config:Config) {
         const column = vscode.window.activeTextEditor
@@ -25,7 +26,7 @@ export class UCQ {
         // If we already have a panel, show it.
         if (UCQ.currentPanel) {
             UCQ.currentPanel._panel.reveal(column);
-            UCQ.currentPanel.update(config);
+            UCQ.currentPanel.update();
             return;
         }
         // Otherwise, create a new panel.
@@ -58,9 +59,9 @@ export class UCQ {
 
     private constructor(panel: vscode.WebviewPanel, config:Config) {
         this._panel = panel;
-
+        this._config = config;
         // Set the webview's initial html content
-        this.update(config);
+        this.update();
 
         // Listen for when the panel is disposed
         // This happens when the user closes the panel or when the panel is closed programatically
@@ -81,20 +82,19 @@ export class UCQ {
         }
     }
 
-    public async update(config:Config) {
+    public async update() {
         const webview = this._panel.webview;
-        config.userConfig.get();
         // updates user options
-        this._panel.webview.html = await this._getHtmlForWebview(webview, config);
+        this._panel.webview.html = await this._getHtmlForWebview(webview);
         print("Updating webview panel");
         //print(this._panel.webview.html);
 
     }
 
-    private async _getHtmlForWebview(webview: vscode.Webview, config:Config) {
+    private async _getHtmlForWebview(webview: vscode.Webview) {
         print("getting html for the page")
         
-        let source:string = await genHtml(this._panel.webview, config);
+        let source:string = await genHtml(this._panel.webview, this._config);
         // print(webview.asWebviewUri(vscode.Uri.file("/home/marekbrodke/Documents/vscode_exts/uc-quantum-lab/packages/jquery/dist/jquery.js")).toString());
         // print(webview.asWebviewUri(vscode.Uri.file("/home/marekbrodke/Documents/vscode_exts/uc-quantum-lab/media/extern.html")).toString());
         // return `<!doctype html>

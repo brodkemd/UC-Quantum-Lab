@@ -20,9 +20,11 @@
         "out",
         "dist",
         "templates",
+        "media",
         "python_package",
         "**/*.d.ts",
         "local_test",
-        "packages"
+        "packages",
+        "sandbox"
     ]
 }
