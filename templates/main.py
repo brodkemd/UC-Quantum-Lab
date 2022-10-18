@@ -1,4 +1,5 @@
-from UC_Quantum_Lab import state, display
+from UC_Quantum_Lab.commands import state, display
+from UC_Quantum_Lab.layout import invert, horizontal_invert, vertical_invert
 from qiskit import QuantumCircuit
 
 qc = QuantumCircuit(1, 1)

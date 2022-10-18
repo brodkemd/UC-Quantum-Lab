@@ -55,11 +55,11 @@ async function formatMain(main:string):Promise<string> {
         scripts.push(`<script src="${_webview.asWebviewUri(vscode.Uri.file(file))}"></script>`);
     }
 
-    main = main.replace("STYLES", styles.join("\n"));
+    main = main.replace("STYLES", styles.join("\n        "));
     main = main.replace("CONTENTS", html.join("\n").trim());
-    main = main.replace("CSS", css.join("\n").trim());
+    main = main.replace("CSS", css.join("\n        ").trim());
     main = main.replace("SIZES", sizes.join(",").trim());
-    main = main.replace("SCRIPTS", scripts.join("\n"));
+    main = main.replace("SCRIPTS", scripts.join("\n        "));
     // reseting the values
     html = [];
     css = [];
@@ -68,75 +68,32 @@ async function formatMain(main:string):Promise<string> {
     return main;
 }
 async function formatSource(source:string):Promise<string> {
-    let imgFormat:string = `<img src="SRC" alt="could not find image">`
     let keywords = new Map<string, string>([
-        ["URI", _webview.asWebviewUri(vscode.Uri.file(_config.configFile)).toString().replace(_config.configFile, "")]
+        ["URI", _webview.asWebviewUri(vscode.Uri.file(_config.configFile)).toString().replace(_config.configFile, "")],
+        ["BACKSLASH", "\\"]
     ]);
-    let temp:string = "";
     let before:string = "";
     let after:string = "";
     let val:string|undefined;
     let s:number;
+    //print(`source: ${source}`);
+    let last_s:number = 0;
+    print("before loop")
     while (true) {
-        s = source.search(/\{([^)]+)\}/);
+        s = source.slice(last_s, source.length).search(/\{([^)]+)\}/);
+        last_s = s;
         if (s !== -1) {
-            temp = "";
             before = source.slice(0, s);
             after = source.slice(source.indexOf("}", s)+1, source.length);
             val = keywords.get(source.slice(s+1, source.indexOf("}", s)));
-            if (val !== undefined) { temp = val; }
-            source = before.concat(temp, after);
+            if (val !== undefined) { 
+                source = before.concat(val, after);
+            }
         } else { break; }
     }
+    print("after loop")
     return source;
 }
-
-// async function formatSource(source:string):Promise<string> {
-//     let imgFormat:string = `<img src="SRC" alt="could not find image">`
-//     if (source.indexOf("STATEVECTOR") !== -1) {
-//         print("Including state vector");
-//         let state_data:string = "";
-//         print("Reading state data file")
-//         if (fs.existsSync(_config.stateDataFile)) {
-//             state_data = await readFile(_config.stateDataFile);
-//             if (!(state_data.length)) { return ""; }
-
-//             let arr:string[] = [];
-//             for (let line of state_data.split("\n")) {
-//                  arr.push(line.replace(":", "&").replace("j", "\\mathrm{i}"));
-//             }
-//             source = source.replace("STATEVECTOR", `\\[\\color{white}\\begin{matrix}${arr.join("\\\\")}\\end{matrix}\\]`)
-//             source = source.replace("STATEVECTOR", arr.join("\\\\")).replace("MATHJS", _webview.asWebviewUri(vscode.Uri.file(_config.mathJS)).toString());
-
-//         } else {
-//             print(`State data file ${_config.stateDataFile} does not exist, setting no data in ui`);
-//             source = source.replace("STATEVECTOR", "<h1>No State data to display</h1>").replace("MATHJS", _webview.asWebviewUri(vscode.Uri.file(_config.mathJS)).toString());
-//         }
-//     }
-
-//     if (source.indexOf("CIRCUIT") !== -1) {
-//         print("including circuit image");
-//         if (fs.existsSync(_config.circImageFile)) {
-//             source.replace("CIRCUIT", imgFormat.replace("SRC", _webview.asWebviewUri(vscode.Uri.file(_config.circImageFile)).toString()));
-//         } else {
-//             source.replace("CIRCUIT", imgFormat.replace("SRC", _webview.asWebviewUri(vscode.Uri.file(_config.noDataImage)).toString()));
-//         }
-
-//     }
-
-//     if (source.indexOf("HISTOGRAM") !== -1){
-//         print("including histogram");
-//         if (fs.existsSync(_config.histImageFile)) {
-//             source.replace("CIRCUIT", imgFormat.replace("SRC", _webview.asWebviewUri(vscode.Uri.file(_config.histImageFile)).toString()));
-//         } else {
-//             source.replace("CIRCUIT", imgFormat.replace("SRC", _webview.asWebviewUri(vscode.Uri.file(_config.noDataImage)).toString()));
-//         }
-//     }
-
-
-//     source = source.replace("HELLO", "<h>hello</h1>");
-//     return source;
-// }
 
 class content {
     _locations:string[] = [];
@@ -204,15 +161,30 @@ class content {
 
     async perculate_styles(level:number=0) {
         let this_level:number = level;
+        print(`On level: ${this_level}`);
+        print(`${this_level} 1`);
         for (let obj of this._contents) {
-            if (typeof obj !== "string") {
+            print(`${this_level} 2`);
+            if (obj === content.prototype) {
+                print(`${this_level} 3`);
                 if (obj._styles.length) {
+                    print(`${this_level} 4`);
                     this._styles = this._styles.concat(obj._styles);
+                    print(`${this_level} 5`);
                     obj._styles = [];
                 }
+                print(`${this_level} 6`)
                 await obj.perculate_styles(level=this_level+1);
+                print(`${this_level} 7`);
+            } else {
+                print(`${this_level} 8`);
+                print(`obj:${obj}`);
             }
+            print(`${this_level} 9`);
         }
+        print(`${this_level} 10`);
+        print(`exiting this_level: ${this_level}`)
+        return;
     }
 
     async getHtml(level:number=0) {
@@ -233,6 +205,7 @@ class content {
                 }
             }
             if (this._contents[i]._source.length) {
+                print("formatting sorce")
                 html.push(`${pre}    ${await formatSource(this._contents[i]._source)}`);
             } else {
                 await this._contents[i].getHtml(this_level+1, this_level+1);
@@ -266,32 +239,35 @@ export async function genHtml(webview:vscode.Webview, config:Config):Promise<str
     _webview = webview;
     print(`Reading format from: ${config.mainHtmlFormatFile}`);
     let format:string = (await fs.promises.readFile(config.mainHtmlFormatFile)).toString();
-    print(`Reading layout from ${config.layoutFile}`);
-    let directions = JSON.parse((await fs.promises.readFile(config.layoutFile)).toString());
     
-    try {
+    // try {  
+        print(`Reading layout from ${config.layoutFile}`);
+        let directions = JSON.parse((await fs.promises.readFile(config.layoutFile)).toString());
         // must be in this order
+        print("constructing")
         let obj:content = new content(directions);
+        print("setting sizes")
         await obj.setSizes();
+        print("setting styles")
         await obj.perculate_styles();
+        print("getting html")
         await obj.getHtml();
         print("");
         await obj.show();
-    } catch ( e ) {
-        error((e as Error).message);
-        return getErrorHtml();
-    }
-    format = await formatMain(format);
-    // for testing puposes
-    if (true) {
-        try {
-            print(`Writing to: ${config.testCompiledHtmlFile}`);
-            await fs.promises.writeFile(config.testCompiledHtmlFile, format);
-        } catch ( e ) {
-            error(`caught in writing compiled html to file: ${(e as Error).message}`);
+        format = await formatMain(format);
+        // for testing puposes
+        if (true) {
+            try {
+                print(`Writing to: ${config.testCompiledHtmlFile}`);
+                await fs.promises.writeFile(config.testCompiledHtmlFile, format);
+            } catch ( e ) {
+                error(`caught in writing compiled html to file: ${(e as Error).message}`);
+            }
         }
-    }
-    //print(`Writing to: ${out_file}`);
-    //await fs.promises.writeFile(out_file, format);
+    // } catch ( e ) {
+    //     error((e as Error).message);
+    //     return getErrorHtml();
+    // }
+
     return format;
 }

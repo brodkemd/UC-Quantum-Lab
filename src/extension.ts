@@ -145,9 +145,9 @@ async function init(config:Config):Promise<boolean> {
 					}
 					return to_return;
 				}
-			} else {
-				src.error(`"${fname}" is in your current directory and is not a directory please delete it from the current directory`);
-			}
+			} //else {
+				//src.error(`"${fname}" is in your current directory and is not a directory please delete it from the current directory`);
+			//}
 		} else { return false; }
 	} else { 
 		config.userConfig.get();
@@ -181,37 +181,42 @@ export async function activate(context: vscode.ExtensionContext) {
 				src.error(config.errorMessage);
 				return;
 			}
-			if (UCQ.currentPanel && vscode.window.activeTextEditor) {
-				print("Window is activate");
-				if (vscode.window.activeTextEditor.document !== undefined) {
-					config.userConfig.get(); // loads python
-					if (!(vscode.window.activeTextEditor.document.fileName.endsWith(".py"))) {
-						src.error(`${vscode.window.activeTextEditor.document.fileName} is not a python file, can not execute it`);
-						return;
-					} else {
-						print("executing in termial");
-						if (vscode.window.activeTerminal) {
-							print("Sending to active terminal");
-							vscode.window.activeTerminal.show(true);
-							vscode.window.activeTerminal.sendText(`${config.userConfig.python} ${vscode.window.activeTextEditor.document.fileName}`);
+			try {
+				if (UCQ.currentPanel && vscode.window.activeTextEditor) {
+					print("Window is activate");
+					if (vscode.window.activeTextEditor.document !== undefined) {
+						config.userConfig.get(); // loads python
+						if (!(vscode.window.activeTextEditor.document.fileName.endsWith(".py"))) {
+							src.error(`${vscode.window.activeTextEditor.document.fileName} is not a python file, can not execute it`);
+							return;
 						} else {
-							print("creating terminal and sending to it");
-							let term = vscode.window.createTerminal();
-							term.sendText(`${config.userConfig.python} ${vscode.window.activeTextEditor.document.fileName}`);
+							print("executing in termial");
+							if (vscode.window.activeTerminal) {
+								print("Sending to active terminal");
+								vscode.window.activeTerminal.show(true);
+								vscode.window.activeTerminal.sendText(`${config.userConfig.python} ${vscode.window.activeTextEditor.document.fileName}`);
+							} else {
+								print("creating terminal and sending to it");
+								let term = vscode.window.createTerminal();
+								term.sendText(`${config.userConfig.python} ${vscode.window.activeTextEditor.document.fileName}`);
+							}
+							print("Waiting for trigger file");
+							await src.wait_for_trigger_file(config);
+							await src.delay(100);
+							UCQ.currentPanel.update(config);
 						}
-						print("Waiting for trigger file");
-						await src.wait_for_trigger_file(config);
-						await src.delay(100);
-						UCQ.currentPanel.update(config);
-					}
-				} else { return; }
+					} else { return; }
 
-			} else { 
-				if (await init(config)) {
-					print("Creating Window");
-					UCQ.createOrShow(config);
-					//vscode.commands.executeCommand("workbench.action.focusPreviousGroup");
+				} else { 
+					if (await init(config)) {
+						print("Creating Window");
+						UCQ.createOrShow(config);
+						//vscode.commands.executeCommand("uc-quantum-lab.execute");
+						//vscode.commands.executeCommand("workbench.action.focusPreviousGroup");
+					}
 				}
+			} catch ( e ) {
+				src.error(`error with message ${(e as Error).message}, maybe try reinitializng the current directory?`);
 			}
 		})
 	);

@@ -40,6 +40,7 @@ export async function try_command(command:string):Promise<boolean> {
                         print(`Encountered error "${err.stderr.toString()}"`);
                     } else {
                         print(`ignoring error "${err.stderr.toString()}"`);
+                        to_return = true;
                     }
                 }
                 else { to_return = true; }

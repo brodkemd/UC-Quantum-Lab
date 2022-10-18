@@ -3,38 +3,11 @@ from qiskit.quantum_info import Statevector
 from qiskit.visualization import plot_histogram
 import matplotlib.pyplot as plt
 from math import log
-import os, json
-from . import __config_dir, __states, __circs, __hists, get_path
+from . import __states, __circs, __hists, get_path
 
 __circ_count = 0
 __state_count = 0
 __hist_count = 0
-
-# def __save():
-#     global __config
-#     print("saving:", __config)
-#     if __config_dir in os.listdir():
-#         with open(os.path.join(__config_dir, "config.json"), 'w') as f:
-#             f.write(json.dumps(__config, indent=4))
-#         print("saved to config")
-
-
-
-
-# def __load():
-#     global __config
-#     print("loading")
-#     if __config_dir in os.listdir():
-#         with open(os.path.join(__config_dir, "config.json"), 'r') as f:
-#             __config = json.loads(f.read())
-        
-#         for item in __config:
-#             if isinstance(__config[item], bool):
-#                 __config[item] = False
-
-#     print("Config:", __config)
-
-
 
 def display(circuit:QuantumCircuit, path:str=""):
     global __circ_count
@@ -50,11 +23,7 @@ def display(circuit:QuantumCircuit, path:str=""):
 
 def getbin(n, s=['']):
     global __config
-    if n > 0:
-        return [
-            *getbin(n - 1, [i + '0' for i in s]),
-            *getbin(n - 1, [j + '1' for j in s])
-        ]
+    if n > 0: return [*getbin(n - 1, [i + '0' for i in s]), *getbin(n - 1, [j + '1' for j in s])]
     return s
 
  
@@ -78,18 +47,6 @@ def state(circuit:QuantumCircuit, show=True):
         else:
             for item in to_return:
                 __states[item] = [to_return[item]]
-        #_f_path = get_path(f"__state__.html")
-        #with open(_f_path, 'a') as f:
-        #    f.write("\\[\\begin{matrix} ")
-        #    if len(__states):
-        #        f.write("\\[\\begin{matrix} ")
-        #        if len(_options[i]) > __states.keys()[0]:
-        #            raise KeyError("States must be obtained from the same circuit")
-        #        for item in to_return:
-         #           f.write(f"{item} & {to_return[item]}\\\\ ")
-         #   f.write("\\end{matrix}\\]")
-        #__states.append(_f_path)
-        #__state_count+=1
 
     return to_return
 

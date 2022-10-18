@@ -1,11 +1,11 @@
 import os 
+
 __config_dir = ".UCQ_config"
 __layout_file = os.path.join(__config_dir, "layout.json")
 __states = {}
 __circs = []
 __hists = []
 
-#from .commands import display, state, __exit, __load
 from atexit import register
 
 def __trigger():
@@ -22,8 +22,16 @@ def get_path(path:str):
 
 def __exit():
     print("here")
+
     from .layout import __run
     __run()
     __trigger()
 
-register(__exit)
+
+if __config_dir in os.listdir():
+    register(__exit)
+    for item in os.listdir(__config_dir):
+        if item.endswith(".png") or item.endswith(".html"):
+            os.remove(os.path.join(__config_dir, item))
+else:
+    print(f"config dir {__config_dir} not in cur dir")
