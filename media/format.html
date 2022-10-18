@@ -3,9 +3,18 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Resizable Demo</title>
+		<title>UCQ Viewer</title>
 		STYLES
-		<script src="resizable.js"></script>
+		SCRIPTS
+		<script> 
+			$(function () {
+			  var includes = $('[data-include]')
+			  $.each(includes, function () {
+				var file = $(this).data('include')
+				$(this).load(file)
+			  })
+			})
+		  </script> 
 		<style>
         * {padding:0;margin:0;top:0;left:0;}
         .contentWindow{position:absolute;}

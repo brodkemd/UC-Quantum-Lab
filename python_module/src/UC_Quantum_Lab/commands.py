@@ -44,7 +44,7 @@ def display(circuit:QuantumCircuit, path:str=""):
     else:
         p = get_path(f"__circ__{__circ_count}.png")
         plt.savefig(p)
-        __circs.append(f"<img src=\"{{URI}}{p}\" alt=\"no image to display\">")
+        __circs.append(p)
         __circ_count+=1
 
 
@@ -100,7 +100,7 @@ def counts(circuit:QuantumCircuit, backend=Aer.get_backend('qasm_simulator'), sh
         plot_histogram(counts)
         p = get_path(f"__hist__{__hist_count}.png")
         plt.savefig(p)
-        __hists.append(f"<img src=\"{{URI}}{p}\" alt=\"no image to display\">")
+        __hists.append(p)
         __hist_count+=1
     return counts
 

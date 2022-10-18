@@ -46,16 +46,25 @@ async function getErrorHtml():Promise<string> {
 
 async function formatMain(main:string):Promise<string> {
     let styles:string[] = []
-    for (let file of await readDir(_config.cssFilesPath)) {
-        if (file.endsWith(".css")) {
-            styles.push(`<link rel="stylesheet" href="${_webview.asWebviewUri(vscode.Uri.file(path.join(_config.cssFilesPath, file)))}">`);
-        }
+    for (let file of _config.cssFiles) {
+        styles.push(`<link rel="stylesheet" href="${_webview.asWebviewUri(vscode.Uri.file(file))}">`);
+    }
+
+    let scripts:string[] = [];
+    for (let file of _config.scriptFiles) {
+        scripts.push(`<script src="${_webview.asWebviewUri(vscode.Uri.file(file))}"></script>`);
     }
 
     main = main.replace("STYLES", styles.join("\n"));
     main = main.replace("CONTENTS", html.join("\n").trim());
     main = main.replace("CSS", css.join("\n").trim());
     main = main.replace("SIZES", sizes.join(",").trim());
+    main = main.replace("SCRIPTS", scripts.join("\n"));
+    // reseting the values
+    html = [];
+    css = [];
+    sizes = [];
+    count = 0;
     return main;
 }
 async function formatSource(source:string):Promise<string> {

@@ -9,6 +9,13 @@ __adjuster = lambda layout : layout
 # turns path into absolute path if it isn't
 def abs_path(path): return os.path.abspath(path.replace("~", os.path.expanduser("~")))
 
+def image_list_to_str(image_list:list[str])->str:
+    to_return = ""
+    for item in image_list:
+        to_return+=f"<img src=\"{{URI}}{abs_path(item)}\" alt=\"no image to display\">"
+
+    return to_return
+
 def __inverter(layout):
     for item in list(layout):
         if item == "top":
@@ -50,11 +57,11 @@ def default():
         __layout["left"] = f"<div data-include=\"{{URI}}{state_path}\"></div>"
 
         if len(__hists) and len(__circs):
-            __layout["right"] = {"top" : "".join(__circs), "bottom" : "".join(__hists)}
+            __layout["right"] = {"top" : image_list_to_str(__circs), "bottom" : image_list_to_str(__hists)}
         elif len(__hists):
-            __layout["right"] = "".join(__hists)
+            __layout["right"] = image_list_to_str(__hists)
         elif len(__circs):
-            __layout["right"] = "".join(__circs)
+            __layout["right"] = image_list_to_str(__circs)
     
     elif len(__states):
         state_path = abs_path(os.path.join(__config_dir,  "__state__.html"))
@@ -62,15 +69,15 @@ def default():
 
     elif len(__hists) or len(__circs):
         if len(__hists) and len(__circs):
-            __layout["top"] = "".join(__circs)
-            __layout["bottom"] = "".join(__hists)
+            __layout["top"] = image_list_to_str(__circs)
+            __layout["bottom"] = image_list_to_str(__hists)
         elif len(__hists):
-            __layout["only"] = "".join(__hists)
+            __layout["only"] = image_list_to_str(__hists)
         elif len(__circs):
-            __layout["only"] = "".join(__circs)
+            __layout["only"] = image_list_to_str(__circs)
 
 def __run():
-    global __layout
+    global __layout, __adjuster
     if len(__states):
         _f_path = get_path(f"__state__.html")
         with open(_f_path, 'w') as f:
@@ -82,7 +89,7 @@ def __run():
                 else:
                     f.write(f"{item} & " + "&".join(__states[item]))
             f.write("\\end{matrix}\\]")
-    
+
     default()
     __layout = __adjuster(__layout)
 
