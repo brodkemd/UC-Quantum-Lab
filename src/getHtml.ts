@@ -122,65 +122,86 @@ class content {
             if (obj.style !== undefined) {
                 if (typeof obj.style !== "string") {
                     throw new SyntaxError(`"style" must be string`);
-                } else { this._styles.push(obj.style); }
+                } else { 
+                    let components:string[] = obj.style.split(";");
+                    let to_remove:number[] = [];
+                    for (let i = 0; i < components.length; i++) {
+                        if (components[i].indexOf("size") !== -1) {
+                            this._sizes.push(+(components[i].trim().slice(components[i].indexOf(":")+1, components[i].length)).trim());
+                            to_remove.push(i);
+                            break;
+                        }
+                    }
+                    for (let num of to_remove) { components.splice(num, 1); }
+                    this._styles.push(components.join(";")); 
+                }
             }
         } else { this._source = obj.toString(); }
     }
 
-    async setSizes(level:number=0) {
-        let this_level:number = level;
-        for (let obj of this._contents) {
-            if (typeof obj !== "string") {
-                if (obj._styles.length) {
-                    for (let j = 0; j< obj._styles.length; j++) {
-                        let components:string[] = obj._styles[j].split(";");
-                        let to_remove:number[] = [];
-                        for (let i = 0; i < components.length; i++) {
-                            if (components[i].indexOf("size") !== -1) {
-                                this._sizes.push(+(components[i].trim().slice(components[i].indexOf(":")+1, components[i].length)).trim());
-                                to_remove.push(i);
-                                break;
-                            }
-                        }
-                        for (let num of to_remove) { components.splice(num, 1); }
-                        obj._styles[j] = components.join(";");
-                        if (to_remove.length) { break; }
-                    }
-                }
-                if (this._sizes[0] !== undefined) {
-                    if (this._sizes.length < 2) {
-                        this._sizes.push(1 - this._sizes[0]);
-                    } else {
-                        this._sizes[1] = 1 - this._sizes[0];
-                    }
-                }
-                await obj.setSizes(level=this_level+1);
-            }
-        }
-    }
+    // async setSizes(level:number=0) {
+    //     let this_level:number = level;
+    //     for (let obj of this._contents) {
+    //         if (typeof obj !== "string") {
+    //             if (obj._styles.length) {
+    //                 for (let j = 0; j< obj._styles.length; j++) {
+    //                     let components:string[] = obj._styles[j].split(";");
+    //                     let to_remove:number[] = [];
+    //                     for (let i = 0; i < components.length; i++) {
+    //                         if (components[i].indexOf("size") !== -1) {
+    //                             this._sizes.push(+(components[i].trim().slice(components[i].indexOf(":")+1, components[i].length)).trim());
+    //                             to_remove.push(i);
+    //                             break;
+    //                         }
+    //                     }
+    //                     for (let num of to_remove) { components.splice(num, 1); }
+    //                     obj._styles[j] = components.join(";");
+    //                     if (to_remove.length) { break; }
+    //                 }
+    //             }
+    //             if (this._sizes[0] !== undefined) {
+    //                 if (this._sizes.length < 2) {
+    //                     this._sizes.push(1 - this._sizes[0]);
+    //                 } else {
+    //                     this._sizes[1] = 1 - this._sizes[0];
+    //                 }
+    //             }
+    //             await obj.setSizes(level=this_level+1);
+    //         }
+    //     }
+    // }
 
-    async perculate_styles(level:number=0) {
+    async perculate(level:number=0) {
         let this_level:number = level;
         print(`On level: ${this_level}`);
         print(`${this_level} 1`);
         for (let obj of this._contents) {
             print(`${this_level} 2`);
-            if (obj === content.prototype) {
+            if (typeof obj !== "string") {
                 print(`${this_level} 3`);
                 if (obj._styles.length) {
                     print(`${this_level} 4`);
                     this._styles = this._styles.concat(obj._styles);
+                    this._sizes = this._sizes.concat(obj._sizes);
                     print(`${this_level} 5`);
                     obj._styles = [];
+                    obj._sizes = [];
                 }
                 print(`${this_level} 6`)
-                await obj.perculate_styles(level=this_level+1);
+                await obj.perculate(level=this_level+1);
                 print(`${this_level} 7`);
             } else {
                 print(`${this_level} 8`);
                 print(`obj:${obj}`);
             }
             print(`${this_level} 9`);
+        }
+        if (this._sizes[0] !== undefined) {
+            if (this._sizes.length < 2) {
+                this._sizes.push(1 - this._sizes[0]);
+            } else {
+                this._sizes[1] = 1 - this._sizes[0];
+            }
         }
         print(`${this_level} 10`);
         print(`exiting this_level: ${this_level}`)
@@ -246,10 +267,10 @@ export async function genHtml(webview:vscode.Webview, config:Config):Promise<str
         // must be in this order
         print("constructing")
         let obj:content = new content(directions);
-        print("setting sizes")
-        await obj.setSizes();
+        //print("setting sizes")
+        //await obj.setSizes();
         print("setting styles")
-        await obj.perculate_styles();
+        await obj.perculate();
         print("getting html")
         await obj.getHtml();
         print("");
