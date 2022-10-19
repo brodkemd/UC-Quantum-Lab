@@ -1,4 +1,4 @@
-from UC_Quantum_Lab.commands import state, display
+from UC_Quantum_Lab.commands import state, display, counts
 from UC_Quantum_Lab.layout import invert, horizontal_invert, vertical_invert
 from qiskit import QuantumCircuit
 

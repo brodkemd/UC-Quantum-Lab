@@ -91,9 +91,12 @@ def default():
             __layout["only"] = image_list_to_str(__hists)
         elif len(__circs):
             __layout["only"] = image_list_to_str(__circs)
+    
+    else:
+        __layout["only"] = "<h1>No data to display</h1>"
 
 def __run():
-    global __layout, __adjuster, __states
+    global __layout, __adjuster, __states, __circs, __hists
     # if len(__states):
     #     _f_path = get_path(f"__state__.html")
     #     with open(_f_path, 'w') as f:

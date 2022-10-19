@@ -1,3 +1,7 @@
+
+/**
+ * Credit: https://github.com/Tom-Rawlings/Resizable.js
+ */
 const Resizable = {};
 Resizable.activeContentWindows = [];
 Resizable.activeResizers = [];
@@ -65,7 +69,7 @@ Resizable.ContentWindow = class{
       var div = document.createElement('div');
       div.id = this.divId;
       div.classList.add('contentWindow');
-
+      
       //Insert the div with correct ID into the parent window; or body if parent is null
       if(parent != null){
         parent.getDiv().appendChild(div);
@@ -79,7 +83,12 @@ Resizable.ContentWindow = class{
       this.divId = div.id;
       this.getDiv().classList.add("contentWindow");
     }
-
+    if (div.id == "main") {
+      this.getDiv().style.overflow = "auto";
+    } else {
+      this.getDiv().style.overflow = "auto";
+    }
+    //console.log(div.id);
     this.children = [];
     this.isSplitHorizontally = false;
     this.isSplitVertically = false;
@@ -91,7 +100,7 @@ Resizable.ContentWindow = class{
 
 
     this.getDiv().style.position = "absolute";
-    this.getDiv().style.overflow = "hidden";
+    //this.getDiv().style.overflow = "scroll";
 
     this.getDiv().style.width = Math.round(this.width)+"px";
     this.getDiv().style.height = Math.round(this.height)+"px";

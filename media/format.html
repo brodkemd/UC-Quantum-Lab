@@ -17,9 +17,11 @@
 		  </script> 
 		<style>
         * {padding:0;margin:0;top:0;left:0;}
-        .contentWindow{position:absolute;}
-		body { background-color:#9999;}
-        .resizer{position:absolute;z-index:100;background-color: #000000;}
+        .contentWindow{position:absolute;object-fit:contain;}
+		.resizable-only{overflow:auto;}
+		/*body { background-color:#9999;}*/
+		img {padding-left:10px;padding-right:10px;padding-top:10px;padding-bottom:10px;} 
+        .resizer{position:absolute;z-index:100;background-color:var(--vscode-button-secondaryHoverBackground);}
         .verticalResizer{cursor:ns-resize;}
         .horizontalResizer{cursor:ew-resize;}
 		CSS
@@ -35,7 +37,7 @@
 			document.getElementById("main").style.width = window.innerWidth + "px";
 			document.getElementById("main").style.height = window.innerHeight + "px";
 			var sizes = {SIZES};
-			let resizerThickness = 2;
+			let resizerThickness = 3;
 			Resizable.initialise("main", sizes, resizerThickness); 
 			/*Resizable.initialise("main", {});*/
 		});

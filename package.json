@@ -81,6 +81,7 @@
     "typescript": "^4.8.4"
   },
   "dependencies": {
-    "jquery": "^3.6.1"
+    "jquery": "^3.6.1",
+    "react-split": "^2.0.14"
   }
 }

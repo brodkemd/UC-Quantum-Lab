@@ -28,7 +28,7 @@ def getbin(n, s=['']):
 
  
 def state(circuit:QuantumCircuit, show=True):
-    global __state_count
+    global __state_count, __states
     _state = Statevector.from_instruction(circuit).data
     _num_bits = int(log(len(_state))/log(2))
     
@@ -51,7 +51,7 @@ def state(circuit:QuantumCircuit, show=True):
     return to_return
 
 def counts(circuit:QuantumCircuit, backend=Aer.get_backend('qasm_simulator'), show=True):
-    global __hist_count
+    global __hist_count, __hists
     counts = execute(circuit, backend=backend, shots=1024).result().get_counts()
     if show:
         plot_histogram(counts)
