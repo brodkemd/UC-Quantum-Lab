@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as vscode from "vscode";
 import { Config } from "./config";
 import { print,error } from "./src";
-import * as path from "path";
+//import * as path from "path";
 
 let html:string[] = [];
 let css:string[] = [];
@@ -11,52 +11,73 @@ let count:number = 0;
 let _config:Config;
 let _webview:vscode.Webview;
 
+/**
+ * Turns inputted file path into a uri using the current webview panel
+ * @param path : file path to turn into a uri
+ * @returns file path as a uri
+ */
 async function uriIfy(path:string):Promise<string> {
     return _webview.asWebviewUri(vscode.Uri.file(path)).toString();
 }
 
-async function getErrorHtml():Promise<string> {
-    return `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width>\n</head>\n<body>\n<h1>ERROR</h1>\n</body>\n</html>\n`;
-}
-
+/**
+ * Formats an inputted template of html to be displayed
+ * @param main : string representation of an html format to use
+ * @returns html to display
+ */
 async function formatMain(main:string):Promise<string> {
+    // creating html for the css files
     let styles:string[] = []
     for (let file of _config.cssFiles) {
         styles.push(`<link rel="stylesheet" href="${await uriIfy(file)}">`);
     }
 
+    // creating html for the java script files
     let scripts:string[] = [];
     for (let file of _config.scriptFiles) {
         scripts.push(`<script src="${await uriIfy(file)}"></script>`);
     }
 
+    // inserting joined lists at the prescribed location is the provided format
     main = main.replace("STYLES", styles.join("\n        "));
     main = main.replace("CONTENTS", html.join("\n").trim());
     main = main.replace("CSS", css.join("\n        ").trim());
     main = main.replace("SIZES", sizes.join(",").trim());
     main = main.replace("SCRIPTS", scripts.join("\n        "));
-    // reseting the values
+
+    // reseting the values, if you do not do this, things get messy
     html = [];
     css = [];
     sizes = [];
     count = 0;
     return main;
 }
+
+/**
+ * Formats the provided html by replacing keywords with html, the map in the function for the keywords
+ * @param source : some html to be formatted
+ * @returns the inputted html with the key words replaced
+ */
 async function formatSource(source:string):Promise<string> {
+    // the keywords to replace in the inputted string, in the string these keywords must be surrounded by brackets
+    // i.e. the syntax is {KEYWORD}
     let keywords = new Map<string, string>([
-        ["URI", (await uriIfy(_config.configFile)).toString().replace(_config.configFile, "")],
-        ["BACKSLASH", "\\"]
+        ["URI", (await uriIfy(_config.configFile)).toString().replace(_config.configFile, "")] // uri for this viewer
     ]);
     let before:string = "";
     let after:string = "";
     let val:string|undefined;
     let s:number;
-    //print(`source: ${source}`);
     let last_s:number = 0;
+
+    // used to limit the number of iterations the while loop can do
     let stop:number = 100;
     let i:number = 0;
     while (true) {
+        // parsing the source and replacing keywords
+        // reads from the last read to the end and searches for brackets surrounding something
         s = last_s + source.slice(last_s, source.length).search(/\{([^)]+)\}/);
+        // if the search found something
         if (s - last_s !== -1) {
             before = source.slice(0, s);
             after = source.slice(source.indexOf("}", s)+1, source.length);
@@ -219,7 +240,6 @@ export async function genHtml(webview:vscode.Webview, config:Config):Promise<str
         }
     } catch ( e ) {
         error((e as Error).message);
-        return getErrorHtml();
     }
 
     return format;

@@ -10,16 +10,12 @@ import { print } from "./src";
 export class UserConfig {
     // the file where the user configuration is stored
     userFile:string = "";
-
     // the python interpreter path or command
     python:string= "";
-
     // pip executable path or command
     pip:string = "";
-
     // whether or not this class encounters a problem
     errorEncountered:boolean=false;
-
     // the message from a problem that this encounters
     errorMessage:string = "";
 
@@ -101,7 +97,7 @@ export class UserConfig {
         // checks pip exe
         if (typeof dict["pip"] === "string") {
             // if the pip exe path exists or it is a command, set the attribute
-            if (fs.existsSync(dict["pip"]) || dict["python"].indexOf(path.sep) === -1) { 
+            if (fs.existsSync(dict["pip"]) || dict["pip"].indexOf(path.sep) === -1) { 
                 this.python = dict["pip"]; 
             } else {
                 this.errorEncountered = true;
@@ -210,36 +206,38 @@ export class Config {
     }
 }
 
+/**
+ * 
+ * @param context : context for this extension
+ * @returns Config class containing the configuration of this extension
+ */
 export async function get_config(context:vscode.ExtensionContext):Promise<Config> {
     if (vscode.workspace.workspaceFolders !== undefined) {
+        // if here, then a workspace is open
+        // init the above class
         let config:Config = new Config(vscode.workspace.workspaceFolders[0].uri.fsPath, context.extensionPath);
-        // setting paths
+        /**
+         * For a description of what the attributes do, see the above class
+         */
         config.configDir = path.join(config.workspacePath, ".UCQ_config");
 		config.configFile = path.join(config.configDir, "config.json"); // needs to be json
         config.layoutFile =  path.join(config.configDir, "layout.json"); // needs to be json
-
         config.triggerFile = path.join(config.configDir, ".trigger");
         config.templateConfigFile = path.join(config.extensionInstallPath, "templates", "template_config");
         config.templatePythonFile = path.join(config.extensionInstallPath, "templates", "main.py");
-
-        // config.stateHtmlFormatFile = path.join(config.extensionInstallPath, "media", "state.html");
-        // config.imageHtmlFormatFile = path.join(config.extensionInstallPath, "media", "images.html");
-        // config.mathJS = path.join(config.extensionInstallPath, "packages", "mathjax", "tex-chtml.js");
         config.noDataImage = path.join(config.extensionInstallPath, "media", "no_img.jpg");
-        // config.outImageHtmlFile = path.join(config.configDir, "__images__.html");
-        // config.outStateHtmlFile = path.join(config.configDir, "__state__.html");
         config.mainHtmlFormatFile = path.join(config.extensionInstallPath, "media", "format.html");
         config.testHtmlFile = path.join(config.extensionInstallPath, "media", "test.html");
         config.testCompiledHtmlFile = path.join(config.configDir, "out.html");
-        config.cssFiles = [path.join(config.extensionInstallPath, "media",  "reset.css"), 
-                           path.join(config.extensionInstallPath, "media", "vscode.css")
-                        ]
+        config.cssFiles = [
+            path.join(config.extensionInstallPath, "media",  "reset.css"), 
+            path.join(config.extensionInstallPath, "media", "vscode.css")
+        ];
         config.scriptFiles = [
             path.join(config.extensionInstallPath, "packages", "resizable", "resizable.js"), // makes the resizable panels
             path.join(config.extensionInstallPath, "packages", "mathjax"  , "tex-chtml.js"), // allows latex to render
             path.join(config.extensionInstallPath, "packages", "jquery"   , "jquery.js") // used for loading other html files
         ];
-
         config.yes = "yes";
         config.no = "no";
 
@@ -253,6 +251,7 @@ export async function get_config(context:vscode.ExtensionContext):Promise<Config
 
         return config
     } else {
+        // returning a class that has no info
         return new Config(undefined, undefined);
     }
 }
