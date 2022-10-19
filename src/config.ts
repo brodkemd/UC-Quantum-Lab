@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import * as fs from "fs"
-import path = require("path");
-import { isBooleanObject, isStringObject } from "util/types";
+import * as path from "path"
 import { print } from "./src";
 
 /**
@@ -21,9 +20,7 @@ export class UserConfig {
 
     // setting the userfile
     constructor(user_config_file:string|undefined) {
-        if (user_config_file!==undefined) {
-            this.userFile = user_config_file;
-        }
+        if (user_config_file!==undefined) { this.userFile = user_config_file; }
     }
     /**
      * gets the current user config from the user config file and sets attributes of this class
