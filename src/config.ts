@@ -4,25 +4,43 @@ import path = require("path");
 import { isBooleanObject, isStringObject } from "util/types";
 import { print } from "./src";
 
+/**
+ * Class to store information about the current configuration for the user
+ */
 export class UserConfig {
+    // the file where the user configuration is stored
     userFile:string = "";
+
+    // the python interpreter path or command
     python:string= "";
+
+    // pip executable path or command
     pip:string = "";
+
+    // whether or not this class encounters a problem
     errorEncountered:boolean=false;
+
+    // the message from a problem that this encounters
     errorMessage:string = "";
 
+    // setting the userfile
     constructor(user_config_file:string|undefined) {
         if (user_config_file!==undefined) {
             this.userFile = user_config_file;
         }
     }
+    /**
+     * gets the current user config from the user config file and sets attributes of this class
+     */
     get() {
         print(`print reading from ${this.userFile}`);
+        // reading the json file
         let read_in = JSON.parse(fs.readFileSync(this.userFile, "utf8"));
 
-        // checks python exe
+        // checks python exe read from the file
         if (read_in["python"] !== undefined) {
-            if (fs.existsSync(read_in["python"])) { 
+            // if the python interpreter path exists or it is a command, set the attribute
+            if (fs.existsSync(read_in["python"]) || read_in["python"].indexOf(path.sep) === -1) {
                 this.python = read_in["python"]; 
             } else {
                 this.errorEncountered = true;
@@ -33,9 +51,10 @@ export class UserConfig {
             this.errorMessage = `python was not found in the user config file, config file is ${this.userFile}`;
         }
 
-        // checks pip exe
+        // checks pip exe read from the file
         if (read_in["pip"] !== undefined) {
-            if (fs.existsSync(read_in["pip"])) { 
+            // if the pip executable path exists or it is a command, set the attribute
+            if (fs.existsSync(read_in["pip"]) || read_in["pip"].indexOf(path.sep) === -1) { 
                 this.pip = read_in["pip"]; 
             } else {
                 this.errorEncountered = true;
@@ -47,6 +66,10 @@ export class UserConfig {
         }
     }
 
+    /**
+     * takes the attributes of this class and puts them in a dictionary
+     * @returns a dictionary containing the attributes of this class
+     */
     toDict():{[name:string] : string|boolean} {
         let to_return:{[name:string] : string|boolean} = {};
         // to_return["show_histogram"] = this.showHistogram;
@@ -56,12 +79,15 @@ export class UserConfig {
         to_return["python"] = this.python;
         return to_return
     }
-
+    /**
+     * sets the attributes of this class from the inputted dictionary
+     * @param dict : dictionary that contains information that you want to use to set the attributes of this class
+     */
     setFromDict(dict:{[name:string] : string|boolean}) {
-
         // checks python exe
-        if (isStringObject(dict["python"])) {
-            if (fs.existsSync(dict["python"])) { 
+        if (typeof dict["python"] === "string") {
+            // if the python interpreter path exists or it is a command, set the attribute
+            if (fs.existsSync(dict["python"]) || dict["python"].indexOf(path.sep) === -1) { 
                 this.python = dict["python"]; 
             } else {
                 this.errorEncountered = true;
@@ -73,8 +99,9 @@ export class UserConfig {
         }
 
         // checks pip exe
-        if (isStringObject(dict["pip"])) {
-            if (fs.existsSync(dict["pip"])) { 
+        if (typeof dict["pip"] === "string") {
+            // if the pip exe path exists or it is a command, set the attribute
+            if (fs.existsSync(dict["pip"]) || dict["python"].indexOf(path.sep) === -1) { 
                 this.python = dict["pip"]; 
             } else {
                 this.errorEncountered = true;
@@ -84,14 +111,18 @@ export class UserConfig {
             this.errorEncountered = true;
             this.errorMessage = `pip variable must be a string`;
         }
+        // saving this class to the user config file
         this.save();
     }
-
+    /**
+     * Saves this class to the user config file
+     */
     save() {
         print(`saving user config to ${this.userFile}`);
+        // creating config from attributes of this class
         let config:{[name:string]:string|boolean} = {"python" : this.python, 
                                                      "pip" : this.pip};
-        // write data back to file
+        // write data to user config file
         fs.writeFile(this.userFile, JSON.stringify(config, null, 4), err => {
             if (err) {
                 this.errorMessage = `could not save user config back to file, with message ${err.message}`;
@@ -101,44 +132,63 @@ export class UserConfig {
     }
 }
 
+/**
+ * Class containing all of the information on the configuration of this extension
+ */
 export class Config {
+    // the path of the workspace open in vscode
     workspacePath:string;
+    // path where this extension is installed at
     extensionInstallPath:string;
+    // if this class encountered an error
     errorEncountered:boolean = false;
+    // the message from an error if one was encountered
     errorMessage:string = "";
-
+    // name of the python module used with this extension
     pythonModuleName:string = "";
+    // the user config directory
     configDir:string = "";
+    // the user config file
     configFile:string = "";
+    // the file containing the layout of the viewer
     layoutFile:string = "";
+    // template config file to load into the user config directory with it is made
     templateConfigFile:string = "";
+    // example python file to give to the user if they want it
     templatePythonFile:string = "";
-    // validImageExt:string = "";
-    // stateDataFile:string = "";
-    // circImageFile:string = "";
-    // histImageFile:string = "";
-    // stateHtmlFormatFile:string = "";
-    // imageHtmlFormatFile:string = "";
+    // html format file to load and use as a template for the viewer's html
     mainHtmlFormatFile:string = "";
+    // for testing purposes, file to output viewer html to
     testCompiledHtmlFile:string = "";
+    // file to use to test the viewer rendering
     testHtmlFile:string = "";
-    // mathJS:string = "";
+    // image to display if could not load desired image
     noDataImage:string = "";
-    // outStateHtmlFile:string = "";
-    // outImageHtmlFile:string = "";
+    // file made by the python module to trigger this extension
     triggerFile:string = "";
-    // cssFilesPath:string = "";
+    // css files to include in the compiled html
     cssFiles:string[] = [];
+    // java script files to include in the compiled
     scriptFiles:string[] = [];
+    // the current version of the python module
     curPythonModVer:string = "";
+    // the path to the python module
     pythonModulePath:string = "";
-    yes:string = "";
-    no:string = "";
+    // yes response by user
+    yes:string = "yes";
+    // no response by user
+    no:string = "no";
 
-    // user data
+    // constructing user config class
     userConfig:UserConfig = new UserConfig(undefined);
 
+    /**
+     * 
+     * @param workspace_path : path of the open workspace
+     * @param extension_install_path : path to the installation of this extension
+     */
     constructor(workspace_path:string|undefined, extension_install_path:string|undefined) {
+        // checks if the inputs are valid
         if (workspace_path !== undefined && extension_install_path !== undefined) {
             this.workspacePath = workspace_path;
             this.extensionInstallPath = extension_install_path;
@@ -150,23 +200,15 @@ export class Config {
             this.extensionInstallPath = "";
         }
     }
+    /**
+     * constructs the user config class attribute of this class
+     */
     initUserConfig() {
         this.userConfig = new UserConfig(this.configFile);
         this.errorEncountered = this.userConfig.errorEncountered;
         this.errorMessage = this.userConfig.errorMessage;
     }
-    setUserConfig() {
-        this.userConfig.get();
-    }
 }
-
-// package_name= "UC_Quantum_Lab";
-// cur_path = vscode.workspace.workspaceFolders[0].uri.fsPath;
-// ext_path = context.extension.extensionPath;
-// config_dir = path.join(cur_path, ".UCQ_config");
-// config_file = path.join(config_dir, "config.json");
-// mirror_dir = path.join(ext_path, "templates", "template_config");
-// template_python_file = path.join(ext_path, "templates", "main.py");
 
 export async function get_config(context:vscode.ExtensionContext):Promise<Config> {
     if (vscode.workspace.workspaceFolders !== undefined) {
@@ -175,9 +217,7 @@ export async function get_config(context:vscode.ExtensionContext):Promise<Config
         config.configDir = path.join(config.workspacePath, ".UCQ_config");
 		config.configFile = path.join(config.configDir, "config.json"); // needs to be json
         config.layoutFile =  path.join(config.configDir, "layout.json"); // needs to be json
-        // config.stateDataFile = path.join(config.configDir, "__state__.txt");
-        // config.circImageFile = path.join(config.configDir, "__circ__.png");
-        // config.histImageFile = path.join(config.configDir, "__hist__.png");
+
         config.triggerFile = path.join(config.configDir, ".trigger");
         config.templateConfigFile = path.join(config.extensionInstallPath, "templates", "template_config");
         config.templatePythonFile = path.join(config.extensionInstallPath, "templates", "main.py");
@@ -191,14 +231,14 @@ export async function get_config(context:vscode.ExtensionContext):Promise<Config
         config.mainHtmlFormatFile = path.join(config.extensionInstallPath, "media", "format.html");
         config.testHtmlFile = path.join(config.extensionInstallPath, "media", "test.html");
         config.testCompiledHtmlFile = path.join(config.configDir, "out.html");
-        config.cssFiles = [path.join(config.extensionInstallPath, "media",  "reset.css"), path.join(config.extensionInstallPath, "media", "vscode.css")]
+        config.cssFiles = [path.join(config.extensionInstallPath, "media",  "reset.css"), 
+                           path.join(config.extensionInstallPath, "media", "vscode.css")
+                        ]
         config.scriptFiles = [
-            path.join(config.extensionInstallPath, "packages", "resizable", "resizable.js"),
-            path.join(config.extensionInstallPath, "packages", "mathjax"  , "tex-chtml.js"),
-            path.join(config.extensionInstallPath, "packages", "jquery"   , "jquery.js")
+            path.join(config.extensionInstallPath, "packages", "resizable", "resizable.js"), // makes the resizable panels
+            path.join(config.extensionInstallPath, "packages", "mathjax"  , "tex-chtml.js"), // allows latex to render
+            path.join(config.extensionInstallPath, "packages", "jquery"   , "jquery.js") // used for loading other html files
         ];
-        // config.cssFilesPath = path.join(config.extensionInstallPath, "media");
-        // config.validImageExt = ".png";
 
         config.yes = "yes";
         config.no = "no";
@@ -211,10 +251,6 @@ export async function get_config(context:vscode.ExtensionContext):Promise<Config
         // initializing user config
         config.initUserConfig();
 
-        //if (get_user_config) {
-            // if we should load from file, it is loaded
-        //    config.setUserConfig();
-        //}
         return config
     } else {
         return new Config(undefined, undefined);

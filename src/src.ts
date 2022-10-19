@@ -202,7 +202,11 @@ export async function mkDir(dir:string):Promise<boolean> {
     });
     return exited_good;
 }
-
+/**
+ * Sets up system python for this extension and returns if it was sucessful or not as a boolean
+ * @param config : current configuration of the extension
+ * @returns boolean indicating if there was successful setup of system python for this extension
+ */
 
 export async function setupSysPython(config:Config):Promise<boolean> {
     print("Setting up for sys python");

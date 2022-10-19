@@ -84,11 +84,8 @@ async function setupPython(config:Config):Promise<boolean> {
             let arr:string[] = [];
             for (let key in dict) {
 				// if qiskit is installed in an environment show it in the array
-                if (dict[key]["has_qiskit"]) {
-                    arr.push(`${key} at ${dict[key]["path"]} (suggested)`);
-                } else {
-                    arr.push(`${key} at ${dict[key]["path"]}`);
-                }
+                if (dict[key]["has_qiskit"]) { arr.push(`${key} at ${dict[key]["path"]} (suggested)`); } 
+				else { arr.push(`${key} at ${dict[key]["path"]}`); }
             }
 
 			// creating drop down for the user to select their environment from
