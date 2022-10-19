@@ -19,7 +19,6 @@ let print = src.print;
  * @param config : configuration of the extension
  * @returns boolean indicating whether or not this function extension exceeded
  */
-
 async function verifyPython(config:Config):Promise<boolean> {
 	print("verifying python setup")
 	// if importing the python module in python succeeds
@@ -274,11 +273,9 @@ async function init(config:Config):Promise<boolean> {
 	return true;
 }
 
-
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 /**
- * This is essentially the main function for this extension, vscode calls this
+ * This is essentially the main function for this extension, vscode calls this when
+ * the extension is activated
  */
 export async function activate(context: vscode.ExtensionContext) {
 	print("In activate");
