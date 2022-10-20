@@ -291,7 +291,9 @@ export async function genHtml(webview:vscode.Webview, config:Config):Promise<str
                 error(`caught in writing compiled html to file: ${(e as Error).message}`);
             }
         }
-    } catch ( e ) { error((e as Error).message); }
-
-    return format;
+        return format;
+    } catch ( e ) { 
+        error((e as Error).message); 
+        return "";
+    }
 }

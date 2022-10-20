@@ -200,23 +200,38 @@ async function init(config:Config):Promise<boolean> {
 						}
 					});
 					// the copy file succeeded then open the file in the editor
-					if (to_return) {
-						// opening file in the editor
-						let documet:vscode.TextDocument|undefined = await vscode.workspace.openTextDocument(path.join(config.workspacePath, fname));
+					// if (to_return) {
+					// 	// opening file in the editor
+					// 	let documet:vscode.TextDocument|undefined = await vscode.workspace.openTextDocument(path.join(config.workspacePath, fname));
 
-						if (documet === undefined) {
-							// if the opening of the file failed let the user know
-							src.error(`could not open "${path.join(config.workspacePath, fname)} in code"`);
-						} else {
-							// if opening the file succeeded then run "execute"
-							vscode.commands.executeCommand("uc-quantum-lab.execute");
-						}
-					}
+					// 	if (documet === undefined) {
+					// 		// if the opening of the file failed let the user know
+					// 		src.error(`could not open "${path.join(config.workspacePath, fname)} in code"`);
+					// 	} else {
+					// 		// if opening the file succeeded then run "execute"
+					// 		await src.delay(1000);
+					// 		vscode.commands.executeCommand("uc-quantum-lab.execute");
+					// 	}
+					// }
 
 					// exiting the function returning the success status of the copy operation
 					return to_return;
 				}
+
 			}
+			// the copy file succeeded then open the file in the editor
+			// opening file in the editor
+			// let documet:vscode.TextDocument|undefined = await vscode.workspace.openTextDocument(path.join(config.workspacePath, fname));
+			// print("here")
+			// if (documet === undefined) {
+			// 	// if the opening of the file failed let the user know
+			// 	src.error(`could not open "${path.join(config.workspacePath, fname)} in code"`);
+			// } else {
+			// 	// if opening the file succeeded then run "execute"
+			// 	await src.delay(500);
+			// 	vscode.commands.executeCommand("uc-quantum-lab.execute");
+			// }
+		
 			// removed this because I did not think it is necessary
 			// else {
 				//src.error(`"${fname}" is in your current directory and is not a directory please delete it from the current directory`);

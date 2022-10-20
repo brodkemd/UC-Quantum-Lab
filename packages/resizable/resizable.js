@@ -56,7 +56,6 @@ Resizable.setupChildren = function(parentWindow){
 };
 
 Resizable.ContentWindow = class{
-  
   constructor(parent, width, height, div){
     this.parent = parent;
     this.width = width;
@@ -83,8 +82,12 @@ Resizable.ContentWindow = class{
       this.divId = div.id;
       this.getDiv().classList.add("contentWindow");
     }
+    /**
+     * My additions
+     */
+    console.log(div.id)
     if (div.id == "main") {
-      this.getDiv().style.overflowY = "auto";
+      this.getDiv().style.overflow = "hidden";
     } else {
       this.getDiv().style.overflow = "auto";
     }
