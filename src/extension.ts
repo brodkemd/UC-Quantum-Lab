@@ -279,6 +279,15 @@ async function init(config:Config):Promise<boolean> {
  */
 export async function activate(context: vscode.ExtensionContext) {
 	print("In activate");
+	
+	const handleUri = (uri: vscode.Uri) => {
+		print(`recieved uri ${uri.toString()}`);
+	};
+	context.subscriptions.push(
+		vscode.window.registerUriHandler({
+			handleUri
+		})
+	);
 
 	// adding the command to vscode
 	context.subscriptions.push(
@@ -309,6 +318,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						} else {
 							// if here, then the file is a python file
 							print("executing in termial");
+
 							// if there is an active terminal in editor
 							if (vscode.window.activeTerminal) {
 								print("Sending to active terminal");
@@ -373,6 +383,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
+		
 		vscode.commands.registerCommand('uc-quantum-lab.reinit', async () => {
 			// loading the config from "./config.ts"
 			let config:Config = await get_config(context);

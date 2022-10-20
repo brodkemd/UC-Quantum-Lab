@@ -84,7 +84,7 @@ Resizable.ContentWindow = class{
       this.getDiv().classList.add("contentWindow");
     }
     if (div.id == "main") {
-      this.getDiv().style.overflow = "auto";
+      this.getDiv().style.overflowY = "auto";
     } else {
       this.getDiv().style.overflow = "auto";
     }
@@ -98,10 +98,8 @@ Resizable.ContentWindow = class{
     this.originalMinSize = 20;
     this.childResizerThickness = Resizable.resizerThickness;
 
-
+    //this.getDiv().style.overflow = "hidden"
     this.getDiv().style.position = "absolute";
-    //this.getDiv().style.overflow = "scroll";
-
     this.getDiv().style.width = Math.round(this.width)+"px";
     this.getDiv().style.height = Math.round(this.height)+"px";
 
@@ -462,21 +460,6 @@ Resizable.resizingEnded = function() {
 Resizable.resizingStarted = function() {
   //Runs on the next 'mouseup' or 'touchend' events after a resizer is clicked
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 Resizable.Resizer = class{
   constructor(parent, window1, window2, isHorizontal){

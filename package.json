@@ -3,6 +3,7 @@
   "displayName": "UC Quantum Lab",
   "description": "An extension to make quantum development easier",
   "version": "0.0.1",
+  "publisher": "UC",
   "engines": {
     "vscode": "^1.71.0"
   },
