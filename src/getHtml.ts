@@ -27,7 +27,7 @@ async function uriIfy(path:string):Promise<string> {
  */
 async function formatMain(main:string):Promise<string> {
     // creating html for the css files
-    let styles:string[] = []
+    let styles:string[] = [];
     for (let file of _config.cssFiles) {
         styles.push(`<link rel="stylesheet" href="${await uriIfy(file)}">`);
     }
@@ -68,7 +68,7 @@ async function formatSource(source:string):Promise<string> {
     let after:string = "";
     let val:string|undefined;
     let s:number;
-    let last_s:number = 0;
+    let lastS:number = 0;
 
     // used to limit the number of iterations the while loop can do
     let stop:number = 100;
@@ -76,9 +76,9 @@ async function formatSource(source:string):Promise<string> {
     while (true) {
         // parsing the source and replacing keywords
         // reads from the last read to the end and searches for brackets surrounding something
-        s = last_s + source.slice(last_s, source.length).search(/\{([^)]+)\}/);
+        s = lastS + source.slice(lastS, source.length).search(/\{([^)]+)\}/);
         // if the search found something
-        if (s - last_s !== -1) {
+        if (s - lastS !== -1) {
             // split the string and stuff
             before = source.slice(0, s);
             after = source.slice(source.indexOf("}", s)+1, source.length);
@@ -87,7 +87,7 @@ async function formatSource(source:string):Promise<string> {
             if (val !== undefined) { source = before.concat(val, after); } 
             else { s++; }
         } else { break; }
-        last_s = s;
+        lastS = s;
 
         // caps the iterations just in case it runs away
         if (i === stop) { 
@@ -102,7 +102,7 @@ async function formatSource(source:string):Promise<string> {
 }
 
 // main class, this does all of the html generation and json parsing
-class content {
+class Content {
     _locations:string[] = [];
     _contents:any[] = [];
     _styles:string[] = [];
@@ -123,19 +123,19 @@ class content {
             // if tiling horizontally
             if (obj.right !== undefined && obj.left !== undefined) {
                 this._locations.push("right");
-                this._contents.push(new content(obj.right)); // creating right tile
+                this._contents.push(new Content(obj.right)); // creating right tile
                 this._locations.push("left");
-                this._contents.push(new content(obj.left)); // creating left tile
+                this._contents.push(new Content(obj.left)); // creating left tile
             // if tiling vertically
             } else if (obj.top !== undefined && obj.bottom !== undefined) {
                 this._locations.push("top");
-                this._contents.push(new content(obj.top)); // creating top tile
+                this._contents.push(new Content(obj.top)); // creating top tile
                 this._locations.push("bottom");
-                this._contents.push(new content(obj.bottom)); // creating bottom tile
+                this._contents.push(new Content(obj.bottom)); // creating bottom tile
             // if not tiling at all
             } else if (obj.only !== undefined) {
                 this._locations.push("only");
-                this._contents.push(new content(obj.only)); // creating content
+                this._contents.push(new Content(obj.only)); // creating content
             } else {
                 throw new SyntaxError(`undefined location specifier, also could be "top" or "right" without corresponding "bottom" or "left"`);
             }
@@ -147,17 +147,17 @@ class content {
                 } else {
                     // parsing style to get size becasue that goes somewhere else and not in css
                     let components:string[] = obj.style.split(";");
-                    let to_remove:number[] = [];
+                    let toRemove:number[] = [];
                     for (let i = 0; i < components.length; i++) {
                         if (components[i].indexOf("size") !== -1) {
                             // getting the size string and then converting it to a float
                             this._sizes.push(+(components[i].trim().slice(components[i].indexOf(":")+1, components[i].length)).trim());
-                            to_remove.push(i);
+                            toRemove.push(i);
                             break;
                         }
                     }
                     // rejoining the css style
-                    for (let num of to_remove) { components.splice(num, 1); }
+                    for (let num of toRemove) { components.splice(num, 1); }
                     this._styles.push(components.join(";")); 
                 }
             }
@@ -170,7 +170,7 @@ class content {
      * @param level : current level of recursion
      */
     async perculate(level:number=0) {
-        let this_level:number = level;
+        let thisLevel:number = level;
         for (let obj of this._contents) {
             if (typeof obj !== "string") {
                 if (obj._styles.length) {
@@ -181,7 +181,7 @@ class content {
                     obj._styles = [];
                     obj._sizes = [];
                 }
-                await obj.perculate(level=this_level+1); // recursion
+                await obj.perculate(level=thisLevel+1); // recursion
             }
         }
         // setting the sizes
@@ -201,7 +201,7 @@ class content {
      * @param level : current level of recursion
      */
     async getHtml(level:number=0) {
-        let this_level:number = level;
+        let thisLevel:number = level;
         for (let i = 0; i < this._locations.length; i++) {
             let pre:string = "";
             // creating a spacer based on the level of recursion
@@ -229,7 +229,7 @@ class content {
                 // "pre" and the spacing are just a formating choice, it makes pretty html
                 html.push(`${pre}    ${await formatSource(this._contents[i]._source)}`);
             } else {
-                await this._contents[i].getHtml(this_level+1); // recursion
+                await this._contents[i].getHtml(thisLevel+1); // recursion
             }
             // ends the div previously created
             if (this._locations[i] !== "only") {
@@ -244,17 +244,17 @@ class content {
      * @param level : current level of recursion
      */
     async show(level:number=0) {
-        let this_level:number = level;
+        let thisLevel:number = level;
         for (let i = 0; i < this._locations.length; i++) {
             // creating message with all of the attributes of this class
             let msg:string = "";
-            for (let j = 0; j < this_level*4; j++) { msg = msg.concat(" "); }
+            for (let j = 0; j < thisLevel*4; j++) { msg = msg.concat(" "); }
             msg = msg.concat(`${this._locations[i]} `);
             if (i < this._styles.length) { msg = msg.concat(`style=${this._styles[i]} `); } 
             if (i < this._sizes.length) { msg = msg.concat(`size=${this._sizes[i]} `); } 
             if (this._contents[i]._source.length) { msg = msg.concat(`src=${this._contents[i]._source}`);  }
-            print(`${this_level} ${msg}`);
-            await this._contents[i].show(level=this_level+1); // recursion
+            print(`${thisLevel} ${msg}`);
+            await this._contents[i].show(level=thisLevel+1); // recursion
         }
     }
 }
@@ -273,7 +273,7 @@ export async function genHtml(webview:vscode.Webview, config:Config):Promise<str
         let directions = JSON.parse((await fs.promises.readFile(config.layoutFile)).toString());
         // starting the recursive class that generates the html
         // must be in this order
-        let obj:content = new content(directions);
+        let obj:Content = new Content(directions);
         // shifting all of the styles and sizes to their corresponding pane
         await obj.perculate();
         // generating the html from the class, recursively

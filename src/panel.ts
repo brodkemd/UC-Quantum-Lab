@@ -113,7 +113,7 @@ export class UCQ {
      * @returns html as a string for the viewer
      */
     private async _getHtmlForWebview() {
-        print("getting html for the page")
+        print("getting html for the page");
         // getting the html
         let source:string = await genHtml(this._panel.webview, this._config);
         // if something was returned from the html generator, return it

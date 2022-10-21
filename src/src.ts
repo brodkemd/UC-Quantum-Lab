@@ -1,9 +1,11 @@
 import * as path from 'path';
-import * as fs from "fs"
+import * as fs from "fs";
 import * as vscode from 'vscode';
 import * as cp from "child_process";
 import * as util from "util";
 import { Config } from './config';
+import {platform} from "process";
+
 const execProm = util.promisify(cp.exec);
 
 //Create output channel
@@ -13,16 +15,16 @@ export let out = vscode.window.createOutputChannel("UC_Q");
 export function print(msg:string) { out.appendLine(`- ${msg}`); }
 
 // declaring types for easy of use later
-export type infoInnerType = {"path" : string, "exe" : string, "pip" : string, "has_qiskit" : boolean}
-export type infoType = {[name:string] : infoInnerType};
-export type configType = {[key : string] : string|boolean};
+export type InfoInnerType = {"path" : string, "exe" : string, "pip" : string, "hasQiskit" : boolean};
+export type InfoType = {[name:string] : InfoInnerType};
+export type ConfigType = {[key : string] : string|boolean};
 
 /**
  * trims everything but the last file/directory of a path
  * @param _path : string representation of a path
  * @returns : input path with the all but the file/directory removed
  */
-export function get_last_from_path(_path:string) {
+export function getLastFromPath(_path:string) {
     return _path.slice(_path.lastIndexOf(path.sep)+1, _path.length);
 }
 
@@ -47,37 +49,37 @@ export async function delay(ms: number) { return new Promise( resolve => setTime
  * @param command : string to execute on the system
  * @returns a boolean indicating if the command succeeded
  */
-export async function try_command(command:string):Promise<boolean> {
+export async function tryCommand(command:string):Promise<boolean> {
     print(`Trying command "${command}"`);
-    let to_return:boolean = false;
+    let toReturn:boolean = false;
     try {
         await execProm(command).then(
             (err) => {
                 if (err.stderr.length) {
                     // ignores deprication error
                     if (err.stderr.indexOf("DEPRECATION") === -1) { // accounts for pip package problems
-                        to_return = false; 
+                        toReturn = false; 
                         print(`Encountered error "${err.stderr.toString()}"`);
                     } else {
                         print(`ignoring error "${err.stderr.toString()}"`);
-                        to_return = true;
+                        toReturn = true;
                     }
                 }
-                else { to_return = true; }
+                else { toReturn = true; }
                 //else { error(`from try command ${err.stderr.toString()}`); }
             }
         );
     } catch ( e ) {
         print(`caught "${(e as Error).message}" in try command`);
-        to_return = false;
+        toReturn = false;
     }
-    return to_return;
+    return toReturn;
 }
 /**
  * Waits for the trigger file (a file that lets the execution of this extension continue)
  * @param config : current configuration of the extension
  */
-export async function wait_for_trigger_file(config:Config) {
+export async function waitForTriggerFile(config:Config) {
     // while loop that waits for the file
     while (true) {
         if (await fs.existsSync(config.triggerFile)) { break; } 
@@ -99,8 +101,8 @@ export async function wait_for_trigger_file(config:Config) {
  * @param module : string name of module to check
  * @returns current version of the provided module
  */
-export async function get_version_of_python_module_with_name(pip:string, module:string):Promise<string> {
-    let to_return:string = "";
+export async function getVersionOfPythonModuleWithName(pip:string, module:string):Promise<string> {
+    let toReturn:string = "";
     try {
         await execProm(`${pip} show ${module}`).then(
             (err) => {
@@ -110,7 +112,7 @@ export async function get_version_of_python_module_with_name(pip:string, module:
                     let arr:string[] = err.stdout.split("\n");
                     for (let val of arr) {
                         if (val.indexOf("Version")>=0){
-                            to_return = val.replace("Version:", "").trim();
+                            toReturn = val.replace("Version:", "").trim();
                             return;
                         }
                     }
@@ -120,22 +122,22 @@ export async function get_version_of_python_module_with_name(pip:string, module:
         );
     // catches any errors
     } catch ( e ) {}
-    return to_return;
+    return toReturn;
 }
 
 /**
  * Determines if a file is in a directory
- * @param dir_path : directory path in string form
- * @param to_find : name of a file that you want to know if it is in dir_path
+ * @param dirPath : directory path in string form
+ * @param toFind : name of a file that you want to know if it is in dir_path
  * @returns boolean indicating if to_find is in dir_path
  */
-export async function check_if_file_in_dir(dir_path : string, to_find : string):Promise<boolean>  {
+export async function checkIfFileInDir(dirPath : string, toFind : string):Promise<boolean>  {
     try {
         // Loop them all with the new for...of
-        for( const entry of await fs.promises.readdir(dir_path) ) {
+        for( const entry of await fs.promises.readdir(dirPath) ) {
             // Get the full paths
-            if (entry == to_find) {
-                if(!((await fs.promises.stat(path.join(dir_path, entry))).isFile())){ return false; } 
+            if (entry === toFind) {
+                if(!((await fs.promises.stat(path.join(dirPath, entry))).isFile())){ return false; } 
                 else { return true; }
             }
         }
@@ -192,15 +194,15 @@ export async function check_if_file_in_dir(dir_path : string, to_find : string):
  */
 export async function mkDir(dir:string):Promise<boolean> {
     //print(`Building from ${mirror_dir} to ${config_dir}`)
-    let exited_good:boolean = true;
+    let exitedGood:boolean = true;
     //making config directory, catches errors, if no errors then continues to building
     fs.mkdir(dir, (err) => {
         if (err) {
-            error(`Error making ${dir} with message: ${err.message}`)
-            exited_good = false;
+            error(`Error making ${dir} with message: ${err.message}`);
+            exitedGood = false;
         }
     });
-    return exited_good;
+    return exitedGood;
 }
 /**
  * Sets up system python for this extension and returns if it was sucessful or not as a boolean
@@ -211,7 +213,7 @@ export async function mkDir(dir:string):Promise<boolean> {
 export async function setupSysPython(config:Config):Promise<boolean> {
     print("Setting up for sys python");
     // if python is installed
-    if (!(await try_command("python3 --version"))) {
+    if (!(await tryCommand("python3 --version"))) {
         // no
         print("Python was not detected");
         vscode.window.showErrorMessage("Python was not detected on your system, please install it");
@@ -220,7 +222,7 @@ export async function setupSysPython(config:Config):Promise<boolean> {
         // setting python for the config
         config.userConfig.python = "python3";
         // if pip is installed
-        if (!(await try_command("pip3 --version"))) {
+        if (!(await tryCommand("pip3 --version"))) {
             // no
             print("python pip was not detected");
             vscode.window.showErrorMessage("python pip was not detected on your system, please install it");
@@ -229,7 +231,7 @@ export async function setupSysPython(config:Config):Promise<boolean> {
             // setting pip for the config
             config.userConfig.pip = "pip3";
             // if the module is installed
-            if (!(await try_command(`python3 -c \"import ${config.pythonModuleName}\"`))){
+            if (!(await tryCommand(`python3 -c \"import ${config.pythonModuleName}\"`))){
                 // asking the user if the want to install the python module
                 let choice:string|undefined = await vscode.window.showInformationMessage(`the package "${config.pythonModuleName}" is not detected for your python installation, do you want to install it?`, config.yes, config.no);
                 // if they want to install the python module
@@ -251,9 +253,9 @@ export async function setupSysPython(config:Config):Promise<boolean> {
  * Gets a dictionary containing information on the user's conda envs
  * @returns Dictionary of infoType type that contains information on the conda envs on the user machine
  */
-export async function get_conda_envs():Promise<infoType>{
-    let to_return:infoType = {};
-    print("Getting conda envs")
+export async function getCondaEnvs():Promise<InfoType>{
+    let toReturn:InfoType = {};
+    print("Getting conda envs");
 
     // reading the available conda envs
     let command:string = "conda env list";
@@ -272,36 +274,36 @@ export async function get_conda_envs():Promise<infoType>{
         // parsing the output of the env list command
         let arr:string[] = output.split("\n");
         for (let val of arr.slice(2, arr.indexOf(""))) {
-            let new_split = val.replace(/\s+/, " ").split(" ");
-            to_return[new_split[0]] = {"path" : new_split[1], "exe" : `${new_split[1]}${path.sep}bin${path.sep}python`, "pip" : `${new_split[1]}${path.sep}bin${path.sep}pip`, "has_qiskit" : false};
-            if (await try_command(`${to_return[new_split[0]]["exe"]} -c "import qiskit"`)) {
-                to_return[new_split[0]]["has_qiskit"] = true;
+            let newSplit = val.replace(/\s+/, " ").split(" ");
+            toReturn[newSplit[0]] = {"path" : newSplit[1], "exe" : `${newSplit[1]}${path.sep}bin${path.sep}python`, "pip" : `${newSplit[1]}${path.sep}bin${path.sep}pip`, "hasQiskit" : false};
+            if (await tryCommand(`${toReturn[newSplit[0]]["exe"]} -c "import qiskit"`)) {
+                toReturn[newSplit[0]]["hasQiskit"] = true;
             }
         }
     }
-    return to_return;
+    return toReturn;
 }
 
 /**
  * Checks if python is installed on the user's machine
  * @returns a boolean indicating if python is install on the user's machine
  */
-export async function check_if_python_installed():Promise<boolean> {
-    return await try_command("python3 --version");
+export async function checkIfPythonInstalled():Promise<boolean> {
+    return await tryCommand("python3 --version");
 }
 
 /**
  * Checks if pip is installed on the user's machine
  * @returns a boolean indicating if pip is install on the user's machine
  */
-export async function check_if_pip_installed():Promise<boolean> {
-    return await try_command("pip3 --version");
+export async function checkIfPipInstalled():Promise<boolean> {
+    return await tryCommand("pip3 --version");
 }
 
 /**
  * Checks if conda is installed on the user's machine
  * @returns a boolean indicating if conda is install on the user's machine
  */
-export async function check_if_conda_installed():Promise<boolean> {
-    return await try_command("conda --version");
+export async function checkIfCondaInstalled():Promise<boolean> {
+    return await tryCommand("conda --version");
 }

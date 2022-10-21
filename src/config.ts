@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import * as fs from "fs"
-import * as path from "path"
+import * as fs from "fs";
+import * as path from "path";
 import { print } from "./src";
 
 /**
@@ -19,8 +19,8 @@ export class UserConfig {
     errorMessage:string = "";
 
     // setting the userfile
-    constructor(user_config_file:string|undefined) {
-        if (user_config_file!==undefined) { this.userFile = user_config_file; }
+    constructor(userConfigFile:string|undefined) {
+        if (userConfigFile!==undefined) { this.userFile = userConfigFile; }
     }
     /**
      * gets the current user config from the user config file and sets attributes of this class
@@ -28,16 +28,16 @@ export class UserConfig {
     get() {
         print(`print reading from ${this.userFile}`);
         // reading the json file
-        let read_in = JSON.parse(fs.readFileSync(this.userFile, "utf8"));
+        let readIn = JSON.parse(fs.readFileSync(this.userFile, "utf8"));
 
         // checks python exe read from the file
-        if (read_in["python"] !== undefined) {
+        if (readIn["python"] !== undefined) {
             // if the python interpreter path exists or it is a command, set the attribute
-            if (fs.existsSync(read_in["python"]) || read_in["python"].indexOf(path.sep) === -1) {
-                this.python = read_in["python"]; 
+            if (fs.existsSync(readIn["python"]) || readIn["python"].indexOf(path.sep) === -1) {
+                this.python = readIn["python"]; 
             } else {
                 this.errorEncountered = true;
-                this.errorMessage = `the python path from user config ${read_in["python"]} does not exist, config file is ${this.userFile}`;
+                this.errorMessage = `the python path from user config ${readIn["python"]} does not exist, config file is ${this.userFile}`;
             }
         } else { 
             this.errorEncountered = true;
@@ -45,13 +45,13 @@ export class UserConfig {
         }
 
         // checks pip exe read from the file
-        if (read_in["pip"] !== undefined) {
+        if (readIn["pip"] !== undefined) {
             // if the pip executable path exists or it is a command, set the attribute
-            if (fs.existsSync(read_in["pip"]) || read_in["pip"].indexOf(path.sep) === -1) { 
-                this.pip = read_in["pip"]; 
+            if (fs.existsSync(readIn["pip"]) || readIn["pip"].indexOf(path.sep) === -1) { 
+                this.pip = readIn["pip"]; 
             } else {
                 this.errorEncountered = true;
-                this.errorMessage = `the pip path from user config ${read_in["pip"]} does not exist, config file is ${this.userFile}`;
+                this.errorMessage = `the pip path from user config ${readIn["pip"]} does not exist, config file is ${this.userFile}`;
             }
         } else { 
             this.errorEncountered = true;
@@ -64,13 +64,13 @@ export class UserConfig {
      * @returns a dictionary containing the attributes of this class
      */
     toDict():{[name:string] : string|boolean} {
-        let to_return:{[name:string] : string|boolean} = {};
+        let toReturn:{[name:string] : string|boolean} = {};
         // to_return["show_histogram"] = this.showHistogram;
         // to_return["show_state_vector"] = this.showStateVector;
         // to_return["show_circ"] = this.showCirc;
-        to_return["pip"] = this.pip;
-        to_return["python"] = this.python;
-        return to_return
+        toReturn["pip"] = this.pip;
+        toReturn["python"] = this.python;
+        return toReturn;
     }
     /**
      * sets the attributes of this class from the inputted dictionary
@@ -177,14 +177,14 @@ export class Config {
 
     /**
      * 
-     * @param workspace_path : path of the open workspace
+     * @param workspacePath : path of the open workspace
      * @param extension_install_path : path to the installation of this extension
      */
-    constructor(workspace_path:string|undefined, extension_install_path:string|undefined) {
+    constructor(workspacePath:string|undefined, extensionInstallPath:string|undefined) {
         // checks if the inputs are valid
-        if (workspace_path !== undefined && extension_install_path !== undefined) {
-            this.workspacePath = workspace_path;
-            this.extensionInstallPath = extension_install_path;
+        if (workspacePath !== undefined && extensionInstallPath !== undefined) {
+            this.workspacePath = workspacePath;
+            this.extensionInstallPath = extensionInstallPath;
 
         } else {
             this.errorEncountered = true;
@@ -208,7 +208,7 @@ export class Config {
  * @param context : context for this extension
  * @returns Config class containing the configuration of this extension
  */
-export async function get_config(context:vscode.ExtensionContext):Promise<Config> {
+export async function getConfig(context:vscode.ExtensionContext):Promise<Config> {
     if (vscode.workspace.workspaceFolders !== undefined) {
         // if here, then a workspace is open
         // init the above class
@@ -246,7 +246,7 @@ export async function get_config(context:vscode.ExtensionContext):Promise<Config
         // initializing user config
         config.initUserConfig();
 
-        return config
+        return config;
     } else {
         // returning a class that has no info
         return new Config(undefined, undefined);

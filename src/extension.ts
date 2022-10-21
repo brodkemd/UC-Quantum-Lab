@@ -9,7 +9,8 @@ import { UCQ } from './panel';
 import * as src from "./src";
 import * as path from 'path';
 import * as fs from 'fs';
-import { get_config, Config } from "./config"
+import { getConfig, Config } from "./config";
+import {platform} from "process";
 
 // because I am lazy, easy way to print to output tab in vscode
 let print = src.print;
@@ -20,18 +21,18 @@ let print = src.print;
  * @returns boolean indicating whether or not this function extension exceeded
  */
 async function verifyPython(config:Config):Promise<boolean> {
-	print("verifying python setup")
+	print("verifying python setup");
 	// if importing the python module in python succeeds
-	if (await src.try_command(`${config.userConfig.python} -c "import ${config.pythonModuleName}"`)) {
+	if (await src.tryCommand(`${config.userConfig.python} -c "import ${config.pythonModuleName}"`)) {
 		// getting the version from the installed package and if it is not the current version, then update it
-		if (await src.get_version_of_python_module_with_name(config.userConfig.pip, config.pythonModuleName) !== config.curPythonModVer) {
+		if (await src.getVersionOfPythonModuleWithName(config.userConfig.pip, config.pythonModuleName) !== config.curPythonModVer) {
 			// informing the user
 			print(`Setting up ${config.pythonModuleName} for ${config.userConfig.python}`);
 			vscode.window.showInformationMessage(`Setting up the python module ${config.pythonModuleName}`);
 			
 			// try installing the python module with pip, if it succeeds tell the user and if not tell the user
 			// it did not
-			if (await src.try_command(`${config.userConfig.pip} install ${config.pythonModulePath}`)) {
+			if (await src.tryCommand(`${config.userConfig.pip} install ${config.pythonModulePath}`)) {
 				vscode.window.showInformationMessage(`Successfully setup ${config.pythonModuleName}`);
 				print(`Successfully setup ${config.pythonModuleName}`);
 			}
@@ -47,7 +48,7 @@ async function verifyPython(config:Config):Promise<boolean> {
 		
 		// trying to install the python module, if it succeeds tell the user, if it does not tell the user
 		// might need to use this flag at some point "--use-feature=in-tree-build"
-		if (await src.try_command(`${config.userConfig.pip} install ${config.pythonModulePath}`)) {
+		if (await src.tryCommand(`${config.userConfig.pip} install ${config.pythonModulePath}`)) {
 			vscode.window.showInformationMessage(`Successfully setup ${config.pythonModuleName} for ${config.userConfig.python}`);
 			print(`Successfully setup ${config.pythonModuleName} for ${config.userConfig.python}`);
 		}
@@ -67,8 +68,8 @@ async function verifyPython(config:Config):Promise<boolean> {
  */
 async function setupPython(config:Config):Promise<boolean> {
     // if conda is installed
-    if (await src.check_if_conda_installed()){
-		print("detected conda")
+    if (await src.checkIfCondaInstalled()){
+		print("detected conda");
 
 		// asking the user if they want to use this extension with conda (hopefully they do)
 		let choice:string|undefined = await vscode.window.showInformationMessage(`Detected conda, do you want to use it with this extension (this is the recommend method)?`, config.yes, config.no);
@@ -77,13 +78,13 @@ async function setupPython(config:Config):Promise<boolean> {
         if (choice === config.yes) {
 			print("setting up for conda");
 			// loading the available conda environments
-            let dict:src.infoType  = await src.get_conda_envs();
+            let dict:src.InfoType  = await src.getCondaEnvs();
             
 			// creating a string array of the available environments to display to the user
             let arr:string[] = [];
             for (let key in dict) {
 				// if qiskit is installed in an environment show it in the array
-                if (dict[key]["has_qiskit"]) { arr.push(`${key} at ${dict[key]["path"]} (suggested)`); } 
+                if (dict[key]["hasQiskit"]) { arr.push(`${key} at ${dict[key]["path"]} (suggested)`); } 
 				else { arr.push(`${key} at ${dict[key]["path"]}`); }
             }
 
@@ -164,7 +165,7 @@ async function init(config:Config):Promise<boolean> {
 		// setting up python if need be, if function returns true then the setup succeeded and vice versa
 		if (await setupPython(config)) {
 			// prompting the user if they want to make the config directory
-			let choice:string|undefined = await vscode.window.showInformationMessage(`Do you want to initialize your current directory for this extension (will make the dir ${src.get_last_from_path(config.configDir)} here)`, config.yes, config.no);
+			let choice:string|undefined = await vscode.window.showInformationMessage(`Do you want to initialize your current directory for this extension (will make the dir ${src.getLastFromPath(config.configDir)} here)`, config.yes, config.no);
 			
 			// if the user wants to make the config directory
 			if (choice === config.yes) {
@@ -179,24 +180,24 @@ async function init(config:Config):Promise<boolean> {
 			// saving user config the config file in the config directory
 			config.userConfig.save();
 			// getting the template main file name from the template main file path
-			let fname = src.get_last_from_path(config.templatePythonFile);
+			let fname = src.getLastFromPath(config.templatePythonFile);
 
 			// if the main file is not in the current directory
-			if (!(await src.check_if_file_in_dir(config.workspacePath, fname))) {
+			if (!(await src.checkIfFileInDir(config.workspacePath, fname))) {
 				// prompting the user if they want an example main file
-				let selection:string|undefined = await vscode.window.showInformationMessage(`Do you want an example main file?`, config.yes, config.no)
+				let selection:string|undefined = await vscode.window.showInformationMessage(`Do you want an example main file?`, config.yes, config.no);
 				
 				// if they want a main file
 				if (selection === config.yes) {
 					print("Making main file");
 					// copying template file to current directory, to_return to used to indicate if an error was encountered copying
-					let to_return:boolean = true
+					let toReturn:boolean = true;
 					fs.copyFile(config.templatePythonFile, 
 								path.join(config.workspacePath, fname), 
 								(err) => {
 						if (err){
 							src.error(`Error copying ${config.templatePythonFile} to ${fname}`);
-							to_return = false;
+							toReturn = false;
 						}
 					});
 					// the copy file succeeded then open the file in the editor
@@ -215,7 +216,7 @@ async function init(config:Config):Promise<boolean> {
 					// }
 
 					// exiting the function returning the success status of the copy operation
-					return to_return;
+					return toReturn;
 				}
 
 			}
@@ -294,22 +295,13 @@ async function init(config:Config):Promise<boolean> {
  */
 export async function activate(context: vscode.ExtensionContext) {
 	print("In activate");
-	
-	const handleUri = (uri: vscode.Uri) => {
-		print(`recieved uri ${uri.toString()}`);
-	};
-	context.subscriptions.push(
-		vscode.window.registerUriHandler({
-			handleUri
-		})
-	);
 
 	// adding the command to vscode
 	context.subscriptions.push(
 		vscode.commands.registerCommand("uc-quantum-lab.execute", async () => {
 			print("--- executing ---");
 			// loading the configuration from the ./config.ts
-			let config:Config = await get_config(context);
+			let config:Config = await getConfig(context);
 
 			// if an error was encountered by config then, print it and exit command
 			if (config.errorEncountered) { src.error(config.errorMessage); return; }
@@ -352,7 +344,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							print("Waiting for trigger file");
 							
 							// waiting for trigger file to be made by the python module, this extension waits for it then continues
-							await src.wait_for_trigger_file(config);
+							await src.waitForTriggerFile(config);
 							
 							// this is temporary, waiting a bit to let things cool down in the filesystem
 							await src.delay(100); // milliseconds
@@ -387,7 +379,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('uc-quantum-lab.init', async () => {
 			// loading the config from "./config.ts"
-			let config:Config = await get_config(context);
+			let config:Config = await getConfig(context);
 			
 			// if an error was encountered by config then, print it and exit command
 			if (config.errorEncountered) { src.error(config.errorMessage); return; }
@@ -398,10 +390,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		
 		vscode.commands.registerCommand('uc-quantum-lab.reinit', async () => {
 			// loading the config from "./config.ts"
-			let config:Config = await get_config(context);
+			let config:Config = await getConfig(context);
 
 			// if an error was encountered by config then, print it and exit command
 			if (config.errorEncountered) { src.error(config.errorMessage); return; }
