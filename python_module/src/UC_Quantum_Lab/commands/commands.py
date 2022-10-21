@@ -3,34 +3,39 @@ from qiskit.quantum_info import Statevector
 from qiskit.visualization import plot_histogram
 import matplotlib.pyplot as plt
 from math import log
-from . import __states, __circs, __hists, get_path
+from ..config import _states, _circs, _hists, _master_show, _show_plt
+from .. import get_path
 
-__circ_count = 0
-__state_count = 0
-__hist_count = 0
+_circ_count = 0
+_state_count = 0
+_hist_count = 0
 
 # diplays the image in the viewer or saves the image to the inputted path
 def display(circuit:QuantumCircuit, path:str=""):
-    global __circ_count, __circs
+    global _circ_count, _circs, _master_show, _show_plt
     circuit.draw(output='mpl')
     plt.tight_layout()
     if len(path): plt.savefig(path)
-    else:
+    elif _master_show:
         print("displaying circuit")
-        p = get_path(f"__circ__{__circ_count}.png")
+        p = get_path(f"_circ_{_circ_count}.png")
         plt.savefig(p)
-        __circs.append(p)
-        __circ_count+=1
+        _circs.append(p)
+        _circ_count+=1
+    else: 
+        print("setting plt")
+        _show_plt = True
+        print(_show_plt)
 
 # generates binary strings
 def getbin(n, s=['']):
-    global __config
+    global _config
     if n > 0: return [*getbin(n - 1, [i + '0' for i in s]), *getbin(n - 1, [j + '1' for j in s])]
     return s
 
 # displays the statevector of the circuit and can return it
 def state(circuit:QuantumCircuit, show=True):
-    global __state_count, __states
+    global _state_count, _states, _master_show, _show_plt
     _state = Statevector.from_instruction(circuit).data
     _num_bits = int(log(len(_state))/log(2))
     
@@ -44,30 +49,35 @@ def state(circuit:QuantumCircuit, show=True):
             val = round(val, 10)
         _data[_options[i]] = str(val).replace("(", "").replace(")", "")
 
-    if show:
+    if show and _master_show:
         print("showing state vector")
-        if len(__states):
-            if len(_options[i]) > len(list(__states.keys())[0]):
+        if len(_states):
+            if len(_options[i]) > len(list(_states.keys())[0]):
                 raise KeyError("States must be obtained from the same circuit")
             for item in _data:
-                __states[item].append(_data[item])
+                _states[item].append(_data[item])
         else:
             for item in _data:
-                __states[item] = [_data[item]]
+                _states[item] = [_data[item]]
 
     return _state
 
 # displays the histogram of the circuit after execution in the viewer
-def counts(circuit:QuantumCircuit, backend=Aer.get_backend('qasm_simulator'), show=True):
-    global __hist_count, __hists
+def counts(circuit:QuantumCircuit, backend=Aer.get_backend('qasm_simulator'), path:str=""):
+    global _hist_count, _hists, _master_show, _show_plt
     counts = execute(circuit, backend=backend, shots=1024).result().get_counts()
-    if show:
+    if len(path): plt.savefig(path)
+    elif _master_show:
         print("displaying histogram")
         plot_histogram(counts)
-        p = get_path(f"__hist__{__hist_count}.png")
+        p = get_path(f"_hist_{_hist_count}.png")
         plt.savefig(p)
-        __hists.append(p)
-        __hist_count+=1
+        _hists.append(p)
+        _hist_count+=1
+    else:
+        print("setting plt")
+        _show_plt = True
+        print(_show_plt)
     return counts
 
 
