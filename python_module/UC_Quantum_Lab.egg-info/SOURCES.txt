@@ -1,6 +1,0 @@
-setup.py
-UC_Quantum_Lab.egg-info/PKG-INFO
-UC_Quantum_Lab.egg-info/SOURCES.txt
-UC_Quantum_Lab.egg-info/dependency_links.txt
-UC_Quantum_Lab.egg-info/requires.txt
-UC_Quantum_Lab.egg-info/top_level.txt
