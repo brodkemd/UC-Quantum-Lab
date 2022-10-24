@@ -20,7 +20,7 @@ let print = src.print;
  * @param config : configuration of the extension
  * @returns boolean indicating whether or not this function extension exceeded
  */
-async function verifyPython(config:Config):Promise<boolean> {
+async function verifyPython(config:Config) {
 	print("verifying python setup");
 	// if importing the python module in python succeeds
 	if (await src.tryCommand(`${config.userConfig.python} -c "import ${config.pythonModuleName}"`)) {
@@ -38,7 +38,6 @@ async function verifyPython(config:Config):Promise<boolean> {
 			}
 			else {
 				src.error(`error installing ${config.pythonModuleName} for ${config.userConfig.python}`);
-				return false; // return false to indicate error encountered
 			}
 		// if the package is already the right version
 		} else { print(`Package is already there for ${config.userConfig.python} and of the right version, do not need to install`); }
@@ -54,11 +53,8 @@ async function verifyPython(config:Config):Promise<boolean> {
 		}
 		else {
 			src.error(`error setting up ${config.pythonModuleName} for ${config.userConfig.python}`);
-			return false; // return false to indicate error encountered
 		}
 	}
-	// default return
-	return true;
 }
 
 /**
@@ -66,7 +62,7 @@ async function verifyPython(config:Config):Promise<boolean> {
  * @param config : configuration of the extension
  * @returns boolean indicating whether or not this function extension exceeded
  */
-async function setupPython(config:Config):Promise<boolean> {
+async function setupPython(config:Config) {
     // if conda is installed
     if (await src.checkIfCondaInstalled()){
 		print("detected conda");
@@ -102,31 +98,28 @@ async function setupPython(config:Config):Promise<boolean> {
 				config.userConfig.pip = dict[result]["pip"];
 				
 				// checking if the python and pip paths are valid
-				if (await(verifyPython(config))) {
-					// if they are valid saving the config to the config file
-					config.userConfig.save();
-					return true;
-				// python configuration is bad so exit this function with false
-				} else { return false; }
+				await verifyPython(config);
+
+				// if they are valid saving the config to the config file
+				config.userConfig.save();
+
 			} else { 
 				// if the user chose nothing, this is not ok
 				src.error("invalid selection for conda env");
-				return false; 
 			}
 		// if the user does not want to use conda
         } else if (choice === config.no) {
 			print("setting up for system python");
 			// setting this extension up to use system python
-			if (await src.setupSysPython(config)) {
-				// if here then the steup succeeded, save the config to the config file
-				config.userConfig.save();
-				return true;
-			} else { return false; }
+			await src.setupSysPython(config);
+
+			// if here then the steup succeeded, save the config to the config file
+			config.userConfig.save();
+
 		// if the user did not choose anything
 		}  else {
 			// this is no bueno	
 			src.error("invalid choice for python setup");
-			return false; 
 		}
 	// if here then did not detect conda
     } else {
@@ -137,18 +130,16 @@ async function setupPython(config:Config):Promise<boolean> {
 		// if they want to continue to a system install
 		if (opt === config.yes) {
 			// setting this extension up to use system python
-			if (await src.setupSysPython(config)) {
-				//if here then the setup succeeded, save the config to the config file
-				config.userConfig.save();
-				return true;
-			} else { return false; }
+			await src.setupSysPython(config);
+
+			//if here then the setup succeeded, save the config to the config file
+			config.userConfig.save();
+
 		// if the user did not choose anything
         } else if (opt === undefined) {
 			src.error("invalid choice for python setup");
-			return false; 
 		}
     }
-    return false;
 }
 
 
@@ -157,88 +148,90 @@ async function setupPython(config:Config):Promise<boolean> {
  * @param config : configuration of the extension
  * @returns boolean indicating whether or not this function extension exceeded
  */
-async function init(config:Config):Promise<boolean> {
+async function init(config:Config) {
  	print("Running \"init\"");
 	
 	// the config directory exists
 	if (!(fs.existsSync(config.configDir))) {
 		// setting up python if need be, if function returns true then the setup succeeded and vice versa
-		if (await setupPython(config)) {
-			// prompting the user if they want to make the config directory
-			let choice:string|undefined = await vscode.window.showInformationMessage(`Do you want to initialize your current directory for this extension (will make the dir ${src.getLastFromPath(config.configDir)} here)`, config.yes, config.no);
-			
-			// if the user wants to make the config directory
-			if (choice === config.yes) {
-				// making the config directory, if making it returns false then it failed, so exit function
-				if (!(await src.mkDir(config.configDir))) { return false; }	
-			} else {
-				// can not operate without config directory
-				print("User blocked config directory creation, returning");
-				vscode.window.showErrorMessage("Can not execute this extension without a config directory, sorry");
-				return false;
-			}
-			// saving user config the config file in the config directory
-			config.userConfig.save();
-			// getting the template main file name from the template main file path
-			let fname = src.getLastFromPath(config.templatePythonFile);
+		await setupPython(config);
 
-			// if the main file is not in the current directory
-			if (!(await src.checkIfFileInDir(config.workspacePath, fname))) {
-				// prompting the user if they want an example main file
-				let selection:string|undefined = await vscode.window.showInformationMessage(`Do you want an example main file?`, config.yes, config.no);
-				
-				// if they want a main file
-				if (selection === config.yes) {
-					print("Making main file");
-					// copying template file to current directory, to_return to used to indicate if an error was encountered copying
-					let toReturn:boolean = true;
-					fs.copyFile(config.templatePythonFile, 
-								path.join(config.workspacePath, fname), 
-								(err) => {
-						if (err){
-							src.error(`Error copying ${config.templatePythonFile} to ${fname}`);
-							toReturn = false;
-						}
-					});
-					// the copy file succeeded then open the file in the editor
-					// if (to_return) {
-					// 	// opening file in the editor
-					// 	let documet:vscode.TextDocument|undefined = await vscode.workspace.openTextDocument(path.join(config.workspacePath, fname));
-
-					// 	if (documet === undefined) {
-					// 		// if the opening of the file failed let the user know
-					// 		src.error(`could not open "${path.join(config.workspacePath, fname)} in code"`);
-					// 	} else {
-					// 		// if opening the file succeeded then run "execute"
-					// 		await src.delay(1000);
-					// 		vscode.commands.executeCommand("uc-quantum-lab.execute");
-					// 	}
-					// }
-
-					// exiting the function returning the success status of the copy operation
-					return toReturn;
-				}
-
-			}
-			// the copy file succeeded then open the file in the editor
-			// opening file in the editor
-			// let documet:vscode.TextDocument|undefined = await vscode.workspace.openTextDocument(path.join(config.workspacePath, fname));
-			// print("here")
-			// if (documet === undefined) {
-			// 	// if the opening of the file failed let the user know
-			// 	src.error(`could not open "${path.join(config.workspacePath, fname)} in code"`);
-			// } else {
-			// 	// if opening the file succeeded then run "execute"
-			// 	await src.delay(500);
-			// 	vscode.commands.executeCommand("uc-quantum-lab.execute");
-			// }
+		// prompting the user if they want to make the config directory
+		let choice:string|undefined = await vscode.window.showInformationMessage(`Do you want to initialize your current directory for this extension (will make the dir ${src.getLastFromPath(config.configDir)} here)`, config.yes, config.no);
 		
-			// removed this because I did not think it is necessary
-			// else {
-				//src.error(`"${fname}" is in your current directory and is not a directory please delete it from the current directory`);
-			//}
+		// if the user wants to make the config directory
+		if (choice === config.yes) {
+			// making the config directory, if making it returns false then it failed, so exit function
+			await src.mkDir(config.configDir);
+		} else {
+			// can not operate without config directory
+			src.error("User blocked config directory creation, can not execute without it");
+		}
+		// saving user config the config file in the config directory
+		config.userConfig.save();
+
+		try {
+			await fs.promises.copyFile(config.templateLayoutFile, config.layoutFile);
+		} catch ( e ) {
+			src.error(`while trying to copy template layout file to config dir: ${(e as Error).message}`);
+		}
+
+		// getting the template main file name from the template main file path
+		let fname = src.getLastFromPath(config.templatePythonFile);
+
+		// if the main file is not in the current directory
+		if (!(await src.checkIfFileInDir(config.workspacePath, fname))) {
+			// prompting the user if they want an example main file
+			let selection:string|undefined = await vscode.window.showInformationMessage(`Do you want an example main file?`, config.yes, config.no);
+			
+			// if they want a main file
+			if (selection === config.yes) {
+				print("Making main file");
+				// copying template file to current directory, to_return to used to indicate if an error was encountered copying
+				fs.copyFile(config.templatePythonFile, 
+							path.join(config.workspacePath, fname), 
+							(err) => {
+					if (err){
+						src.error(`Error copying ${config.templatePythonFile} to ${fname}`);
+					}
+				});
+				// the copy file succeeded then open the file in the editor
+				// if (to_return) {
+				// 	// opening file in the editor
+				// 	let documet:vscode.TextDocument|undefined = await vscode.workspace.openTextDocument(path.join(config.workspacePath, fname));
+
+				// 	if (documet === undefined) {
+				// 		// if the opening of the file failed let the user know
+				// 		src.error(`could not open "${path.join(config.workspacePath, fname)} in code"`);
+				// 	} else {
+				// 		// if opening the file succeeded then run "execute"
+				// 		await src.delay(1000);
+				// 		vscode.commands.executeCommand("uc-quantum-lab.execute");
+				// 	}
+				// }
+
+				// exiting the function returning the success status of the copy operation
+			}
+
+		}
+		// the copy file succeeded then open the file in the editor
+		// opening file in the editor
+		// let documet:vscode.TextDocument|undefined = await vscode.workspace.openTextDocument(path.join(config.workspacePath, fname));
+		// print("here")
+		// if (documet === undefined) {
+		// 	// if the opening of the file failed let the user know
+		// 	src.error(`could not open "${path.join(config.workspacePath, fname)} in code"`);
+		// } else {
+		// 	// if opening the file succeeded then run "execute"
+		// 	await src.delay(500);
+		// 	vscode.commands.executeCommand("uc-quantum-lab.execute");
+		// }
+	
+		// removed this because I did not think it is necessary
+		// else {
+			//src.error(`"${fname}" is in your current directory and is not a directory please delete it from the current directory`);
+		//}
 		// if setting up python failed then can not continue, function is exited
-		} else { return false; }
 	} else {
 		// if the user config file exists
 		if (fs.existsSync(config.configFile)) {
@@ -246,24 +239,20 @@ async function init(config:Config):Promise<boolean> {
 			config.userConfig.get();
 			
 			// if the current configuration of python is not valid
-			if (!(await verifyPython(config))) {
-				print("detected faulty config");
-				// asking the user if they want to reinitialize the current directory
-				let choice:string|undefined = await vscode.window.showInformationMessage("Detected faulty config, do you want to reinit the workspace?", config.yes, config.no);
-				
-				// if yes, then reinit it
-				if (choice === config.yes) {
-					// running the reinit command
-					vscode.commands.executeCommand('uc-quantum-lab.reinit');
-					return true; // indicates it was successful
-				} else if (choice === undefined) {
-					// if the user choose nothing
-					src.error("Invalid choice for whether or not to reinit");
-					return false; // indicates an error occurred
-				}
-				// deafult return
-				return false;
+			await verifyPython(config);
+			print("detected faulty config");
+			// asking the user if they want to reinitialize the current directory
+			let choice:string|undefined = await vscode.window.showInformationMessage("Detected faulty config, do you want to reinit the workspace?", config.yes, config.no);
+			
+			// if yes, then reinit it
+			if (choice === config.yes) {
+				// running the reinit command
+				vscode.commands.executeCommand('uc-quantum-lab.reinit');
+			} else if (choice === undefined) {
+				// if the user choose nothing
+				src.error("Invalid choice for whether or not to reinit");
 			}
+
 		// if there is no config file to pull information from
 		} else {
 			print("detected faulty config");
@@ -274,19 +263,12 @@ async function init(config:Config):Promise<boolean> {
 			if (choice === config.yes) {
 				// running the reinit command
 				vscode.commands.executeCommand('uc-quantum-lab.reinit');
-				return true; // indicates it was successful
 			} else if (choice === undefined) {
 				// if the user choose nothing
 				src.error("Invalid choice for whether or not to reinit");
-				return false; // indicates an error occurred
 			}
-			// deafult return
-			return false;
 		}
 	}
-
-	// default return
-	return true;
 }
 
 /**
@@ -300,15 +282,13 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand("uc-quantum-lab.execute", async () => {
 			print("--- executing ---");
-			// loading the configuration from the ./config.ts
-			let config:Config = await getConfig(context);
-
-			// if an error was encountered by config then, print it and exit command
-			if (config.errorEncountered) { src.error(config.errorMessage); return; }
-			
-			// catching errors that may occur while loading info from loading directory or otherwise
-			// this is mostly to catch if the config directory gets deleted (at least so far)
 			try {
+				// loading the configuration from the ./config.ts
+				let config:Config = await getConfig(context);
+
+				// if an error was encountered by config then, print it and exit command
+				if (config.errorEncountered) { src.error(config.errorMessage); return; }
+			
 				// if the viewer panel is open and there is an active editor
 				if (UCQ.currentPanel && vscode.window.activeTextEditor) {
 					print("Window is active");
@@ -359,63 +339,70 @@ export async function activate(context: vscode.ExtensionContext) {
 					}
 				} else {
 					// if nothing is opening, first running init to make sure everything is setup correctly
-					if (await init(config)) {
-						print("Creating Window");
-						// creating window
-						UCQ.createOrShow(config);
+					await init(config);
+					print("Creating Window");
+					// creating window
+					UCQ.createOrShow(config);
 
 						// something things that I am messing with
 						// vscode.commands.executeCommand("uc-quantum-lab.execute");
 						// vscode.commands.executeCommand("workbench.action.focusPreviousGroup");
-					}
 				}
 			} catch ( e ) {
 				// if here then a reinit of the current directory will probably work
-				src.error(`error with message ${(e as Error).message}, maybe try reinitializng the current directory?`);
+				src.error((e as Error).message);
 			}
 		})
 	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('uc-quantum-lab.init', async () => {
-			// loading the config from "./config.ts"
-			let config:Config = await getConfig(context);
-			
-			// if an error was encountered by config then, print it and exit command
-			if (config.errorEncountered) { src.error(config.errorMessage); return; }
-			
-			// initing the current directory, do not to wrap the function call in an "if" because the function will handle its own errors
-			await init(config);
+			try {
+				// loading the config from "./config.ts"
+				let config:Config = await getConfig(context);
+				
+				// if an error was encountered by config then, print it and exit command
+				if (config.errorEncountered) { src.error(config.errorMessage); return; }
+				
+				// initing the current directory, do not to wrap the function call in an "if" because the function will handle its own errors
+				await init(config);
+			} catch ( e ) {
+				src.error((e as Error).message);
+			}
 		})
 	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('uc-quantum-lab.reinit', async () => {
-			// loading the config from "./config.ts"
-			let config:Config = await getConfig(context);
+			try {
+				// loading the config from "./config.ts"
+				let config:Config = await getConfig(context);
 
-			// if an error was encountered by config then, print it and exit command
-			if (config.errorEncountered) { src.error(config.errorMessage); return; }
+				// if an error was encountered by config then, print it and exit command
+				if (config.errorEncountered) { src.error(config.errorMessage); return; }
 
-			// if the config directory exists in the current directory
-			if (fs.existsSync(config.configDir)) {
-				// prompting user with what it will do to the config directory
-				let choice:string|undefined = await vscode.window.showInformationMessage(`Will delete ${config.configDir} from the current directory, is this ok`, config.yes, config.no);
+				// if the config directory exists in the current directory
+				if (fs.existsSync(config.configDir)) {
+					// prompting user with what it will do to the config directory
+					let choice:string|undefined = await vscode.window.showInformationMessage(`Will delete ${config.configDir} from the current directory, is this ok`, config.yes, config.no);
 
-				// if they agreed to the previous message
-				if (choice === config.yes) {
-					// removing the config directory and catching errors
-					try { fs.rmSync(config.configDir, { recursive: true, force: true }); }
-					catch ( e ) { src.error(`error encountered when deleting config directory, with message ${e}`); }
+					// if they agreed to the previous message
+					if (choice === config.yes) {
+						// removing the config directory and catching errors
+						try { fs.rmSync(config.configDir, { recursive: true, force: true }); }
+						catch ( e ) { src.error(`error encountered when deleting config directory, with message ${e}`); }
 
-				} else if (choice === undefined) {
-					// the user can not choose nothing
-					src.error("Invalid choice for deletion config dir");
-					return;
+					} else if (choice === undefined) {
+						// the user can not choose nothing
+						src.error("Invalid choice for deletion config dir");
+						return;
+					}
 				}
+				// initing the current directory, do not to wrap the function call in an "if" because the function will handle its own errors
+				await init(config);
+			} catch ( e ) {
+				src.error((e as Error).message);
 			}
-			// initing the current directory, do not to wrap the function call in an "if" because the function will handle its own errors
-			await init(config);
 		})
 	);
 }

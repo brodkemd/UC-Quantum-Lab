@@ -146,7 +146,7 @@ export class Config {
     // the file containing the layout of the viewer
     layoutFile:string = "";
     // template config file to load into the user config directory with it is made
-    templateConfigFile:string = "";
+    templateLayoutFile:string = "";
     // example python file to give to the user if they want it
     templatePythonFile:string = "";
     // html format file to load and use as a template for the viewer's html
@@ -220,7 +220,7 @@ export async function getConfig(context:vscode.ExtensionContext):Promise<Config>
 		config.configFile = path.join(config.configDir, "config.json"); // needs to be json
         config.layoutFile =  path.join(config.configDir, "layout.json"); // needs to be json
         config.triggerFile = path.join(config.configDir, ".trigger");
-        config.templateConfigFile = path.join(config.extensionInstallPath, "templates", "template_config");
+        config.templateLayoutFile = path.join(config.extensionInstallPath, "templates", "template_config", "layout.json");
         config.templatePythonFile = path.join(config.extensionInstallPath, "templates", "main.py");
         config.noDataImage = path.join(config.extensionInstallPath, "media", "no_img.jpg");
         config.mainHtmlFormatFile = path.join(config.extensionInstallPath, "media", "format.html");

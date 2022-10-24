@@ -3,10 +3,11 @@ import * as fs from "fs";
 import * as vscode from 'vscode';
 import * as cp from "child_process";
 import * as util from "util";
+import * as os from "os";
 import { Config } from './config';
-import {platform} from "process";
 
 const execProm = util.promisify(cp.exec);
+
 
 //Create output channel
 export let out = vscode.window.createOutputChannel("UC_Q");
@@ -35,6 +36,7 @@ export function getLastFromPath(_path:string) {
 export function error(msg:string) {
     print(`Error: ${msg}`);
     vscode.window.showErrorMessage(msg);
+    throw new Error(msg);
 }
 
 /**
@@ -70,7 +72,7 @@ export async function tryCommand(command:string):Promise<boolean> {
             }
         );
     } catch ( e ) {
-        print(`caught "${(e as Error).message}" in try command`);
+        print(`caught "${(e as Error).message.replace("\n", " ")}" in try command`);
         toReturn = false;
     }
     return toReturn;
@@ -91,7 +93,7 @@ export async function waitForTriggerFile(config:Config) {
         await fs.promises.rm(config.triggerFile); 
     } 
     catch ( e ) {
-        error(`caught error in waiting for trigger file: ${(e as Error).message}`);
+        error(`caught error in waiting for trigger file: ${(e as Error).message.replace("\n", " ")}`);
     }
 }
 
@@ -192,17 +194,15 @@ export async function checkIfFileInDir(dirPath : string, toFind : string):Promis
  * @param dir : string representation of a directory path to make
  * @returns if making the directory succeeded
  */
-export async function mkDir(dir:string):Promise<boolean> {
+export async function mkDir(dir:string){
     //print(`Building from ${mirror_dir} to ${config_dir}`)
-    let exitedGood:boolean = true;
+
     //making config directory, catches errors, if no errors then continues to building
     fs.mkdir(dir, (err) => {
         if (err) {
             error(`Error making ${dir} with message: ${err.message}`);
-            exitedGood = false;
         }
     });
-    return exitedGood;
 }
 /**
  * Sets up system python for this extension and returns if it was sucessful or not as a boolean
@@ -210,7 +210,7 @@ export async function mkDir(dir:string):Promise<boolean> {
  * @returns boolean indicating if there was successful setup of system python for this extension
  */
 
-export async function setupSysPython(config:Config):Promise<boolean> {
+export async function setupSysPython(config:Config) {
     print("Setting up for sys python");
     // if python is installed
     if (!(await tryCommand("python3 --version"))) {
@@ -255,33 +255,101 @@ export async function setupSysPython(config:Config):Promise<boolean> {
  */
 export async function getCondaEnvs():Promise<InfoType>{
     let toReturn:InfoType = {};
-    print("Getting conda envs");
+    let connector:string = "";
+    if (fs.existsSync(path.join(os.homedir(), "anaconda3"))) {
+        print(`Detected conda at: ${path.join(os.homedir(), "anaconda3")}`);
+        let p:string = path.join(os.homedir(), "anaconda3", "envs");
+        for( const entry of await fs.promises.readdir(p) ) {
+            // Get the full paths
+            if ((await fs.promises.stat(path.join(p, entry))).isDirectory()) {
+                connector = "";
+                print(`detected env: ${entry}`);
 
-    // reading the available conda envs
-    let command:string = "conda env list";
-    let output:string = "";
-    try {
-        await execProm(command).then(
-            (err) => {
-                output = err.stdout; 
-                return;
-            }
-        );
-    } catch ( e ) {}
-    
-    // if something was returned from the env list command
-    if (output.length) {
-        // parsing the output of the env list command
-        let arr:string[] = output.split("\n");
-        for (let val of arr.slice(2, arr.indexOf(""))) {
-            let newSplit = val.replace(/\s+/, " ").split(" ");
-            toReturn[newSplit[0]] = {"path" : newSplit[1], "exe" : `${newSplit[1]}${path.sep}bin${path.sep}python`, "pip" : `${newSplit[1]}${path.sep}bin${path.sep}pip`, "hasQiskit" : false};
-            if (await tryCommand(`${toReturn[newSplit[0]]["exe"]} -c "import qiskit"`)) {
-                toReturn[newSplit[0]]["hasQiskit"] = true;
+                if (os.platform() === "win32") {
+                    toReturn[entry] = {
+                        "path" : path.join(p, entry), 
+                        "exe" : path.join(p, entry, "python.exe"),
+                        "pip" : path.join(p, entry, "lib", "site-packages", "pip"),
+                        "hasQiskit" : false
+                    };
+                } else {
+                    toReturn[entry] = {
+                        "path" : path.join(p, entry), 
+                        "exe" : path.join(p, entry, "bin", "python"),
+                        "pip" : path.join(p, entry, "bin", "pip"),
+                        "hasQiskit" : false
+                    };
+                }
+                if (await tryCommand(`${toReturn[entry]["exe"]} -c "import qiskit"`)) {
+                    toReturn[entry]["hasQiskit"] = true;
+                }
+                if (!(fs.existsSync(toReturn[entry]["exe"]))) {
+                    error(`Detected python exe "${toReturn[entry]["exe"]}" does not exist`);
+                }
+                if (!(fs.existsSync(toReturn[entry]["pip"]))) {
+                    error(`Detected pip exe "${toReturn[entry]["pip"]}" does not exist`);
+                }
             }
         }
-    }
+    } else if (await tryCommand("conda --version")) {
+        let toReturn:InfoType = {};
+        print("Detected conda command on system (no conda install directory found)");
+    
+        // reading the available conda envs
+        let command:string = "conda env list";
+        let output:string = "";
+        try {
+            await execProm(command).then(
+                (err) => {
+                    output = err.stdout; 
+                    return;
+                }
+            );
+        } catch ( e ) {}
+        
+        // if something was returned from the env list command
+        if (output.length) {
+            // parsing the output of the env list command
+            let arr:string[] = output.split("\n");
+            for (let val of arr.slice(2, arr.indexOf(""))) {
+                let newSplit = val.replace(/\s+/, " ").split(" ");
+                toReturn[newSplit[0]] = {"path" : newSplit[1], "exe" : `${newSplit[1]}${path.sep}bin${path.sep}python`, "pip" : `${newSplit[1]}${path.sep}bin${path.sep}pip`, "hasQiskit" : false};
+                if (await tryCommand(`${toReturn[newSplit[0]]["exe"]} -c "import qiskit"`)) {
+                    toReturn[newSplit[0]]["hasQiskit"] = true;
+                }
+            }
+        }
+    } else { error("could not find anaconda on the system"); }
     return toReturn;
+
+    // let toReturn:InfoType = {};
+    // print("Getting conda envs");
+
+    // // reading the available conda envs
+    // let command:string = "conda env list";
+    // let output:string = "";
+    // try {
+    //     await execProm(command).then(
+    //         (err) => {
+    //             output = err.stdout; 
+    //             return;
+    //         }
+    //     );
+    // } catch ( e ) {}
+    
+    // // if something was returned from the env list command
+    // if (output.length) {
+    //     // parsing the output of the env list command
+    //     let arr:string[] = output.split("\n");
+    //     for (let val of arr.slice(2, arr.indexOf(""))) {
+    //         let newSplit = val.replace(/\s+/, " ").split(" ");
+    //         toReturn[newSplit[0]] = {"path" : newSplit[1], "exe" : `${newSplit[1]}${path.sep}bin${path.sep}python`, "pip" : `${newSplit[1]}${path.sep}bin${path.sep}pip`, "hasQiskit" : false};
+    //         if (await tryCommand(`${toReturn[newSplit[0]]["exe"]} -c "import qiskit"`)) {
+    //             toReturn[newSplit[0]]["hasQiskit"] = true;
+    //         }
+    //     }
+    // }
+    // return toReturn;
 }
 
 /**
@@ -305,5 +373,6 @@ export async function checkIfPipInstalled():Promise<boolean> {
  * @returns a boolean indicating if conda is install on the user's machine
  */
 export async function checkIfCondaInstalled():Promise<boolean> {
-    return await tryCommand("conda --version");
+    if (fs.existsSync(path.join(os.homedir(), "anaconda3")) || await tryCommand("conda --version")) { return true; }
+    return false;
 }
