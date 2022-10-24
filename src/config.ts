@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
-import { print } from "./src";
+import { print,error } from "./src";
 
 /**
  * Class to store information about the current configuration for the user
@@ -28,34 +28,37 @@ export class UserConfig {
     get() {
         print(`print reading from ${this.userFile}`);
         // reading the json file
-        let readIn = JSON.parse(fs.readFileSync(this.userFile, "utf8"));
-
-        // checks python exe read from the file
-        if (readIn["python"] !== undefined) {
-            // if the python interpreter path exists or it is a command, set the attribute
-            if (fs.existsSync(readIn["python"]) || readIn["python"].indexOf(path.sep) === -1) {
-                this.python = readIn["python"]; 
-            } else {
+        try {
+            let readIn = JSON.parse(fs.readFileSync(this.userFile, "utf8"));
+            // checks python exe read from the file
+            if (readIn["python"] !== undefined) {
+                // if the python interpreter path exists or it is a command, set the attribute
+                if (fs.existsSync(readIn["python"]) || readIn["python"].indexOf(path.sep) === -1) {
+                    this.python = readIn["python"]; 
+                } else {
+                    this.errorEncountered = true;
+                    this.errorMessage = `the python path from user config ${readIn["python"]} does not exist, config file is ${this.userFile}`;
+                }
+            } else { 
                 this.errorEncountered = true;
-                this.errorMessage = `the python path from user config ${readIn["python"]} does not exist, config file is ${this.userFile}`;
+                this.errorMessage = `python was not found in the user config file, config file is ${this.userFile}`;
             }
-        } else { 
-            this.errorEncountered = true;
-            this.errorMessage = `python was not found in the user config file, config file is ${this.userFile}`;
-        }
 
-        // checks pip exe read from the file
-        if (readIn["pip"] !== undefined) {
-            // if the pip executable path exists or it is a command, set the attribute
-            if (fs.existsSync(readIn["pip"]) || readIn["pip"].indexOf(path.sep) === -1) { 
-                this.pip = readIn["pip"]; 
-            } else {
+            // checks pip exe read from the file
+            if (readIn["pip"] !== undefined) {
+                // if the pip executable path exists or it is a command, set the attribute
+                if (fs.existsSync(readIn["pip"]) || readIn["pip"].indexOf(path.sep) === -1) { 
+                    this.pip = readIn["pip"]; 
+                } else {
+                    this.errorEncountered = true;
+                    this.errorMessage = `the pip path from user config ${readIn["pip"]} does not exist, config file is ${this.userFile}`;
+                }
+            } else { 
                 this.errorEncountered = true;
-                this.errorMessage = `the pip path from user config ${readIn["pip"]} does not exist, config file is ${this.userFile}`;
+                this.errorMessage = `pip was not found in the user config file, config file is ${this.userFile}`;
             }
-        } else { 
-            this.errorEncountered = true;
-            this.errorMessage = `pip was not found in the user config file, config file is ${this.userFile}`;
+        } catch ( e ) {
+            error(`Could not find user config file, try reinitializing the current directory (run reinit command of this extension)`);
         }
     }
 

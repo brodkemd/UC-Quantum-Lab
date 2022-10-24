@@ -279,7 +279,7 @@ export async function genHtml(webview:vscode.Webview, config:Config):Promise<str
         // generating the html from the class, recursively
         await obj.getHtml();
         // printing it out
-        await obj.show();
+        //await obj.show();
         // formatting the html template, replaces keywords
         format = await formatMain(format);
         // for testing puposes, outputs the html that will be sent to the panel to a file

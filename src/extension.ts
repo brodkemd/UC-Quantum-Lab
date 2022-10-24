@@ -98,11 +98,12 @@ async function setupPython(config:Config) {
 				config.userConfig.pip = dict[result]["pip"];
 				
 				// checking if the python and pip paths are valid
-				await verifyPython(config);
-
-				// if they are valid saving the config to the config file
-				config.userConfig.save();
-
+				try {
+					await verifyPython(config);
+					
+					// if they are valid saving the config to the config file
+					config.userConfig.save();
+				} catch ( e ){}
 			} else { 
 				// if the user chose nothing, this is not ok
 				src.error("invalid selection for conda env");
@@ -238,19 +239,22 @@ async function init(config:Config) {
 			// loading the user config from the file
 			config.userConfig.get();
 			
-			// if the current configuration of python is not valid
-			await verifyPython(config);
-			print("detected faulty config");
-			// asking the user if they want to reinitialize the current directory
-			let choice:string|undefined = await vscode.window.showInformationMessage("Detected faulty config, do you want to reinit the workspace?", config.yes, config.no);
-			
-			// if yes, then reinit it
-			if (choice === config.yes) {
-				// running the reinit command
-				vscode.commands.executeCommand('uc-quantum-lab.reinit');
-			} else if (choice === undefined) {
-				// if the user choose nothing
-				src.error("Invalid choice for whether or not to reinit");
+			// if the current configuration of python
+			try {
+				await verifyPython(config);
+			} catch ( e ) {
+				print("detected faulty config");
+				// asking the user if they want to reinitialize the current directory
+				let choice:string|undefined = await vscode.window.showInformationMessage("Detected faulty config, do you want to reinit the workspace?", config.yes, config.no);
+				
+				// if yes, then reinit it
+				if (choice === config.yes) {
+					// running the reinit command
+					vscode.commands.executeCommand('uc-quantum-lab.reinit');
+				} else if (choice === undefined) {
+					// if the user choose nothing
+					src.error("Invalid choice for whether or not to reinit");
+				}
 			}
 
 		// if there is no config file to pull information from
