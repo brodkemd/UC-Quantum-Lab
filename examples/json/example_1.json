@@ -1,0 +1,7 @@
+{
+    "left" : {"top" : {"left" : "<h1>hello</h1>", 
+                       "right" : "<h1>hello</h1>"},
+              "bottom" : "<h1>hello</h1>",
+              "style" :  "background-color:black;size:0.1;"},
+    "right" : {"only" : "<h1>hello</h1>"}
+}

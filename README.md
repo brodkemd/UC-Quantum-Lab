@@ -27,8 +27,21 @@ This extension contributes the following commands:
 - `uc-quantum-lab.init`: setup the current workspace path for this extension.
 - `uc-quantum-lab.reinit`: if you encounter an error try running this, it will wipe the extension setup in the workspace and setup it up again.
 
-## Known Issues
+## Examples
+See the examples folder, it contains the following:
+- python:
+    - examples of python files
+- json
+    - examples using the json to html converter of this extension (you could write some python code to output to json then have this extension render it)
 
+## About json to html converter
+Available keys are "top", "bottom", "left", "right", "only", and "style". The value for these keys can be either html or another json object with these keys except for "style" which takes css. See examples/json.
+- "style" key applies to the previous level of the json object. Also, if you pass 'size=0.ANY_NUMBER' as a css argument then the fraction of the window will be set to that.
+- "only" must be the only key on a level
+- if you format a string like "{VALUE}" where VALUE is in the following list, it will be replaced with that value:
+    - URI: webview uri so that the webview can load resources.
+- you can set your own layout by using the `custom` command from the UC_Quantum_Lab python module.
+## Known Issues
 Do not know any currently but there is more than likely some because of  being in beta.
 
 ## Release Notes
