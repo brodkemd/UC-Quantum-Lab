@@ -1,5 +1,11 @@
 # Changelog
-## [0.0.1] - 2022-10-30
+## [0.0.2] - 2022-10-25
+### Added
+- Correct file structure to install path
+### Removed
+- unnecessary js files
+
+## [0.0.1] - 2022-10-24
 ### Added
 - Cross platform capabality with Windows and Linux, have not tested mac os yet
 ### Changed
