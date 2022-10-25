@@ -16,7 +16,7 @@ Can display a lot of information about your circuit including:
 1. Open a folder in vscode.
 2. Open the command palete and run uc-quantum-lab.init or if you have an active editor click the UC logo.
 3. Answer the prompts.
-4. Everytime you want to run the python file, click the UC logo in the editor and it will execute your file with the python interpreter that you specificied in the setup in the terminal in the window.
+4. Everytime you want to run the python file, click the UC logo in the editor and it will execute your file with the python interpreter (that you specificied in the setup) in the terminal in the vscode window.
 
 ## Requirements
 - Python and pip on your device, NOTE: we strongly recommend using anaconda for this (see https://www.anaconda.com/) and it must be installed as user not as root (this is the better way to do it anyway)
