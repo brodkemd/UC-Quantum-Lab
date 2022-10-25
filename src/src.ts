@@ -59,12 +59,16 @@ export async function tryCommand(command:string):Promise<boolean> {
             (err) => {
                 if (err.stderr.length) {
                     // ignores deprication error
-                    if (err.stderr.indexOf("DEPRECATION") === -1) { // accounts for pip package problems
-                        toReturn = false; 
-                        print(`Encountered error "${err.stderr.toString()}"`);
+                    if (err.stderr.indexOf("ERROR") === -1) {
+                        if (err.stderr.indexOf("DEPRECATION") === -1 && err.stderr.indexOf("WARNING") === -1) { // accounts for pip package problems
+                            toReturn = false; 
+                            print(`Encountered error "${err.stderr.toString()}"`);
+                        } else {
+                            print(`ignoring error "${err.stderr.toString()}"`);
+                            toReturn = true;
+                        }
                     } else {
-                        print(`ignoring error "${err.stderr.toString()}"`);
-                        toReturn = true;
+                        print(`Encountered error "${err.stderr.toString()}"`);
                     }
                 }
                 else { toReturn = true; }
@@ -213,32 +217,141 @@ export async function mkDir(dir:string){
 export async function setupSysPython(config:Config) {
     print("Setting up for sys python");
     // if python is installed
-    if (!(await tryCommand("python3 --version"))) {
+    if (!(await tryCommand("python3 --version")) && !(await tryCommand("python --version"))) {
         // no
         print("Python was not detected");
         vscode.window.showErrorMessage("Python was not detected on your system, please install it");
     } else {
         // yes
-        // setting python for the config
-        config.userConfig.python = "python3";
+        let version:string = "";
+        if (!(await tryCommand("python3 --version"))) {
+            config.userConfig.python = "python";
+            try {
+                await execProm(`${config.userConfig.python} --version`).then(
+                    (err) => {
+                        if (err.stderr.length) {
+                            // ignores deprication error
+                            if (err.stderr.indexOf("DEPRECATION") === -1) { // accounts for pip package problems
+                                print(`Encountered error "${err.stderr.toString()}"`);
+                            } else {
+                                print(`ignoring error "${err.stderr.toString()}"`);
+                            }
+                        }
+                        else { 
+                            version = err.stdout.slice(err.stdout.search(/[0-9]/), err.stdout.length).trim();
+                        }
+                    }
+                );
+            } catch ( e ) {
+                print(`caught "${(e as Error).message.replace("\n", " ")}" while checking python version`);
+            }
+        } else {
+            config.userConfig.python = "python3";
+            try {
+                await execProm(`${config.userConfig.python} --version`).then(
+                    (err) => {
+                        if (err.stderr.length) {
+                            // ignores deprication error
+                            if (err.stderr.indexOf("DEPRECATION") === -1) { // accounts for pip package problems
+                                print(`Encountered error "${err.stderr.toString()}"`);
+                            } else {
+                                print(`ignoring error "${err.stderr.toString()}"`);
+                            }
+                        }
+                        else { 
+                            version = err.stdout.slice(err.stdout.search(/[0-9]/), err.stdout.length).trim();
+                        }
+                    }
+                );
+            } catch ( e ) {
+                print(`caught "${(e as Error).message.replace("\n", " ")}" while checking python version`);
+            }
+        }
+        if (version.length) {
+            let major:number = +version.split(".")[0];
+            let minor:number = +version.split(".")[1];
+            if (!(major >= 3 && minor >= 6)) {
+                error("Your system python is too old, need to update it");
+            }
+        } else {
+            error("could not detect python version, trying installing python3");
+        }
         // if pip is installed
-        if (!(await tryCommand("pip3 --version"))) {
+        if (!(await tryCommand("pip3 --version")) && !(await tryCommand("pip --version"))) {
             // no
             print("python pip was not detected");
             vscode.window.showErrorMessage("python pip was not detected on your system, please install it");
         } else {
+            let version:string = "";
+            if (!(await tryCommand("pip --version"))) {
+                config.userConfig.pip = "pip3";
+                try {
+                    await execProm(`${config.userConfig.pip} --version`).then(
+                        (err) => {
+                            if (err.stderr.length) {
+                                // ignores deprication error
+                                if (err.stderr.indexOf("DEPRECATION") === -1) { // accounts for pip package problems
+                                    print(`Encountered error "${err.stderr.toString()}"`);
+                                } else {
+                                    print(`ignoring error "${err.stderr.toString()}"`);
+                                }
+                            }
+                            else { 
+                                version = err.stdout.slice(err.stdout.search(/[0-9]/), err.stdout.length).trim();
+                                version = version.slice(0, version.search(/[a-zA-Z]/)+1).trim();
+                            }
+                        }
+                    );
+                } catch ( e ) {
+                    print(`caught "${(e as Error).message.replace("\n", " ")}" while checking pip version`);
+                }
+            } else {
+                config.userConfig.pip = "pip";
+                try {
+                    await execProm(`${config.userConfig.pip} --version`).then(
+                        (err) => {
+                            if (err.stderr.length) {
+                                // ignores deprication error
+                                if (err.stderr.indexOf("DEPRECATION") === -1) { // accounts for pip package problems
+                                    print(`Encountered error "${err.stderr.toString()}"`);
+                                } else {
+                                    print(`ignoring error "${err.stderr.toString()}"`);
+                                }
+                            }
+                            else { 
+                                version = err.stdout.slice(err.stdout.search(/[0-9]/), err.stdout.length).trim();
+                                version = version.slice(0, version.search(/[a-zA-Z]/)).trim();
+                            }
+                        }
+                    );
+                } catch ( e ) {
+                    print(`caught "${(e as Error).message.replace("\n", " ")}" while checking python version`);
+                }
+            }
+            print(version);
+            if (version.length) {
+                let major:number = +version.split(".")[0];
+                let minor:number = +version.split(".")[1];
+                print(`major:${major} minor:${minor}`);
+                if (!(major >= 20 && minor >= 0)) {
+                    error("Your system python is too old, need to update it");
+                }
+            } else {
+                error("could not detect python version, trying installing python3");
+            }
             // yes
-            // setting pip for the config
-            config.userConfig.pip = "pip3";
+
             // if the module is installed
-            if (!(await tryCommand(`python3 -c \"import ${config.pythonModuleName}\"`))){
+            if (!(await tryCommand(`${config.userConfig.python} -c \"import ${config.pythonModuleName}\"`))){
                 // asking the user if the want to install the python module
                 let choice:string|undefined = await vscode.window.showInformationMessage(`the package "${config.pythonModuleName}" is not detected for your python installation, do you want to install it?`, config.yes, config.no);
                 // if they want to install the python module
                 if (choice === config.yes) {
                     // try installing the python module with pip, if it succeeds tell the user and if not tell the user
                     // it did not
-                    if (await tryCommand(`${config.userConfig.pip} install ${config.pythonModulePyPi}`)) {
+                    vscode.window.showInformationMessage(`Installing ${config.pythonModuleName}`);
+                    print(`Installing ${config.pythonModuleName}`);
+                    if (await tryCommand(`${config.userConfig.pip} install -q ${config.pythonModulePyPi}`)) {
                         vscode.window.showInformationMessage(`Successfully setup ${config.pythonModuleName}`);
                         print(`Successfully setup ${config.pythonModuleName}`);
                     }
@@ -275,9 +388,12 @@ export async function getCondaEnvs():Promise<InfoType>{
                     toReturn[entry] = {
                         "path" : path.join(p, entry), 
                         "exe" : path.join(p, entry, "python.exe"),
-                        "pip" : path.join(p, entry, "lib", "site-packages", "pip"),
+                        "pip" : `${path.join(p, entry, "python.exe")} ${path.join(p, entry, "Lib", "site-packages", "pip", "__pip-runner__.py")}`,
                         "hasQiskit" : false
                     };
+                    if (!(fs.existsSync(path.join(p, entry, "Lib", "site-packages", "pip", "__pip-runner__.py")))) {
+                        error(`Detected pip exe "${path.join(p, entry, "Lib", "site-packages", "pip", "__pip-runner__.py")}" does not exist`);
+                    }
                 } else {
                     toReturn[entry] = {
                         "path" : path.join(p, entry), 
@@ -291,9 +407,6 @@ export async function getCondaEnvs():Promise<InfoType>{
                 }
                 if (!(fs.existsSync(toReturn[entry]["exe"]))) {
                     error(`Detected python exe "${toReturn[entry]["exe"]}" does not exist`);
-                }
-                if (!(fs.existsSync(toReturn[entry]["pip"]))) {
-                    error(`Detected pip exe "${toReturn[entry]["pip"]}" does not exist`);
                 }
             }
         }

@@ -46,13 +46,15 @@ export class UserConfig {
 
             // checks pip exe read from the file
             if (readIn["pip"] !== undefined) {
+                print("pip is defined");
                 // if the pip executable path exists or it is a command, set the attribute
-                if (fs.existsSync(readIn["pip"]) || readIn["pip"].indexOf(path.sep) === -1) { 
-                    this.pip = readIn["pip"]; 
-                } else {
-                    this.errorEncountered = true;
-                    this.errorMessage = `the pip path from user config ${readIn["pip"]} does not exist, config file is ${this.userFile}`;
-                }
+                //if (fs.existsSync(readIn["pip"]) || readIn["pip"].indexOf(path.sep) === -1) { 
+                this.pip = readIn["pip"];
+                print(`here: ${readIn["pip"]}`);
+                // } else {
+                //     this.errorEncountered = true;
+                //     this.errorMessage = `the pip path from user config ${readIn["pip"]} does not exist, config file is ${this.userFile}`;
+                // }
             } else { 
                 this.errorEncountered = true;
                 this.errorMessage = `pip was not found in the user config file, config file is ${this.userFile}`;
@@ -243,7 +245,7 @@ export async function getConfig(context:vscode.ExtensionContext):Promise<Config>
         // python module stuff
         config.pythonModuleName = "UC_Quantum_Lab";
         config.pythonModulePyPi = "U-Cincy-quantum-tools";
-        config.curPythonModVer = "0.0.4";
+        config.curPythonModVer = "0.0.3";
 
         // initializing user config
         config.initUserConfig();

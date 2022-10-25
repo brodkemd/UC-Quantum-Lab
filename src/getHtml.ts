@@ -1,7 +1,9 @@
 import * as fs from "fs";
+import { platform } from "os";
 import * as vscode from "vscode";
 import { Config } from "./config";
 import { print,error } from "./src";
+import * as path from "path";
 //import * as path from "path";
 
 let html:string[] = [];
@@ -53,6 +55,19 @@ async function formatMain(main:string):Promise<string> {
     return main;
 }
 
+async function adjustUri(uri:string, fpath:string):Promise<string> {
+    print(`start path:${fpath}`);
+    if (platform() === "win32") {
+        print(fpath.indexOf(":").toString());
+        fpath = fpath.slice(fpath.indexOf(":")+1, fpath.length);
+        fpath = fpath.replace(/\\/gi, "/");
+    }
+    print(`path:${fpath}`);
+    uri = uri.replace(fpath, "");
+    print(`uri:${uri}`);
+    return uri;
+}
+
 /**
  * Formats the provided html by replacing keywords with html, the map in the function for the keywords
  * @param source : some html to be formatted
@@ -62,7 +77,7 @@ async function formatSource(source:string):Promise<string> {
     // the keywords to replace in the inputted string, in the string these keywords must be surrounded by brackets
     // i.e. the syntax is {KEYWORD}
     let keywords = new Map<string, string>([
-        ["URI", (await uriIfy(_config.configFile)).toString().replace(_config.configFile, "")] // uri for this viewer
+        ["URI", await adjustUri((await uriIfy(_config.configFile)).toString(), _config.configFile)] // uri for this viewer
     ]);
     let before:string = "";
     let after:string = "";
