@@ -9,6 +9,8 @@ python_package/**
 packages/**
 media/**
 sandbox/**
+examples/**
+docs/**
 **/tsconfig.json
 **/.eslintrc.json
 **/*.map

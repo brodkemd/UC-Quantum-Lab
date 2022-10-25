@@ -25,6 +25,8 @@
         "**/*.d.ts",
         "local_test",
         "packages",
-        "sandbox"
+        "sandbox",
+        "examples",
+        "docs"
     ]
 }

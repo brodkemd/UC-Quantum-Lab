@@ -1,71 +1,36 @@
-# uc-quantum-lab README
+# uc-quantum-lab
 
-This is the README for your extension "uc-quantum-lab". After writing up a brief description, we recommend including the following sections.
+This extension provides a UI that allows the results of quantum circuit simulated with qiskit to be presented cleanly. This extension operates with the required python library https://github.com/brodkemd/UCQ_tools.
+
+NOTE: If you want a feature or you find a bug create an issue.
 
 ## Features
+Can display a lot of information about your circuit including:
+- The statevector of your circuit an arbitrary number of times from anywhere in your circuit as long as there is no measurements.
+- An image of your circuit an arbitrary number of times from anywhere in your circuit.
+- A histogram resprenting the results of the execution of your circuit an arbitrary number of times.
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
+![feature X](./docs/images/ui.png)
 
 > Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
 
 ## Requirements
+- Python and pip on your device, NOTE: we strongly recommend using anaconda for this (see https://www.anaconda.com/) and it must be installed as user not as root (this is the better way to do it anyway)
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
+## Extension Commands
 For example:
 
-This extension contributes the following settings:
+This extension contributes the following commands:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+* `uc-quantum-lab.execute`: execute the extension, will detect if the directory is initialize or not and initialize it if need be. It will also open up a webview panel where it will display content.
+* `uc-quantum-lab.init`: setup the current workspace path for this extension.
+* `uc-quantum-lab.reinit`: if you encounter an error try running this, it will wipe the extension setup in workspace and setup it up again.
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+Do not know any currently but there is more than likely some because of  being in beta.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+### 0.0.1
+Works on windows and linux relatively well, need to test on mac os.
