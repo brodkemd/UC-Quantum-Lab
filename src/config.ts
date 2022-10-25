@@ -140,8 +140,6 @@ export class Config {
     errorEncountered:boolean = false;
     // the message from an error if one was encountered
     errorMessage:string = "";
-    // name of the python module used with this extension
-    pythonModuleName:string = "";
     // the user config directory
     configDir:string = "";
     // the user config file
@@ -169,7 +167,8 @@ export class Config {
     // the current version of the python module
     curPythonModVer:string = "";
     // the path to the python module
-    pythonModulePath:string = "";
+    pythonModulePyPi:string = "";
+    pythonModuleName:string = "";
     // yes response by user
     yes:string = "yes";
     // no response by user
@@ -242,9 +241,9 @@ export async function getConfig(context:vscode.ExtensionContext):Promise<Config>
         config.no = "no";
 
         // python module stuff
-        config.pythonModulePath = path.join(config.extensionInstallPath, "python_module");
         config.pythonModuleName = "UC_Quantum_Lab";
-        config.curPythonModVer = "0.0.1";
+        config.pythonModulePyPi = "U-Cincy-quantum-tools";
+        config.curPythonModVer = "0.0.4";
 
         // initializing user config
         config.initUserConfig();

@@ -236,17 +236,23 @@ export async function setupSysPython(config:Config) {
                 let choice:string|undefined = await vscode.window.showInformationMessage(`the package "${config.pythonModuleName}" is not detected for your python installation, do you want to install it?`, config.yes, config.no);
                 // if they want to install the python module
                 if (choice === config.yes) {
-                    // HAVE NOT YET IMPLEMENT THIS
-                    print(`> Would install package ${config.pythonModuleName} from ${config.pythonModulePath}`);
-                    return true;
+                    // try installing the python module with pip, if it succeeds tell the user and if not tell the user
+                    // it did not
+                    if (await tryCommand(`${config.userConfig.pip} install ${config.pythonModulePyPi}`)) {
+                        vscode.window.showInformationMessage(`Successfully setup ${config.pythonModuleName}`);
+                        print(`Successfully setup ${config.pythonModuleName}`);
+                    }
+                    else {
+                        error(`error installing ${config.pythonModuleName} for ${config.userConfig.python}`);
+                    }
+                    //print(`> Would install package ${config.pythonModuleName} from ${config.pythonModulePath}`);
                 } else {
                     print(`User skipped installation of package ${config.pythonModuleName}`);
                 }
             // if the module is already in python
-            } else { return true; }
+            }
         }
     }
-    return false;
 }
 
 /**

@@ -32,7 +32,7 @@ async function verifyPython(config:Config) {
 			
 			// try installing the python module with pip, if it succeeds tell the user and if not tell the user
 			// it did not
-			if (await src.tryCommand(`${config.userConfig.pip} install ${config.pythonModulePath}`)) {
+			if (await src.tryCommand(`${config.userConfig.pip} install ${config.pythonModulePyPi}`)) {
 				vscode.window.showInformationMessage(`Successfully setup ${config.pythonModuleName}`);
 				print(`Successfully setup ${config.pythonModuleName}`);
 			}
@@ -47,7 +47,7 @@ async function verifyPython(config:Config) {
 		
 		// trying to install the python module, if it succeeds tell the user, if it does not tell the user
 		// might need to use this flag at some point "--use-feature=in-tree-build"
-		if (await src.tryCommand(`${config.userConfig.pip} install ${config.pythonModulePath}`)) {
+		if (await src.tryCommand(`${config.userConfig.pip} install ${config.pythonModulePyPi}`)) {
 			vscode.window.showInformationMessage(`Successfully setup ${config.pythonModuleName} for ${config.userConfig.python}`);
 			print(`Successfully setup ${config.pythonModuleName} for ${config.userConfig.python}`);
 		}
