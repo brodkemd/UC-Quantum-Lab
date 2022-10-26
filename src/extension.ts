@@ -21,26 +21,27 @@ let print = src.print;
  * @returns boolean indicating whether or not this function extension exceeded
  */
 async function verifyPython(config:Config) {
-	config.userConfig.get();
-	print(`HERE: ${config.userConfig.pip}`);
-	print("verifying python setup");
+	//config.userConfig.get();
 	// if importing the python module in python succeeds
 	if (await src.tryCommand(`${config.userConfig.python} -c "import ${config.pythonModuleName}"`)) {
 		// getting the version from the installed package and if it is not the current version, then update it
-		if (await src.getVersionOfPythonModuleWithName(config.userConfig.pip, config.pythonModuleName) !== config.curPythonModVer) {
+		if (await src.getVersionOfPythonModuleWithName(config.userConfig.pip, config.pythonModulePyPi) !== config.curPythonModVer) {
 			// informing the user
-			print(`Setting up ${config.pythonModuleName} for ${config.userConfig.python}`);
-			vscode.window.showInformationMessage(`Setting up the python module ${config.pythonModuleName}`);
+			src.info(`Updating "${config.pythonModuleName}" for "${config.userConfig.python}"`);
 			
-			// try installing the python module with pip, if it succeeds tell the user and if not tell the user
-			// it did not
-			if (await src.tryCommand(`${config.userConfig.pip} install --no-warn-script-location -q ${config.pythonModulePyPi}`)) {
-				vscode.window.showInformationMessage(`Successfully setup ${config.pythonModuleName}`);
-				print(`Successfully setup ${config.pythonModuleName}`);
+			if (await src.pipUpdate(config.userConfig.pip , config.pythonModulePyPi)) {
+				src.print(`Successfully updated ${config.pythonModuleName}`);
+			} else {
+				src.error(`error updating ${config.pythonModuleName} for ${config.userConfig.python}`);
 			}
-			else {
-				src.error(`error installing ${config.pythonModuleName} for ${config.userConfig.python}`);
-			}
+			src.info("done");
+			// // try installing the python module with pip, if it succeeds tell the user and if not tell the user
+			// // it did not
+			// if (await src.pipInstall(config.userConfig.pip , config.pythonModulePyPi)) {
+			// 	src.info(`Successfully setup ${config.pythonModuleName}`);
+			// } else {
+			// 	src.error(`error installing ${config.pythonModuleName} for ${config.userConfig.python}`);
+			// }
 		// if the package is already the right version
 		} else { print(`Package is already there for ${config.userConfig.python} and of the right version, do not need to install`); }
 	// if importing the python module in python did not succeed
@@ -49,13 +50,12 @@ async function verifyPython(config:Config) {
 		
 		// trying to install the python module, if it succeeds tell the user, if it does not tell the user
 		// might need to use this flag at some point "--use-feature=in-tree-build"
-		if (await src.tryCommand(`${config.userConfig.pip} install --no-warn-script-location -q ${config.pythonModulePyPi}`)) {
-			vscode.window.showInformationMessage(`Successfully setup ${config.pythonModuleName} for ${config.userConfig.python}`);
-			print(`Successfully setup ${config.pythonModuleName} for ${config.userConfig.python}`);
-		}
-		else {
+		if (await src.pipInstall(config.userConfig.pip, config.pythonModulePyPi)) {
+			src.info(`Successfully setup ${config.pythonModuleName} for ${config.userConfig.python}`);
+		} else {
 			src.error(`error setting up ${config.pythonModuleName} for ${config.userConfig.python}`);
 		}
+		src.info("done");
 	}
 }
 
@@ -102,9 +102,6 @@ async function setupPython(config:Config) {
 				// checking if the python and pip paths are valid
 				try {
 					await verifyPython(config);
-					
-					// if they are valid saving the config to the config file
-					config.userConfig.save();
 				} catch ( e ){}
 			} else { 
 				// if the user chose nothing, this is not ok
@@ -115,9 +112,6 @@ async function setupPython(config:Config) {
 			print("setting up for system python");
 			// setting this extension up to use system python
 			await src.setupSysPython(config);
-
-			// if here then the steup succeeded, save the config to the config file
-			config.userConfig.save();
 
 		// if the user did not choose anything
 		}  else {
@@ -134,10 +128,6 @@ async function setupPython(config:Config) {
 		if (opt === config.yes) {
 			// setting this extension up to use system python
 			await src.setupSysPython(config);
-
-			//if here then the setup succeeded, save the config to the config file
-			config.userConfig.save();
-
 		// if the user did not choose anything
         } else if (opt === undefined) {
 			src.error("invalid choice for python setup");
@@ -258,7 +248,6 @@ async function init(config:Config) {
 					src.error("Invalid choice for whether or not to reinit");
 				}
 			}
-
 		// if there is no config file to pull information from
 		} else {
 			print("detected faulty config");
@@ -291,9 +280,6 @@ export async function activate(context: vscode.ExtensionContext) {
 			try {
 				// loading the configuration from the ./config.ts
 				let config:Config = await getConfig(context);
-
-				// if an error was encountered by config then, print it and exit command
-				if (config.errorEncountered) { src.error(config.errorMessage); return; }
 			
 				// if the viewer panel is open and there is an active editor
 				if (UCQ.currentPanel && vscode.window.activeTextEditor) {
@@ -309,9 +295,10 @@ export async function activate(context: vscode.ExtensionContext) {
 							src.error(`${vscode.window.activeTextEditor.document.fileName} is not a python file, can not execute it`);
 							return;
 						} else {
+							print("saving document");
+							await vscode.window.activeTextEditor.document.save();
 							// if here, then the file is a python file
 							print("executing in termial");
-
 							// if there is an active terminal in editor
 							if (vscode.window.activeTerminal) {
 								print("Sending to active terminal");
@@ -356,7 +343,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 			} catch ( e ) {
 				// if here then a reinit of the current directory will probably work
-				src.error((e as Error).message);
+				//src.error((e as Error).message);
 			}
 		})
 	);
@@ -367,13 +354,10 @@ export async function activate(context: vscode.ExtensionContext) {
 				// loading the config from "./config.ts"
 				let config:Config = await getConfig(context);
 				
-				// if an error was encountered by config then, print it and exit command
-				if (config.errorEncountered) { src.error(config.errorMessage); return; }
-				
 				// initing the current directory, do not to wrap the function call in an "if" because the function will handle its own errors
 				await init(config);
 			} catch ( e ) {
-				src.error((e as Error).message);
+				//src.error((e as Error).message);
 			}
 		})
 	);
@@ -383,9 +367,6 @@ export async function activate(context: vscode.ExtensionContext) {
 			try {
 				// loading the config from "./config.ts"
 				let config:Config = await getConfig(context);
-
-				// if an error was encountered by config then, print it and exit command
-				if (config.errorEncountered) { src.error(config.errorMessage); return; }
 
 				// if the config directory exists in the current directory
 				if (fs.existsSync(config.configDir)) {
@@ -407,7 +388,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				// initing the current directory, do not to wrap the function call in an "if" because the function will handle its own errors
 				await init(config);
 			} catch ( e ) {
-				src.error((e as Error).message);
+				//src.error((e as Error).message);
 			}
 		})
 	);

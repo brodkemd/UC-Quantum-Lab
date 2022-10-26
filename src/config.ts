@@ -13,10 +13,6 @@ export class UserConfig {
     python:string= "";
     // pip executable path or command
     pip:string = "";
-    // whether or not this class encounters a problem
-    errorEncountered:boolean=false;
-    // the message from a problem that this encounters
-    errorMessage:string = "";
 
     // setting the userfile
     constructor(userConfigFile:string|undefined) {
@@ -36,28 +32,23 @@ export class UserConfig {
                 if (fs.existsSync(readIn["python"]) || readIn["python"].indexOf(path.sep) === -1) {
                     this.python = readIn["python"]; 
                 } else {
-                    this.errorEncountered = true;
-                    this.errorMessage = `the python path from user config ${readIn["python"]} does not exist, config file is ${this.userFile}`;
+                    error(`the python path from user config ${readIn["python"]} does not exist, config file is ${this.userFile}`);
                 }
             } else { 
-                this.errorEncountered = true;
-                this.errorMessage = `python was not found in the user config file, config file is ${this.userFile}`;
+                error(`python was not found in the user config file, config file is ${this.userFile}`);
             }
 
             // checks pip exe read from the file
             if (readIn["pip"] !== undefined) {
-                print("pip is defined");
                 // if the pip executable path exists or it is a command, set the attribute
                 //if (fs.existsSync(readIn["pip"]) || readIn["pip"].indexOf(path.sep) === -1) { 
                 this.pip = readIn["pip"];
-                print(`here: ${readIn["pip"]}`);
                 // } else {
                 //     this.errorEncountered = true;
                 //     this.errorMessage = `the pip path from user config ${readIn["pip"]} does not exist, config file is ${this.userFile}`;
                 // }
             } else { 
-                this.errorEncountered = true;
-                this.errorMessage = `pip was not found in the user config file, config file is ${this.userFile}`;
+                error(`pip was not found in the user config file, config file is ${this.userFile}`);
             }
         } catch ( e ) {
             error(`Could not find user config file, try reinitializing the current directory (run reinit command of this extension)`);
@@ -88,12 +79,10 @@ export class UserConfig {
             if (fs.existsSync(dict["python"]) || dict["python"].indexOf(path.sep) === -1) { 
                 this.python = dict["python"]; 
             } else {
-                this.errorEncountered = true;
-                this.errorMessage = `python variable from dict ${dict["python"]} does not exist`;
+                error(`python variable from dict ${dict["python"]} does not exist`);
             }
         } else { 
-            this.errorEncountered = true;
-            this.errorMessage = `python variable must be a string`;
+            error(`python variable must be a string`);
         }
 
         // checks pip exe
@@ -102,12 +91,10 @@ export class UserConfig {
             if (fs.existsSync(dict["pip"]) || dict["pip"].indexOf(path.sep) === -1) { 
                 this.python = dict["pip"]; 
             } else {
-                this.errorEncountered = true;
-                this.errorMessage = `pip variable from dict ${dict["pip"]} does not exist`;
+                error(`pip variable from dict ${dict["pip"]} does not exist`);
             }
         } else { 
-            this.errorEncountered = true;
-            this.errorMessage = `pip variable must be a string`;
+            error(`pip variable must be a string`);
         }
         // saving this class to the user config file
         this.save();
@@ -123,8 +110,7 @@ export class UserConfig {
         // write data to user config file
         fs.writeFile(this.userFile, JSON.stringify(config, null, 4), err => {
             if (err) {
-                this.errorMessage = `could not save user config back to file, with message ${err.message}`;
-                this.errorEncountered = true;
+                error(`could not save user config back to file, with message ${err.message}`);
             }
         });
     }
@@ -138,10 +124,6 @@ export class Config {
     workspacePath:string;
     // path where this extension is installed at
     extensionInstallPath:string;
-    // if this class encountered an error
-    errorEncountered:boolean = false;
-    // the message from an error if one was encountered
-    errorMessage:string = "";
     // the user config directory
     configDir:string = "";
     // the user config file
@@ -191,8 +173,7 @@ export class Config {
             this.extensionInstallPath = extensionInstallPath;
 
         } else {
-            this.errorEncountered = true;
-            this.errorMessage = "workspace is not valid, please open a folder";
+            error("workspace is not valid, please open a folder");
             this.workspacePath = "";
             this.extensionInstallPath = "";
         }
@@ -202,8 +183,6 @@ export class Config {
      */
     initUserConfig() {
         this.userConfig = new UserConfig(this.configFile);
-        this.errorEncountered = this.userConfig.errorEncountered;
-        this.errorMessage = this.userConfig.errorMessage;
     }
 }
 
@@ -245,7 +224,7 @@ export async function getConfig(context:vscode.ExtensionContext):Promise<Config>
         // python module stuff
         config.pythonModuleName = "UC_Quantum_Lab";
         config.pythonModulePyPi = "U-Cincy-quantum-tools";
-        config.curPythonModVer = "0.0.5";
+        config.curPythonModVer = "0.1.2";
 
         // initializing user config
         config.initUserConfig();

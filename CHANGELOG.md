@@ -1,4 +1,13 @@
 # Changelog
+## [0.0.3] - 2022-10-26
+### Added
+- pipInstall, pipUpdate commands added to src
+- saves active file when "execute" command is run
+- will auto update python package
+- a bunch of small bug fixes
+### Removed
+- many redunant lines of code
+
 ## [0.0.2] - 2022-10-25
 ### Added
 - Correct file structure to install path

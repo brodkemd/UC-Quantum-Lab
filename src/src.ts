@@ -40,6 +40,14 @@ export function error(msg:string) {
 }
 
 /**
+ * Sends an error message to the user
+ * @param msg : error message to send to the user
+ */
+ export function info(msg:string) {
+    print(`Info: ${msg}`);
+    vscode.window.showInformationMessage(msg);}
+
+/**
  * delays the execution of the code by the specified milliseconds
  * @param ms : time in milliseconds to delay
  * @returns a promise function that delays the code
@@ -52,7 +60,6 @@ export async function delay(ms: number) { return new Promise( resolve => setTime
  * @returns a boolean indicating if the command succeeded
  */
 export async function tryCommand(command:string):Promise<boolean> {
-    print(`Trying command "${command}"`);
     let toReturn:boolean = false;
     try {
         await execProm(command).then(
@@ -62,13 +69,13 @@ export async function tryCommand(command:string):Promise<boolean> {
                     if (err.stderr.indexOf("ERROR") === -1) {
                         if (err.stderr.indexOf("DEPRECATION") === -1 && err.stderr.indexOf("WARNING") === -1) { // accounts for pip package problems
                             toReturn = false; 
-                            print(`Encountered error "${err.stderr.toString()}"`);
+                            print(`Encountered error "${err.stderr.replace("\n", " ").toString()}" while running "${command}"`);
                         } else {
-                            print(`ignoring error "${err.stderr.toString()}"`);
+                            print(`Ignoring error "${err.stderr.replace("\n", " ").toString()}" from command "${command}"`);
                             toReturn = true;
                         }
                     } else {
-                        print(`Encountered error "${err.stderr.toString()}"`);
+                        print(`Encountered error "${err.stderr.replace("\n", " ").toString()}" while running "${command}"`);
                     }
                 }
                 else { toReturn = true; }
@@ -76,11 +83,66 @@ export async function tryCommand(command:string):Promise<boolean> {
             }
         );
     } catch ( e ) {
-        print(`caught "${(e as Error).message.replace("\n", " ")}" in try command`);
+        print(`Encountered error "${(e as Error).message.replace("\n", " ")}" while running "${command}"`);
         toReturn = false;
     }
     return toReturn;
 }
+
+/**
+ * Executes a commands and returns the stdout of the command
+ * @param command : string to execute on the system
+ * @returns a string that is the stdout of the command if no error was encountered
+ */
+ export async function getOutputOfCommand(command:string):Promise<string> {
+    let toReturn:string = "";
+    try {
+        await execProm(command).then(
+            (err) => {
+                if (err.stderr.length) {
+                    // ignores deprication error
+                    if (err.stderr.indexOf("ERROR") === -1) {
+                        if (err.stderr.indexOf("DEPRECATION") === -1 && err.stderr.indexOf("WARNING") === -1) { // accounts for pip package problems
+                            print(`Encountered error "${err.stderr.replace("\n", " ").toString()}" while running "${command}"`);
+                            return;
+                        } else {
+                            print(`Ignoring error "${err.stderr.replace("\n", " ").toString()}" from command "${command}"`);
+                        }
+                    } else {
+                        print(`Encountered error "${err.stderr.replace("\n", " ").toString()}" while running "${command}"`);
+                        return;
+                    }
+                }
+                if (err.stdout.length) { toReturn = err.stdout; }
+                //else { error(`from try command ${err.stderr.toString()}`); }
+            }
+        );
+    } catch ( e ) {
+        print(`Encountered error "${(e as Error).message.replace("\n", " ")}" while running "${command}"`);
+    }
+    return toReturn;
+}
+
+/**
+ * Installs the inputted python module with the inputted pip
+ * @param pip : path to pip exe
+ * @param module : python module to install
+ * @returns a bool indicating if the install suceed
+ */
+ export async function pipInstall(pip:string, module:string):Promise<boolean> {
+    return await tryCommand(`${pip} install -q --no-warn-script-location ${module}`);
+}
+
+/**
+ * Uninstalls the inputted python module with the inputted pip
+ * @param pip : path to pip exe
+ * @param module : python module to uninstall
+ * @returns a bool indicating if the uninstall suceed
+ */
+ export async function pipUpdate(pip:string, module:string):Promise<boolean> {
+    return await tryCommand(`${pip} install --upgrade ${module}`);
+}
+
 /**
  * Waits for the trigger file (a file that lets the execution of this extension continue)
  * @param config : current configuration of the extension
@@ -88,14 +150,11 @@ export async function tryCommand(command:string):Promise<boolean> {
 export async function waitForTriggerFile(config:Config) {
     // while loop that waits for the file
     while (true) {
-        if (await fs.existsSync(config.triggerFile)) { break; } 
+        if (fs.existsSync(config.triggerFile)) { break; } 
         else { await delay(100); } /// short delay so things don't get crazy
     }
     // removes the trigger file when done
-    try { 
-        print("removing trigger file");
-        await fs.promises.rm(config.triggerFile); 
-    } 
+    try { await fs.promises.rm(config.triggerFile); } 
     catch ( e ) {
         error(`caught error in waiting for trigger file: ${(e as Error).message.replace("\n", " ")}`);
     }
@@ -128,6 +187,7 @@ export async function getVersionOfPythonModuleWithName(pip:string, module:string
         );
     // catches any errors
     } catch ( e ) {}
+    //print(`version: ${toReturn}`);
     return toReturn;
 }
 
@@ -153,45 +213,6 @@ export async function checkIfFileInDir(dirPath : string, toFind : string):Promis
     // default return
     return false;
 }
-
-
-// export async function check_config_dir(config_dir:string, mirror_dir:string):Promise<boolean> {
-//     print(`Checking ${config_dir} against ${mirror_dir}`);
-//     let exited_good:boolean = true;
-//     //making config directory, catches errors, if no errors then continues to building
-//     fs.readdir(mirror_dir, (err, files) => {
-//         if (err) {
-//             print(`Error in reading dir ${mirror_dir}`); 
-//             exited_good = false;
-//         } 
-//         else {
-//             // Loop them all with the new for...of
-//             for( const entry of files ) {
-//                 // Get the full paths
-//                 try {
-//                     if (!(fs.existsSync(path.join(config_dir, entry)))) {
-//                         fs.copyFile(path.join(mirror_dir, entry), path.join(config_dir, entry), (err) => {
-//                             if (err){
-//                                 print(`> Error copying ${path.join(mirror_dir, entry)} to ${path.join(config_dir, entry)}`);
-//                                 exited_good = false;
-//                                 return;
-//                             } else {
-//                                 print(`> Copied ${path.join(mirror_dir, entry)} to ${path.join(config_dir, entry)}`);
-//                             }
-//                         });
-//                     } else {
-//                         print(`> Skipped ${entry} because it already exists in ${config_dir}`);
-//                     }
-//                 } catch ( e ) { 
-//                     print(`> ${e}`); 
-//                     exited_good = false;
-//                     return;
-//                 }
-//             }
-//         }
-//     });
-//     return exited_good;
-// }
 
 /**
  * Makes the provided directory
@@ -219,54 +240,19 @@ export async function setupSysPython(config:Config) {
     // if python is installed
     if (!(await tryCommand("python3 --version")) && !(await tryCommand("python --version"))) {
         // no
-        print("Python was not detected");
-        vscode.window.showErrorMessage("Python was not detected on your system, please install it");
+        info("Python was not detected on your system, please install it");
     } else {
         // yes
         let version:string = "";
+        let output:string = "";
         if (!(await tryCommand("python3 --version"))) {
             config.userConfig.python = "python";
-            try {
-                await execProm(`${config.userConfig.python} --version`).then(
-                    (err) => {
-                        if (err.stderr.length) {
-                            // ignores deprication error
-                            if (err.stderr.indexOf("DEPRECATION") === -1) { // accounts for pip package problems
-                                print(`Encountered error "${err.stderr.toString()}"`);
-                            } else {
-                                print(`ignoring error "${err.stderr.toString()}"`);
-                            }
-                        }
-                        else { 
-                            version = err.stdout.slice(err.stdout.search(/[0-9]/), err.stdout.length).trim();
-                        }
-                    }
-                );
-            } catch ( e ) {
-                print(`caught "${(e as Error).message.replace("\n", " ")}" while checking python version`);
-            }
         } else {
             config.userConfig.python = "python3";
-            try {
-                await execProm(`${config.userConfig.python} --version`).then(
-                    (err) => {
-                        if (err.stderr.length) {
-                            // ignores deprication error
-                            if (err.stderr.indexOf("DEPRECATION") === -1) { // accounts for pip package problems
-                                print(`Encountered error "${err.stderr.toString()}"`);
-                            } else {
-                                print(`ignoring error "${err.stderr.toString()}"`);
-                            }
-                        }
-                        else { 
-                            version = err.stdout.slice(err.stdout.search(/[0-9]/), err.stdout.length).trim();
-                        }
-                    }
-                );
-            } catch ( e ) {
-                print(`caught "${(e as Error).message.replace("\n", " ")}" while checking python version`);
-            }
         }
+
+        output = await getOutputOfCommand(`${config.userConfig.python} --version`);
+        version = output.slice(output.search(/[0-9]/), output.length).trim();
         if (version.length) {
             let major:number = +version.split(".")[0];
             let minor:number = +version.split(".")[1];
@@ -279,60 +265,22 @@ export async function setupSysPython(config:Config) {
         // if pip is installed
         if (!(await tryCommand("pip3 --version")) && !(await tryCommand("pip --version"))) {
             // no
-            print("python pip was not detected");
-            vscode.window.showErrorMessage("python pip was not detected on your system, please install it");
+            error("python pip was not detected on your system, please install it");
         } else {
             let version:string = "";
+            let output:string = "";
             if (!(await tryCommand("pip --version"))) {
                 config.userConfig.pip = "pip3";
-                try {
-                    await execProm(`${config.userConfig.pip} --version`).then(
-                        (err) => {
-                            if (err.stderr.length) {
-                                // ignores deprication error
-                                if (err.stderr.indexOf("DEPRECATION") === -1) { // accounts for pip package problems
-                                    print(`Encountered error "${err.stderr.toString()}"`);
-                                } else {
-                                    print(`ignoring error "${err.stderr.toString()}"`);
-                                }
-                            }
-                            else { 
-                                version = err.stdout.slice(err.stdout.search(/[0-9]/), err.stdout.length).trim();
-                                version = version.slice(0, version.search(/[a-zA-Z]/)+1).trim();
-                            }
-                        }
-                    );
-                } catch ( e ) {
-                    print(`caught "${(e as Error).message.replace("\n", " ")}" while checking pip version`);
-                }
             } else {
                 config.userConfig.pip = "pip";
-                try {
-                    await execProm(`${config.userConfig.pip} --version`).then(
-                        (err) => {
-                            if (err.stderr.length) {
-                                // ignores deprication error
-                                if (err.stderr.indexOf("DEPRECATION") === -1) { // accounts for pip package problems
-                                    print(`Encountered error "${err.stderr.toString()}"`);
-                                } else {
-                                    print(`ignoring error "${err.stderr.toString()}"`);
-                                }
-                            }
-                            else { 
-                                version = err.stdout.slice(err.stdout.search(/[0-9]/), err.stdout.length).trim();
-                                version = version.slice(0, version.search(/[a-zA-Z]/)).trim();
-                            }
-                        }
-                    );
-                } catch ( e ) {
-                    print(`caught "${(e as Error).message.replace("\n", " ")}" while checking python version`);
-                }
             }
-            print(version);
+            output = await getOutputOfCommand(`${config.userConfig.pip} --version`);
+            version = output.slice(output.search(/[0-9]/), output.length).trim();
+            version = version.slice(0, version.search(/[a-zA-Z]/)+1).trim();
             if (version.length) {
                 let major:number = +version.split(".")[0];
                 let minor:number = +version.split(".")[1];
-                print(`major:${major} minor:${minor}`);
+                //print(`major:${major} minor:${minor}`);
                 if (!(major >= 20 && minor >= 0)) {
                     error("Your system python is too old, need to update it");
                 }
@@ -349,20 +297,16 @@ export async function setupSysPython(config:Config) {
                 if (choice === config.yes) {
                     // try installing the python module with pip, if it succeeds tell the user and if not tell the user
                     // it did not
-                    vscode.window.showInformationMessage(`Installing ${config.pythonModuleName}`);
-                    print(`Installing ${config.pythonModuleName}`);
-                    if (await tryCommand(`${config.userConfig.pip} install -q ${config.pythonModulePyPi}`)) {
-                        vscode.window.showInformationMessage(`Successfully setup ${config.pythonModuleName}`);
-                        print(`Successfully setup ${config.pythonModuleName}`);
+                    info(`Installing ${config.pythonModuleName}`);
+                    if (await pipInstall(config.userConfig.pip, config.pythonModulePyPi)) {
+                        info(`Successfully setup ${config.pythonModuleName}`);
                     }
                     else {
                         error(`error installing ${config.pythonModuleName} for ${config.userConfig.python}`);
                     }
-                    //print(`> Would install package ${config.pythonModuleName} from ${config.pythonModulePath}`);
                 } else {
                     print(`User skipped installation of package ${config.pythonModuleName}`);
                 }
-            // if the module is already in python
             }
         }
     }
@@ -382,8 +326,6 @@ export async function getCondaEnvs():Promise<InfoType>{
             // Get the full paths
             if ((await fs.promises.stat(path.join(p, entry))).isDirectory()) {
                 connector = "";
-                print(`detected env: ${entry}`);
-
                 if (os.platform() === "win32") {
                     toReturn[entry] = {
                         "path" : path.join(p, entry), 
@@ -471,21 +413,21 @@ export async function getCondaEnvs():Promise<InfoType>{
     // return toReturn;
 }
 
-/**
- * Checks if python is installed on the user's machine
- * @returns a boolean indicating if python is install on the user's machine
- */
-export async function checkIfPythonInstalled():Promise<boolean> {
-    return await tryCommand("python3 --version");
-}
+// /**
+//  * Checks if python is installed on the user's machine
+//  * @returns a boolean indicating if python is install on the user's machine
+//  */
+// export async function checkIfPythonInstalled():Promise<boolean> {
+//     return await tryCommand("python3 --version");
+// }
 
-/**
- * Checks if pip is installed on the user's machine
- * @returns a boolean indicating if pip is install on the user's machine
- */
-export async function checkIfPipInstalled():Promise<boolean> {
-    return await tryCommand("pip3 --version");
-}
+// /**
+//  * Checks if pip is installed on the user's machine
+//  * @returns a boolean indicating if pip is install on the user's machine
+//  */
+// export async function checkIfPipInstalled():Promise<boolean> {
+//     return await tryCommand("pip3 --version");
+// }
 
 /**
  * Checks if conda is installed on the user's machine

@@ -45,7 +45,7 @@ export class UCQ {
                 ],
             }
         );
-        print("Creating new instance");
+        print("Creating new Window");
         UCQ.currentPanel = new UCQ(panel, config);
     }
 
@@ -93,9 +93,7 @@ export class UCQ {
 
         while (this._disposables.length) {
             const x = this._disposables.pop();
-            if (x) {
-                x.dispose();
-            }
+            if (x) { x.dispose(); }
         }
     }
 

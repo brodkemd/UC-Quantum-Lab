@@ -42,8 +42,7 @@ Available keys are "top", "bottom", "left", "right", "only", and "style". The va
     - URI: webview uri so that the webview can load resources.
 - you can set your own layout by using the `custom` command from the UC_Quantum_Lab python module.
 ## Known Issues
-Do not know any currently but there is more than likely some because of  being in beta.
+Do not know any currently but there is more than likely some because of being in beta.
 
 ## Release Notes
-### 0.0.1
-Works on windows and linux relatively well, need to test on mac os.
+See changelog for the lastest on this extension

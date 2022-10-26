@@ -2,7 +2,7 @@
   "name": "uc-quantum-lab",
   "displayName": "UC Quantum Lab",
   "description": "An extension to make quantum development easier",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "UCQuantumLab",
   "repository": {"url": "https://github.com/brodkemd/UC_Quantum_Lab"},
   "engines": {

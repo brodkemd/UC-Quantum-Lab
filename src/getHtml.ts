@@ -56,15 +56,15 @@ async function formatMain(main:string):Promise<string> {
 }
 
 async function adjustUri(uri:string, fpath:string):Promise<string> {
-    print(`start path:${fpath}`);
+    //print(`start path:${fpath}`);
     if (platform() === "win32") {
         print(fpath.indexOf(":").toString());
         fpath = fpath.slice(fpath.indexOf(":")+1, fpath.length);
         fpath = fpath.replace(/\\/gi, "/");
     }
-    print(`path:${fpath}`);
+    //print(`path:${fpath}`);
     uri = uri.replace(fpath, "");
-    print(`uri:${uri}`);
+    //print(`uri:${uri}`);
     return uri;
 }
 
@@ -106,7 +106,7 @@ async function formatSource(source:string):Promise<string> {
 
         // caps the iterations just in case it runs away
         if (i === stop) { 
-            error("hit iteration limit in format source");
+            error("hit iteration limit in format source, reduce number of keywords to replace");
             break; 
         }
         i++;
