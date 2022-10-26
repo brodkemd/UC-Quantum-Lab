@@ -35,26 +35,12 @@
     "qiksit", 
     "circuit"
   ],
-  "license": "SEE LICENSE",
   "activationEvents": [
     "onCommand:uc-quantum-lab.execute",
     "onCommand:uc-quantum-lab.init"
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "configuration": [
-      {
-        "title": "UC Quantum Menu Bar configuration",
-        "properties": {
-          "uc-quantum-lab.open": {
-            "title": "Open",
-            "type": "boolean",
-            "default": true,
-            "description": "Open Viewer"
-          }
-        }
-      }
-    ],
     "commands": [
       {
         "command": "uc-quantum-lab.execute",
