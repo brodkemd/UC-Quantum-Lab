@@ -270,11 +270,15 @@ export async function setupSysPython(config:Config) {
         output = await getOutputOfCommand(`${config.userConfig.python} --version`);
         version = output.slice(output.search(/[0-9]/), output.length).trim();
         if (version.length) {
-            let major:number = +version.split(".")[0];
-            let minor:number = +version.split(".")[1];
-            if (!(major >= 3 && minor >= 6)) {
+            if ((await semanticVersionToNum(version)) < (await semanticVersionToNum(config.minPythonVer))) {
                 error("Your system python is too old, need to update it");
             }
+            // let major:number = +version.split(".")[0];
+            // let minor:number = +version.split(".")[1];
+            // print("version");
+            // if (!(major >= 3 && minor >= 6)) {
+            //     error("Your system python is too old, need to update it");
+            // }
         } else {
             error("could not detect python version, trying installing python3");
         }
@@ -283,26 +287,29 @@ export async function setupSysPython(config:Config) {
             // no
             error("python pip was not detected on your system, please install it");
         } else {
-            let version:string = "";
-            let output:string = "";
+            /**
+             * If the proper version of python is installed then the proper version of pip is probably installed
+             */
+            // let version:string = "";
+            // let output:string = "";
             if (!(await tryCommand("pip --version"))) {
                 config.userConfig.pip = "pip3";
             } else {
                 config.userConfig.pip = "pip";
             }
-            output = await getOutputOfCommand(`${config.userConfig.pip} --version`);
-            version = output.slice(output.search(/[0-9]/), output.length).trim();
-            version = version.slice(0, version.search(/[a-zA-Z]/)+1).trim();
-            if (version.length) {
-                let major:number = +version.split(".")[0];
-                let minor:number = +version.split(".")[1];
-                //print(`major:${major} minor:${minor}`);
-                if (!(major >= 20 && minor >= 0)) {
-                    error("Your system python is too old, need to update it");
-                }
-            } else {
-                error("could not detect python version, trying installing python3");
-            }
+            // output = await getOutputOfCommand(`${config.userConfig.pip} --version`);
+            // version = output.slice(output.search(/[0-9]/), output.length).trim();
+            // version = version.slice(0, version.search(/[a-zA-Z]/)+1).trim();
+            // if (version.length) {
+            //     let major:number = +version.split(".")[0];
+            //     let minor:number = +version.split(".")[1];
+            //     //print(`major:${major} minor:${minor}`);
+            //     if (!(major >= 20 && minor >= 0)) {
+            //         error("Your system python is too old, need to update it");
+            //     }
+            // } else {
+            //     error("could not detect python version, trying installing python3");
+            // }
             // yes
 
             // if the module is installed
