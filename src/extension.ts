@@ -5,161 +5,20 @@
  * 
  */
 import * as vscode from 'vscode';
-import { UCQ } from './panel';
-import * as src from "./src";
 import * as path from 'path';
 import * as fs from 'fs';
+import { UCQ } from './panel';
 import { getConfig, Config } from "./config";
-
-// because I am lazy, easy way to print to output tab in vscode
-let print = src.print;
-
-/**
- * Verifies the current configuration of python to be used with this extension
- * @param config : configuration of the extension
- * @returns boolean indicating whether or not this function extension exceeded
- */
-async function verifyPython(config:Config) {
-	//config.userConfig.get();
-	// if importing the python module in python succeeds
-	if (await src.tryCommand(`${config.userConfig.python} -c "import ${config.pythonModuleName}"`)) {
-		// getting the version from the installed package and if it is not the current version, then update it
-		if (await src.semanticVersionToNum((await src.getVersionOfPythonModuleWithName(config.userConfig.pip, config.pythonModulePyPi))) 
-			< await src.semanticVersionToNum(config.minPythonModVer)) {
-			// informing the user
-			src.info(`Updating "${config.pythonModuleName}" for "${config.userConfig.python}"`);
-			if (await src.pipUpdate(config.userConfig.pip , config.pythonModulePyPi)) {
-				src.print(`Successfully updated ${config.pythonModuleName}`);
-			} else {
-				src.error(`error updating ${config.pythonModuleName} for ${config.userConfig.python}`);
-			}
-			src.info("done");
-			// // try installing the python module with pip, if it succeeds tell the user and if not tell the user
-			// // it did not
-			// if (await src.pipInstall(config.userConfig.pip , config.pythonModulePyPi)) {
-			// 	src.info(`Successfully setup ${config.pythonModuleName}`);
-			// } else {
-			// 	src.error(`error installing ${config.pythonModuleName} for ${config.userConfig.python}`);
-			// }
-		// if the package is already the right version
-		} else { print(`Package is already there for ${config.userConfig.python} and of the right version, do not need to install`); }
-	// if importing the python module in python did not succeed
-	} else {
-		print(`Setting up ${config.pythonModuleName} for ${config.userConfig.python}`);
-		
-		// trying to install the python module, if it succeeds tell the user, if it does not tell the user
-		// might need to use this flag at some point "--use-feature=in-tree-build"
-		if (await src.pipInstall(config.userConfig.pip, config.pythonModulePyPi)) {
-			src.info(`Successfully setup ${config.pythonModuleName} for ${config.userConfig.python}`);
-		} else {
-			src.error(`error setting up ${config.pythonModuleName} for ${config.userConfig.python}`);
-		}
-		src.info("done");
-	}
-}
-
-/**
- * Sets up python for this extension
- * @param config : configuration of the extension
- * @returns boolean indicating whether or not this function extension exceeded
- */
-async function setupPython(config:Config) {
-    // if conda is installed
-    if (await src.checkIfCondaInstalled()){
-		print("detected conda");
-
-		// asking the user if they want to use this extension with conda (hopefully they do)
-		let choice:string|undefined = await vscode.window.showInformationMessage(`Detected conda, do you want to use it with this extension (this is the recommend method)?`, config.yes, config.no);
-        
-		// if they choose to setup python for conda
-        if (choice === config.yes) {
-			print("setting up for conda");
-			// loading the available conda environments
-            let dict:src.InfoType  = await src.getCondaEnvs();
-            
-			// creating a string array of the available environments to display to the user
-            let arr:vscode.QuickPickItem[] = [];
-            for (let key in dict) {
-				// if qiskit is installed in an environment show it in the array
-                if (dict[key]["hasQiskit"]) {
-					arr.push({
-						label: key,
-						description: "suggested",
-						detail : `located at ${dict[key]["path"]}`
-					});
-					//arr.push(`${key} at ${dict[key]["path"]} (suggested)`); 
-				} else {
-					arr.push({
-						label: key,
-						detail : `located at ${dict[key]["path"]}`
-					});
-					//arr.push(`${key} at ${dict[key]["path"]}`); 
-				}
-            }
-			if (!(arr.length)) {
-				src.error("no conda envs available, please make one, there are many resources online if you need help with this");
-			}
-
-			// creating drop down for the user to select their environment from
-			let result:vscode.QuickPickItem|undefined = await vscode.window.showQuickPick(arr, {placeHolder: 'choose the conda environment from the list', title:"Choose conda Environment"});
-			
-			// if they chose something from the previously made list
-			if (result !== undefined) {
-				// getting the name of the environment from their selection
-				//result = result.slice(0, result.indexOf(" "));
-				print(`Setting up conda envrionment ${result}`);
-
-				// loading the python and pip paths from the dictionary holding the information
-				config.userConfig.python = dict[result.label]["exe"];
-				config.userConfig.pip = dict[result.label]["pip"];
-				
-				// checking if the python and pip paths are valid
-				//try {
-				await verifyPython(config);
-				//} catch ( e ){}
-			} else { 
-				// if the user chose nothing, this is not ok
-				src.error("invalid selection for conda env");
-			}
-		// if the user does not want to use conda
-        } else if (choice === config.no) {
-			print("setting up for system python");
-			// setting this extension up to use system python
-			await src.setupSysPython(config);
-
-		// if the user did not choose anything
-		}  else {
-			// this is no bueno	
-			src.error("invalid choice for python setup");
-		}
-	// if here then did not detect conda
-    } else {
-		print("did not detect conda");
-		// prompting the user if they want to continue with system python install and 
-		// tells them where they can get conda if they would rather use that
-        let opt:string|undefined = await vscode.window.showInformationMessage("Did not detect anaconda, continue with a system python install? (this is not recommended)", config.yes, config.no);
-        
-		// if they want to continue to a system install
-		if (opt === config.yes) {
-			// setting this extension up to use system python
-			await src.setupSysPython(config);
-		// if the user did not choose anything
-        } else if (opt === config.no) {
-			await vscode.window.showInformationMessage("Go to https://docs.anaconda.com/anaconda/install/index.html for a guide to install anaconda");
-			src.error("Run this extension again after you get anaconda installed");
-		} else {
-			src.error("invalid choice for python setup");
-		}
-    }
-}
-
+import { setupPython, verifyPython } from "./pythonHandling";
+import { print, error, info, getLastFromPath, mkDir, checkIfFileInDir, waitForTriggerFile, delay } from "./src";
 
 /**
  * Initializes the workspace/current directory for this extension
  * @param config : configuration of the extension
+ * @param verbose : boolean indicating whether to be verbose in messages
  * @returns boolean indicating whether or not this function extension exceeded
  */
-async function init(config:Config) {
+async function init(config:Config, verbose:boolean=false) {
  	print("Running \"init\"");
 	
 	// the config directory exists
@@ -168,103 +27,80 @@ async function init(config:Config) {
 		await setupPython(config);
 
 		// prompting the user if they want to make the config directory
-		let choice:string|undefined = await vscode.window.showInformationMessage(`Do you want to initialize your current directory for this extension (will make the dir ${src.getLastFromPath(config.configDir)} here)`, config.yes, config.no);
+		let choice:string|undefined = await vscode.window.showInformationMessage(`Do you want to initialize your current directory for this extension (will make the dir "${getLastFromPath(config.configDir)}" here)`, config.yes, config.no);
 		
 		// if the user wants to make the config directory
 		if (choice === config.yes) {
-			// making the config directory, if making it returns false then it failed, so exit function
-			await src.mkDir(config.configDir);
+			// making the config directory
+			await mkDir(config.configDir);
 		} else {
 			// can not operate without config directory
-			src.error("User blocked config directory creation, can not execute without it");
+			error("User blocked config directory creation, can not execute without it");
 		}
 		// saving user config the config file in the config directory
 		config.userConfig.save();
 
+		// copies template layout file to be displayed in the viewer
 		try {
 			await fs.promises.copyFile(config.templateLayoutFile, config.layoutFile);
 		} catch ( e ) {
-			src.error(`while trying to copy template layout file to config dir: ${(e as Error).message}`);
+			error(`while trying to copy template layout file to config dir: ${(e as Error).message}`);
 		}
 
 		// getting the template main file name from the template main file path
-		let fname = src.getLastFromPath(config.templatePythonFile);
+		let fname = getLastFromPath(config.templatePythonFile);
 
 		// if the main file is not in the current directory
-		if (!(await src.checkIfFileInDir(config.workspacePath, fname))) {
+		if (!(await checkIfFileInDir(config.workspacePath, fname))) {
 			// prompting the user if they want an example main file
 			let selection:string|undefined = await vscode.window.showInformationMessage(`Do you want an example main file?`, config.yes, config.no);
 			
 			// if they want a main file
 			if (selection === config.yes) {
 				print("Making main file");
-				// copying template file to current directory, to_return to used to indicate if an error was encountered copying
+				// copying template file to current directory
 				fs.copyFile(config.templatePythonFile, 
 							path.join(config.workspacePath, fname), 
 							(err) => {
 					if (err){
-						src.error(`Error copying ${config.templatePythonFile} to ${fname}`);
+						error(`Error copying "${config.templatePythonFile}" to "${fname}"`);
 					}
 				});
-				// the copy file succeeded then open the file in the editor
-				// if (to_return) {
-				// 	// opening file in the editor
-				// 	let documet:vscode.TextDocument|undefined = await vscode.workspace.openTextDocument(path.join(config.workspacePath, fname));
-
-				// 	if (documet === undefined) {
-				// 		// if the opening of the file failed let the user know
-				// 		src.error(`could not open "${path.join(config.workspacePath, fname)} in code"`);
-				// 	} else {
-				// 		// if opening the file succeeded then run "execute"
-				// 		await src.delay(1000);
-				// 		vscode.commands.executeCommand("uc-quantum-lab.execute");
-				// 	}
-				// }
-
-				// exiting the function returning the success status of the copy operation
+				// opening the example file in the editor
+				let documet:vscode.TextDocument|undefined = await vscode.workspace.openTextDocument(path.join(config.workspacePath, fname));
+				if (documet === undefined) {
+					// if the opening of the file failed let the user know
+				 	error(`could not open "${path.join(config.workspacePath, fname)} in code"`);
+				} else {
+					// opens document in first column
+					await vscode.window.showTextDocument(documet, vscode.ViewColumn.One, false);
+				}
 			}
-
 		}
-		// the copy file succeeded then open the file in the editor
-		// opening file in the editor
-		// let documet:vscode.TextDocument|undefined = await vscode.workspace.openTextDocument(path.join(config.workspacePath, fname));
-		// print("here")
-		// if (documet === undefined) {
-		// 	// if the opening of the file failed let the user know
-		// 	src.error(`could not open "${path.join(config.workspacePath, fname)} in code"`);
-		// } else {
-		// 	// if opening the file succeeded then run "execute"
-		// 	await src.delay(500);
-		// 	vscode.commands.executeCommand("uc-quantum-lab.execute");
-		// }
-	
-		// removed this because I did not think it is necessary
-		// else {
-			//src.error(`"${fname}" is in your current directory and is not a directory please delete it from the current directory`);
-		//}
-		// if setting up python failed then can not continue, function is exited
 	} else {
 		// if the user config file exists
 		if (fs.existsSync(config.configFile)) {
 			// loading the user config from the file
 			config.userConfig.get();
-			
-			// if the current configuration of python
+
 			try {
+				// checking python setup
 				await verifyPython(config);
 			} catch ( e ) {
 				print("detected faulty config");
 				// asking the user if they want to reinitialize the current directory
 				let choice:string|undefined = await vscode.window.showInformationMessage("Detected faulty config, do you want to reinit the workspace?", config.yes, config.no);
-				
 				// if yes, then reinit it
 				if (choice === config.yes) {
 					// running the reinit command
 					vscode.commands.executeCommand('uc-quantum-lab.reinit');
 				} else if (choice === undefined) {
 					// if the user choose nothing
-					src.error("Invalid choice for whether or not to reinit");
+					error("Invalid choice for whether or not to reinit");
 				}
+			}
+			if (verbose) {
+				info("Current workspace is already initialized, nothing to do");
 			}
 		// if there is no config file to pull information from
 		} else {
@@ -278,7 +114,7 @@ async function init(config:Config) {
 				vscode.commands.executeCommand('uc-quantum-lab.reinit');
 			} else if (choice === undefined) {
 				// if the user choose nothing
-				src.error("Invalid choice for whether or not to reinit");
+				error("Invalid choice for whether or not to reinit");
 			}
 		}
 	}
@@ -310,12 +146,13 @@ export async function activate(context: vscode.ExtensionContext) {
 						// checking if the active editor file is a python file
 						if (!(vscode.window.activeTextEditor.document.fileName.endsWith(".py"))) {
 							// can not execute non python file, so telling the user that
-							src.error(`${vscode.window.activeTextEditor.document.fileName} is not a python file, can not execute it`);
+							error(`"${vscode.window.activeTextEditor.document.fileName}" is not a python file, can not execute it`);
 							return;
 						} else {
-							print("saving document");
-							await vscode.window.activeTextEditor.document.save();
 							// if here, then the file is a python file
+							print("saving active document");
+							await vscode.window.activeTextEditor.document.save();
+							
 							print("executing in termial");
 							// if there is an active terminal in editor
 							if (vscode.window.activeTerminal) {
@@ -335,17 +172,17 @@ export async function activate(context: vscode.ExtensionContext) {
 							print("Waiting for trigger file");
 							
 							// waiting for trigger file to be made by the python module, this extension waits for it then continues
-							await src.waitForTriggerFile(config);
+							await waitForTriggerFile(config);
 							
 							// this is temporary, waiting a bit to let things cool down in the filesystem
-							await src.delay(100); // milliseconds
+							await delay(100); // milliseconds
 							
 							// updating the panel, note: no longer need to pass the config because no longer html from config
 							UCQ.currentPanel.update();
 						}
 					} else {
 						// can not execute nothing
-						src.error("Must have an active document open"); 
+						error("Must have an active document open"); 
 						return; 
 					}
 				} else {
@@ -354,15 +191,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					print("Creating Window");
 					// creating window
 					UCQ.createOrShow(config);
-
-						// something things that I am messing with
-						// vscode.commands.executeCommand("uc-quantum-lab.execute");
-						// vscode.commands.executeCommand("workbench.action.focusPreviousGroup");
 				}
-			} catch ( e ) {
-				// if here then a reinit of the current directory will probably work
-				//src.error((e as Error).message);
-			}
+			// functions handle their own errors so do not need to do anything here
+			} catch ( e ) {}
 		})
 	);
 
@@ -372,11 +203,10 @@ export async function activate(context: vscode.ExtensionContext) {
 				// loading the config from "./config.ts"
 				let config:Config = await getConfig(context);
 				
-				// initing the current directory, do not to wrap the function call in an "if" because the function will handle its own errors
-				await init(config);
-			} catch ( e ) {
-				//src.error((e as Error).message);
-			}
+				// initing the current directory
+				await init(config, true);
+			// functions handle their own errors so do not need to do anything here
+			} catch ( e ) {}
 		})
 	);
 
@@ -389,25 +219,24 @@ export async function activate(context: vscode.ExtensionContext) {
 				// if the config directory exists in the current directory
 				if (fs.existsSync(config.configDir)) {
 					// prompting user with what it will do to the config directory
-					let choice:string|undefined = await vscode.window.showInformationMessage(`Will delete ${config.configDir} from the current directory, is this ok`, config.yes, config.no);
+					let choice:string|undefined = await vscode.window.showInformationMessage(`Will delete "${config.configDir}" from the current directory, is this ok`, config.yes, config.no);
 
 					// if they agreed to the previous message
 					if (choice === config.yes) {
 						// removing the config directory and catching errors
 						try { fs.rmSync(config.configDir, { recursive: true, force: true }); }
-						catch ( e ) { src.error(`error encountered when deleting config directory, with message ${e}`); }
+						catch ( e ) { error(`error encountered when deleting config directory, with message: ${e}`); }
 
 					} else if (choice === undefined) {
 						// the user can not choose nothing
-						src.error("Invalid choice for deletion config dir");
+						error("Invalid choice for deletion config dir");
 						return;
 					}
 				}
 				// initing the current directory, do not to wrap the function call in an "if" because the function will handle its own errors
 				await init(config);
-			} catch ( e ) {
-				//src.error((e as Error).message);
-			}
+			// functions handle their own errors so do not need to do anything here
+			} catch ( e ) {}
 		})
 	);
 }

@@ -1,11 +1,10 @@
 import * as fs from "fs";
-import { platform } from "os";
+import * as os from "os";
 import * as vscode from "vscode";
 import { Config } from "./config";
-import { print,error } from "./src";
-import * as path from "path";
-//import * as path from "path";
+import { print, error } from "./src";
 
+// global variables (here for ease of use in recurssion)
 let html:string[] = [];
 let css:string[] = [];
 let sizes:string[] = [];
@@ -57,8 +56,8 @@ async function formatMain(main:string):Promise<string> {
 
 async function adjustUri(uri:string, fpath:string):Promise<string> {
     //print(`start path:${fpath}`);
-    if (platform() === "win32") {
-        print(fpath.indexOf(":").toString());
+    if (os.platform() === "win32") {
+        //print(fpath.indexOf(":").toString());
         fpath = fpath.slice(fpath.indexOf(":")+1, fpath.length);
         fpath = fpath.replace(/\\/gi, "/");
     }
@@ -156,7 +155,7 @@ class Content {
             }
             // if "style" was provided as an argument
             if (obj.style !== undefined) {
-                // if not is not a string, no bueno
+                // if not is not a string, no good
                 if (typeof obj.style !== "string") {
                     throw new SyntaxError(`"style" must be string`);
                 } else {

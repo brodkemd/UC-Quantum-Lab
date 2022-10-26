@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
-import { print,error } from "./src";
+import { print, error } from "./src";
 
 /**
  * Class to store information about the current configuration for the user
@@ -16,13 +16,15 @@ export class UserConfig {
 
     // setting the userfile
     constructor(userConfigFile:string|undefined) {
-        if (userConfigFile!==undefined) { this.userFile = userConfigFile; }
+        if (userConfigFile!==undefined) { 
+            this.userFile = userConfigFile; 
+        }
     }
     /**
      * gets the current user config from the user config file and sets attributes of this class
      */
     get() {
-        print(`print reading from ${this.userFile}`);
+        print(`Loading user config from ${this.userFile}`);
         // reading the json file
         try {
             let readIn = JSON.parse(fs.readFileSync(this.userFile, "utf8"));
@@ -32,14 +34,17 @@ export class UserConfig {
                 if (fs.existsSync(readIn["python"]) || readIn["python"].indexOf(path.sep) === -1) {
                     this.python = readIn["python"]; 
                 } else {
-                    error(`the python path from user config ${readIn["python"]} does not exist, config file is ${this.userFile}`);
+                    error(`python path from user config "${readIn["python"]}" does not exist`);
                 }
             } else { 
-                error(`python was not found in the user config file, config file is ${this.userFile}`);
+                error(`python was not found in the user config file`);
             }
 
             // checks pip exe read from the file
             if (readIn["pip"] !== undefined) {
+                /** 
+                 * do not need to check if pip path exists (more trouble that is worth)
+                 */ 
                 // if the pip executable path exists or it is a command, set the attribute
                 //if (fs.existsSync(readIn["pip"]) || readIn["pip"].indexOf(path.sep) === -1) { 
                 this.pip = readIn["pip"];
@@ -47,11 +52,11 @@ export class UserConfig {
                 //     this.errorEncountered = true;
                 //     this.errorMessage = `the pip path from user config ${readIn["pip"]} does not exist, config file is ${this.userFile}`;
                 // }
-            } else { 
-                error(`pip was not found in the user config file, config file is ${this.userFile}`);
+            } else {
+                error(`pip was not found in the user config file`);
             }
         } catch ( e ) {
-            error(`Could not find user config file, try reinitializing the current directory (run reinit command of this extension)`);
+            error(`user config file not found, try running the reinit command of this extension (uc-quantum-lab.reinit) in the command palete`);
         }
     }
 
@@ -61,9 +66,6 @@ export class UserConfig {
      */
     toDict():{[name:string] : string|boolean} {
         let toReturn:{[name:string] : string|boolean} = {};
-        // to_return["show_histogram"] = this.showHistogram;
-        // to_return["show_state_vector"] = this.showStateVector;
-        // to_return["show_circ"] = this.showCirc;
         toReturn["pip"] = this.pip;
         toReturn["python"] = this.python;
         return toReturn;
@@ -79,7 +81,7 @@ export class UserConfig {
             if (fs.existsSync(dict["python"]) || dict["python"].indexOf(path.sep) === -1) { 
                 this.python = dict["python"]; 
             } else {
-                error(`python variable from dict ${dict["python"]} does not exist`);
+                error(`python variable from dict "${dict["python"]}" does not exist`);
             }
         } else { 
             error(`python variable must be a string`);
@@ -91,7 +93,7 @@ export class UserConfig {
             if (fs.existsSync(dict["pip"]) || dict["pip"].indexOf(path.sep) === -1) { 
                 this.python = dict["pip"]; 
             } else {
-                error(`pip variable from dict ${dict["pip"]} does not exist`);
+                error(`pip variable from dict "${dict["pip"]}" does not exist`);
             }
         } else { 
             error(`pip variable must be a string`);
@@ -148,17 +150,18 @@ export class Config {
     cssFiles:string[] = [];
     // java script files to include in the compiled
     scriptFiles:string[] = [];
-    // the current version of the python module
+    // the minimum allowed version of the python module
     minPythonModVer:string = "";
+    // minimum allowed version of python
     minPythonVer:string = "";
-    // the path to the python module
+    // python module name on the python index
     pythonModulePyPi:string = "";
+    // python module name in python
     pythonModuleName:string = "";
     // yes response by user
     yes:string = "yes";
     // no response by user
     no:string = "no";
-
     // constructing user config class
     userConfig:UserConfig = new UserConfig(undefined);
 
@@ -172,13 +175,13 @@ export class Config {
         if (workspacePath !== undefined && extensionInstallPath !== undefined) {
             this.workspacePath = workspacePath;
             this.extensionInstallPath = extensionInstallPath;
-
         } else {
             error("workspace is not valid, please open a folder");
             this.workspacePath = "";
             this.extensionInstallPath = "";
         }
     }
+
     /**
      * constructs the user config class attribute of this class
      */
@@ -198,7 +201,7 @@ export async function getConfig(context:vscode.ExtensionContext):Promise<Config>
         // init the above class
         let config:Config = new Config(vscode.workspace.workspaceFolders[0].uri.fsPath, context.extensionPath);
         /**
-         * For a description of what the attributes do, see the above class
+         * For a description of what the attributes do, see the above class definition
          */
         config.configDir = path.join(config.workspacePath, ".UCQ_config");
 		config.configFile = path.join(config.configDir, "config.json"); // needs to be json

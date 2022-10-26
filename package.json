@@ -2,7 +2,7 @@
   "name": "uc-quantum-lab",
   "displayName": "UC Quantum Lab",
   "description": "An extension to make quantum development easier",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "publisher": "UCQuantumLab",
   "author": {
     "name": "Marek Brodke",
@@ -45,6 +45,7 @@
       {
         "command": "uc-quantum-lab.execute",
         "title": "execute",
+        "shortTitle": "execute",
         "category": "UC Quantum",
         "icon": {
           "light": "media/uc_light.svg",
@@ -53,12 +54,12 @@
       },
       {
         "command": "uc-quantum-lab.init",
-        "title": "Inits a directory if not already a UC Quantum directory",
+        "title": "init",
         "category": "UC Quantum"
       },
       {
         "command": "uc-quantum-lab.reinit",
-        "title": "Reinits a directory if UCQ is broken, will delete old config dir",
+        "title": "reinit",
         "category": "UC Quantum"
       }
     ],

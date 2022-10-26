@@ -1,4 +1,16 @@
 # Changelog
+## [0.0.5] - 2022-10-26
+### Added
+- improvements to the UX and UI, mostly with regard to system python setup
+- improved error and information messages
+- auto open the example main file and viewer if the user chooses to have that file
+- fixed a bug with windows system python setup
+### Changed
+- ts file layout and import structure in an effort to the code cleaner
+
+### Removed 
+- cleanup lines of code 
+
 ## [0.0.4] - 2022-10-26
 ### Added
 - improvements to the UX and UI, mostly with regard to anaconda

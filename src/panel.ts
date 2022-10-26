@@ -12,12 +12,9 @@ export class UCQ {
      * Track the currently panel. Only allow a single panel to exist at a time.
      */
     public static currentPanel: UCQ | undefined;
-
     public static readonly viewType = "uc-quantum-lab";
-
     private readonly _panel: vscode.WebviewPanel;
     private _disposables: vscode.Disposable[] = [];
-
     public _config:Config;
 
     public static createOrShow(config:Config) {
