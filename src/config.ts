@@ -149,7 +149,7 @@ export class Config {
     // java script files to include in the compiled
     scriptFiles:string[] = [];
     // the current version of the python module
-    curPythonModVer:string = "";
+    minPythonModVer:string = "";
     // the path to the python module
     pythonModulePyPi:string = "";
     pythonModuleName:string = "";
@@ -224,7 +224,7 @@ export async function getConfig(context:vscode.ExtensionContext):Promise<Config>
         // python module stuff
         config.pythonModuleName = "UC_Quantum_Lab";
         config.pythonModulePyPi = "U-Cincy-quantum-tools";
-        config.curPythonModVer = "0.1.2";
+        config.minPythonModVer = "0.1.3";
 
         // initializing user config
         config.initUserConfig();

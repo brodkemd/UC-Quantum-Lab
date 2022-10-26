@@ -1,6 +1,7 @@
 
 /**
  * Credit: https://github.com/Tom-Rawlings/Resizable.js
+ * This code has been slightly modified for this extension
  */
 const Resizable = {};
 Resizable.activeContentWindows = [];

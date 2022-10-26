@@ -1,4 +1,11 @@
 # Changelog
+## [0.0.4] - 2022-10-26
+### Added
+- improvements to the UX and UI, mostly with regard to anaconda
+- improved version detection of python package
+- improved error and information messages
+- improved marketplace represention in package.json (added logo and some other stuff)
+
 ## [0.0.3] - 2022-10-26
 ### Added
 - pipInstall, pipUpdate commands added to src

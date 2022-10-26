@@ -1,5 +1,5 @@
 from UC_Quantum_Lab.commands import state, display, counts
-from UC_Quantum_Lab.layout import invert, horizontal_invert, vertical_invert
+from UC_Quantum_Lab.layout import invert, horizontal_invert, vertical_invert, custom
 from qiskit import QuantumCircuit
 
 qc = QuantumCircuit(6, 6)

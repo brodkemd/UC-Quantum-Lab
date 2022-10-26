@@ -41,8 +41,18 @@ Available keys are "top", "bottom", "left", "right", "only", and "style". The va
 - if you format a string like "{VALUE}" where VALUE is in the following list, it will be replaced with that value:
     - URI: webview uri so that the webview can load resources.
 - you can set your own layout by using the `custom` command from the UC_Quantum_Lab python module.
+- There is an addition html tag available called `data-include` used like 
+    ```html
+    <div data-include='some.path.or.url'></div>
+    ```
+    that replaces inserts the data at that url or path into the current html file. This allows for seperate html files to be loaded into the main html file. This feature is thanks to jquery.
 ## Known Issues
 Do not know any currently but there is more than likely some because of being in beta.
+
+## Credits
+- https://github.com/Tom-Rawlings/Resizable.js for the amazing js library that made the UI possible.
+- https://github.com/jquery/jquery for a feature rich api that I use to dynamically load html.
+- https://github.com/mathjax/MathJax for a feature rich api that allows latex to displayed in html.
 
 ## Release Notes
 See changelog for the lastest on this extension

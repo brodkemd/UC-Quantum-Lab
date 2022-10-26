@@ -161,6 +161,22 @@ export async function waitForTriggerFile(config:Config) {
 }
 
 /**
+ * 
+ * @param version Semantic version string
+ * @returns float of the version
+ */
+export async function semanticVersionToNum(version:string):Promise<number> {
+    let toReturn:number = 0;
+    let base:number = 100;
+    let arr:string[] = version.split(".");
+    for (let i = 0; i < arr.length; i++) {
+        toReturn+= +arr[i]/ (base**i);
+    }
+    print(`Version to num: ${toReturn.toString()}`);
+    return toReturn;
+}
+
+/**
  * Gets the current version of the inputted module from pip
  * @param pip : string path to pip executable
  * @param module : string name of module to check
@@ -181,8 +197,8 @@ export async function getVersionOfPythonModuleWithName(pip:string, module:string
                             return;
                         }
                     }
-                    
                 }
+                error(`Could not get version for python module "${module}"`);
             }
         );
     // catches any errors

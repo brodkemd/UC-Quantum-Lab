@@ -10,7 +10,6 @@ import * as src from "./src";
 import * as path from 'path';
 import * as fs from 'fs';
 import { getConfig, Config } from "./config";
-import {platform} from "process";
 
 // because I am lazy, easy way to print to output tab in vscode
 let print = src.print;
@@ -25,10 +24,10 @@ async function verifyPython(config:Config) {
 	// if importing the python module in python succeeds
 	if (await src.tryCommand(`${config.userConfig.python} -c "import ${config.pythonModuleName}"`)) {
 		// getting the version from the installed package and if it is not the current version, then update it
-		if (await src.getVersionOfPythonModuleWithName(config.userConfig.pip, config.pythonModulePyPi) !== config.curPythonModVer) {
+		if (await src.semanticVersionToNum((await src.getVersionOfPythonModuleWithName(config.userConfig.pip, config.pythonModulePyPi))) 
+			< await src.semanticVersionToNum(config.minPythonModVer)) {
 			// informing the user
 			src.info(`Updating "${config.pythonModuleName}" for "${config.userConfig.python}"`);
-			
 			if (await src.pipUpdate(config.userConfig.pip , config.pythonModulePyPi)) {
 				src.print(`Successfully updated ${config.pythonModuleName}`);
 			} else {
@@ -79,30 +78,45 @@ async function setupPython(config:Config) {
             let dict:src.InfoType  = await src.getCondaEnvs();
             
 			// creating a string array of the available environments to display to the user
-            let arr:string[] = [];
+            let arr:vscode.QuickPickItem[] = [];
             for (let key in dict) {
 				// if qiskit is installed in an environment show it in the array
-                if (dict[key]["hasQiskit"]) { arr.push(`${key} at ${dict[key]["path"]} (suggested)`); } 
-				else { arr.push(`${key} at ${dict[key]["path"]}`); }
+                if (dict[key]["hasQiskit"]) {
+					arr.push({
+						label: key,
+						description: "suggested",
+						detail : `located at ${dict[key]["path"]}`
+					});
+					//arr.push(`${key} at ${dict[key]["path"]} (suggested)`); 
+				} else {
+					arr.push({
+						label: key,
+						detail : `located at ${dict[key]["path"]}`
+					});
+					//arr.push(`${key} at ${dict[key]["path"]}`); 
+				}
             }
+			if (!(arr.length)) {
+				src.error("no conda envs available, please make one, there are many resources online if you need help with this");
+			}
 
 			// creating drop down for the user to select their environment from
-			let result:string|undefined = await vscode.window.showQuickPick(arr, {placeHolder: 'choose the conda environment from the list'});
+			let result:vscode.QuickPickItem|undefined = await vscode.window.showQuickPick(arr, {placeHolder: 'choose the conda environment from the list', title:"Choose conda Environment"});
 			
 			// if they chose something from the previously made list
 			if (result !== undefined) {
 				// getting the name of the environment from their selection
-				result = result.slice(0, result.indexOf(" "));
+				//result = result.slice(0, result.indexOf(" "));
 				print(`Setting up conda envrionment ${result}`);
 
 				// loading the python and pip paths from the dictionary holding the information
-				config.userConfig.python = dict[result]["exe"];
-				config.userConfig.pip = dict[result]["pip"];
+				config.userConfig.python = dict[result.label]["exe"];
+				config.userConfig.pip = dict[result.label]["pip"];
 				
 				// checking if the python and pip paths are valid
-				try {
-					await verifyPython(config);
-				} catch ( e ){}
+				//try {
+				await verifyPython(config);
+				//} catch ( e ){}
 			} else { 
 				// if the user chose nothing, this is not ok
 				src.error("invalid selection for conda env");
@@ -120,16 +134,20 @@ async function setupPython(config:Config) {
 		}
 	// if here then did not detect conda
     } else {
+		print("did not detect conda");
 		// prompting the user if they want to continue with system python install and 
 		// tells them where they can get conda if they would rather use that
-        let opt:string|undefined = await vscode.window.showInformationMessage("Did not detect anaconda on this system do you want to continue with a system python install (it would be better to use this extension with anaconda)\nIf not go to https://docs.anaconda.com/anaconda/install/index.html for a guide to install anaconda and press \"no\"", config.yes, config.no);
+        let opt:string|undefined = await vscode.window.showInformationMessage("Did not detect anaconda, continue with a system python install? (this is not recommended)", config.yes, config.no);
         
 		// if they want to continue to a system install
 		if (opt === config.yes) {
 			// setting this extension up to use system python
 			await src.setupSysPython(config);
 		// if the user did not choose anything
-        } else if (opt === undefined) {
+        } else if (opt === config.no) {
+			await vscode.window.showInformationMessage("Go to https://docs.anaconda.com/anaconda/install/index.html for a guide to install anaconda");
+			src.error("Run this extension again after you get anaconda installed");
+		} else {
 			src.error("invalid choice for python setup");
 		}
     }

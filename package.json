@@ -2,15 +2,40 @@
   "name": "uc-quantum-lab",
   "displayName": "UC Quantum Lab",
   "description": "An extension to make quantum development easier",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "UCQuantumLab",
-  "repository": {"url": "https://github.com/brodkemd/UC_Quantum_Lab"},
+  "author": {
+    "name": "Marek Brodke",
+    "email": "brodkemd@mail.uc.edu"
+  },
+  "qna":"https://github.com/brodkemd/UC_Quantum_Lab/discussions",
+  "repository": {
+    "url": "https://github.com/brodkemd/UC_Quantum_Lab",
+    "type": "git"
+  },
+  "icon" : "media/uc.png",
   "engines": {
     "vscode": "^1.71.0"
   },
+  "bugs" : {
+    "url": "https://github.com/brodkemd/UC_Quantum_Lab/issues",
+    "email": "brodkemd@mail.uc.edu"
+  },
   "categories": [
+    "Data Science", 
+    "Visualization", 
+    "Education", 
+    "Testing",
     "Other"
   ],
+  "keywords": [
+    "quantum", 
+    "computing", 
+    "quantum computing", 
+    "qiksit", 
+    "circuit"
+  ],
+  "license": "SEE LICENSE",
   "activationEvents": [
     "onCommand:uc-quantum-lab.execute",
     "onCommand:uc-quantum-lab.init"
@@ -54,7 +79,7 @@
     "menus": {
       "editor/title": [
         {
-          "when": "workspaceFolderCount >= 1",
+          "when": "workspaceFolderCount >= 1 && resourceExtname == .py",
           "command": "uc-quantum-lab.execute",
           "group": "navigation"
         }
