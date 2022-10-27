@@ -3,6 +3,8 @@
 /** known Isssues:
  * Possible overlap with file that has the same name as config_dir
  * 
+ * How to run locally, execute the following in the shell: code --extensionDevelopmentPath=$PWD
+ * 
  */
 import * as vscode from 'vscode';
 import * as path from 'path';

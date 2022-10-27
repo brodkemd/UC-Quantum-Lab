@@ -8,31 +8,31 @@
     "name": "Marek Brodke",
     "email": "brodkemd@mail.uc.edu"
   },
-  "qna":"https://github.com/UC-Advanced-Research-Computing/UC-Quantum-Lab/discussions",
+  "qna": "https://github.com/UC-Advanced-Research-Computing/UC-Quantum-Lab/discussions",
   "repository": {
     "url": "https://github.com/UC-Advanced-Research-Computing/UC-Quantum-Lab",
     "type": "git"
   },
-  "icon" : "media/uc.png",
+  "icon": "media/uc.png",
   "engines": {
     "vscode": "^1.71.0"
   },
-  "bugs" : {
+  "bugs": {
     "url": "https://github.com/UC-Advanced-Research-Computing/UC-Quantum-Lab/issues",
     "email": "brodkemd@mail.uc.edu"
   },
   "categories": [
-    "Data Science", 
-    "Visualization", 
-    "Education", 
+    "Data Science",
+    "Visualization",
+    "Education",
     "Testing",
     "Other"
   ],
   "keywords": [
-    "quantum", 
-    "computing", 
-    "quantum computing", 
-    "qiksit", 
+    "quantum",
+    "computing",
+    "quantum computing",
+    "qiksit",
     "circuit"
   ],
   "activationEvents": [
@@ -84,7 +84,7 @@
   "devDependencies": {
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.0",
-    "@types/node": "^16.11.68",
+    "@types/node": "^16.18.2",
     "@types/vscode": "^1.71.0",
     "@typescript-eslint/eslint-plugin": "^5.38.1",
     "@typescript-eslint/parser": "^5.38.1",
@@ -94,6 +94,5 @@
     "mocha": "^10.0.0",
     "ts-node": "^10.9.1",
     "typescript": "^4.8.4"
-  },
-  "dependencies": {}
+  }
 }
