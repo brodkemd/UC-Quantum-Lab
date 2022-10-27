@@ -3,8 +3,8 @@
 ## [0.0.6] - 2022-10-27
 ### Added
 - improvements to the README
-- increased lowest python version library version allowed to 0.1.4
-- migrated repos
+- increased lowest python version library version allowed to 0.1.6
+- migrated repos, modified python package name
 
 ## [0.0.5] - 2022-10-26
 ### Added
