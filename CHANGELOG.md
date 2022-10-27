@@ -1,4 +1,10 @@
 # Changelog
+# Changelog
+## [0.0.6] - 2022-10-27
+### Added
+- improvements to the README
+- increased lowest python version library version allowed to 0.1.4
+
 ## [0.0.5] - 2022-10-26
 ### Added
 - improvements to the UX and UI, mostly with regard to system python setup

@@ -1,6 +1,6 @@
 # uc-quantum-lab
 
-This extension provides a UI that allows the results of a quantum circuit simulated with qiskit to be presented cleanly and easily. This extension operates with the required python library https://github.com/brodkemd/UCQ_tools.
+This extension provides a UI that allows the results of a quantum circuit created simulated with qiskit to be presented cleanly and easily. This extension operates with the required python library https://github.com/brodkemd/UCQ_tools (the extension will auto install this library as long as you have a working python and pip)
 
 NOTE: If you want a feature or you find a bug, create an issue or start a discussion, please.
 
@@ -17,10 +17,12 @@ Can display a lot of information about your circuit including:
 2. Open the command palete and run uc-quantum-lab.execute or, if you have an active editor with a python file in it, click the UC logo.
 3. Answer the prompts. These only show up if the directory has not been initialized yet.
 4. Everytime you want to run the python file, click the UC logo in the editor and it will execute your file with the python interpreter (that you specificied in the setup) in the active terminal of the vscode window. You could also set a keybind to do this.
+    - See examples/python directory on the repo page for example python files that can be used with this extension.
 
 ## Requirements
 - Python and pip on your device. 
     - **NOTE**: we strongly recommend using anaconda for this (see https://www.anaconda.com/) and it *must* be installed as user *not* as root (this is the better way to do it anyway).
+    - Also, if you are using anaconda you must make an environment, this extension will not use the base environment and it will not auto make an environment. There is plenty of info on the internet for this.
 ## Recommendations
 - We strongly recommend that you have the python extension for vscode. It really helps with development. See the link for more info https://marketplace.visualstudio.com/items?itemName=ms-python.python.
 
