@@ -1,6 +1,8 @@
 out
 dist
 node_modules
+upload.sh
+bug_suggestions.sh
 
 .vscode-test/
 *.vsix

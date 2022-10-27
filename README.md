@@ -1,6 +1,6 @@
 # uc-quantum-lab
 
-This extension provides a UI that allows the results of a quantum circuit created simulated with qiskit to be presented cleanly and easily. This extension operates with the required python library https://github.com/brodkemd/UCQ_tools (the extension will auto install this library as long as you have a working python and pip)
+This extension provides a UI that allows the results of a quantum circuit created simulated with qiskit to be presented cleanly and easily. This extension operates with the required python library https://github.com/UC-Advanced-Research-Computing/UC-Quantum-tools (the extension will auto install this library as long as you have a working python and pip)
 
 NOTE: If you want a feature or you find a bug, create an issue or start a discussion, please.
 
