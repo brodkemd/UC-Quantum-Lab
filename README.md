@@ -21,6 +21,8 @@ Can display a lot of information about your circuit including:
 ## Requirements
 - Python and pip on your device. 
     - **NOTE**: we strongly recommend using anaconda for this (see https://www.anaconda.com/) and it *must* be installed as user *not* as root (this is the better way to do it anyway).
+## Recommendations
+- We strongly recommend that you have the python extension for vscode. It really helps with development. See the link for more info https://marketplace.visualstudio.com/items?itemName=ms-python.python.
 
 ## Extension Commands
 This extension contributes the following commands:
