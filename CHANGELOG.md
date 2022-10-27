@@ -4,6 +4,7 @@
 ### Added
 - improvements to the README
 - increased lowest python version library version allowed to 0.1.4
+- migrated repos
 
 ## [0.0.5] - 2022-10-26
 ### Added
