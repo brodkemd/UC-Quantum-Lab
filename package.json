@@ -2,15 +2,15 @@
   "name": "uc-quantum-lab",
   "displayName": "UC Quantum Lab",
   "description": "An extension to make quantum development easier",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "publisher": "UCQuantumLab",
   "author": {
     "name": "Marek Brodke",
     "email": "brodkemd@mail.uc.edu"
   },
-  "qna":"https://github.com/brodkemd/UC_Quantum_Lab/discussions",
+  "qna":"https://github.com/UC-Advanced-Research-Computing/UC-Quantum-Lab/discussions",
   "repository": {
-    "url": "https://github.com/brodkemd/UC_Quantum_Lab",
+    "url": "https://github.com/UC-Advanced-Research-Computing/UC-Quantum-Lab",
     "type": "git"
   },
   "icon" : "media/uc.png",
@@ -18,7 +18,7 @@
     "vscode": "^1.71.0"
   },
   "bugs" : {
-    "url": "https://github.com/brodkemd/UC_Quantum_Lab/issues",
+    "url": "https://github.com/UC-Advanced-Research-Computing/UC-Quantum-Lab/issues",
     "email": "brodkemd@mail.uc.edu"
   },
   "categories": [
