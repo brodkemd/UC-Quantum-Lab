@@ -135,6 +135,10 @@ export async function tryCommand(command:string):Promise<boolean> {
  * @param config : current configuration of the extension
  */
 export async function waitForTriggerFile(config:Config) {
+    // (<any>vscode.window).onDidWriteTerminalData((e: any) => {
+    //     vscode.window.showInformationMessage(`onDidWriteTerminalData listener attached, check the devtools console to see events`);
+    //     print(`onDidWriteData:${e}`);
+    // });
     // how many times the loop can run waiting for the trigger file
     let stop:number = 200;
     let i:number = 0;

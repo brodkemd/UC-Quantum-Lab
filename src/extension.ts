@@ -144,6 +144,14 @@ export async function activate(context: vscode.ExtensionContext) {
 					if (vscode.window.activeTextEditor.document !== undefined) {
 						// loads python from local config.json
 						config.userConfig.get();
+						// cleaning up config directory, removing trigger file
+						if (fs.existsSync(config.triggerFile)) { 
+							// removes the trigger file
+							try { await fs.promises.rm(config.triggerFile); } 
+							catch ( e ) {
+								error(`caught error while removing trigger file: ${(e as Error).message.replace("\n", " ")}`);
+							}
+						}
 
 						// checking if the active editor file is a python file
 						if (!(vscode.window.activeTextEditor.document.fileName.endsWith(".py"))) {
@@ -175,10 +183,18 @@ export async function activate(context: vscode.ExtensionContext) {
 							
 							// waiting for trigger file to be made by the python module, this extension waits for it then continues
 							await waitForTriggerFile(config);
-							
+
 							// this is temporary, waiting a bit to let things cool down in the filesystem
 							await delay(100); // milliseconds
-							
+
+							// cleaning up config directory, removing trigger file
+							// if (fs.existsSync(config.triggerFile)) { 
+							// 	// removes the trigger file
+							// 	try { await fs.promises.rm(config.triggerFile); } 
+							// 	catch ( e ) {
+							// 		error(`caught error while removing trigger file: ${(e as Error).message.replace("\n", " ")}`);
+							// 	}
+							// }
 							// updating the panel, note: no longer need to pass the config because no longer html from config
 							UCQ.currentPanel.update();
 						}
