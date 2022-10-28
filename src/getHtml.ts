@@ -296,6 +296,11 @@ export async function genHtml(webview:vscode.Webview, config:Config):Promise<str
         //await obj.show();
         // formatting the html template, replaces keywords
         format = await formatMain(format);
+
+        // putting the time string in the html so that it forces html to update the webview html
+        // (gaurantees the html to be different)
+        format = `<!--${(new Date()).toString()}-->\n${format}`;
+
         // for testing puposes, outputs the html that will be sent to the panel to a file
         if (true) {
             try {
