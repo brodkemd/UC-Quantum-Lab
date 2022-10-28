@@ -1,0 +1,6 @@
+run: npm install @types/node --save-dev
+run: npm audit fix --force
+
+Maybe: Make sure that "dependencies" is empty in package.json
+
+How to run locally, execute the following in the shell: code --extensionDevelopmentPath=$PWD
