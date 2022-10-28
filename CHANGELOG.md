@@ -2,7 +2,7 @@
 ## [0.0.7] - 2022-10-28
 ### Added
 - improvemened config directory handling
-- increased lowest python version library version allowed to 0.1.7 (there were required features added)
+- increased lowest python version library version allowed to 0.1.8 (there were required features added)
 - improved viewer updating
 
 ## [0.0.6] - 2022-10-27
