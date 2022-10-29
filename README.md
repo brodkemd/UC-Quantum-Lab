@@ -1,4 +1,5 @@
 # uc-quantum-lab
+**PLEASE** **PLEASE** report any bugs, features that you may want, or anything else in the github, they will be attended to. This is still an early release so feedback is appreciated.
 
 This extension provides a UI that allows the results of a quantum circuit created simulated with qiskit to be presented cleanly and easily. This extension operates with the required python library https://github.com/UC-Advanced-Research-Computing/UC-Quantum-tools (the extension will auto install this library as long as you have a working python and pip)
 
@@ -52,8 +53,14 @@ Available keys are "top", "bottom", "left", "right", "only", and "style". The va
     ```
     This tag inserts the data at that url or path into the current html file. This allows for seperate html files to be loaded into the main html file. This feature is thanks to jquery.
 ## Known Issues
-Do not know any currently but there is more than likely some because of being in beta.
-
+- There are issues on windows using the system provided python with this extension. If you have to install it with system python. Note:
+    - If the extension stops, try running
+        ```shell
+        pip install UC-Quantum-tools
+        ```
+- Windows 11 has not been tested.
+- Mac has also not been tested but linux has been tested extensively. Since linux and mac are very similar
+- **NOTE** If you have any suggestions please put them on the github page, either in issues or discussions.
 ## Credits
 - https://github.com/Tom-Rawlings/Resizable.js for the amazing js library that made the UI possible.
 - https://github.com/jquery/jquery for a feature rich api that I use to dynamically load html.
