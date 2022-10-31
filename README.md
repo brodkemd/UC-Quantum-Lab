@@ -17,6 +17,14 @@ Can display a lot of information about your circuit including:
 1. Open a folder in vscode.
 2. Open the command palete and run uc-quantum-lab.execute or, if you have an active editor with a python file in it, click the UC logo.
 3. Answer the prompts. These only show up if the directory has not been initialized yet.
+    - The following steps are for registering a python interpreter with this extension:
+        1. Create a temporary python file or open up the repl (interactive python terminal) for the python interpreter that you want to register. Both of these actions must be performed in the directory that you want to use the extension in.
+        2. Enter the following lines of code in the file or command line repl
+            ```python
+            from UC_Quantum_Lab import register
+            register()
+            ```
+        3. 
 4. Everytime you want to run the python file, click the UC logo in the editor and it will execute your file with the python interpreter (that you specificied in the setup) in the active terminal of the vscode window. You could also set a keybind to do this.
     - See examples/python directory on the repo page for example python files that can be used with this extension.
 

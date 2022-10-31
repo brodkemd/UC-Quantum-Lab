@@ -177,6 +177,18 @@ export async function semmanticVersionToNum(version:string):Promise<number> {
 }
 
 /**
+ * Extracts the version string from the inputted string, returns the first one it comes across
+ * @param s : string to extract the version from
+ * @returns : the version string or nothing (if there is no version present)
+ */
+export async function getVersionStringFrom(s:string):Promise<string> {
+    let m:string[]|null = s.match(/[0-9]+\.[0-9]+\.*[0-9]*/);
+    if (m !== null) {
+        return m[0].trim(); // the trim is for my peace of mind
+    } else { return "";  }
+}
+
+/**
  * Determines if a file is in a directory
  * @param dirPath : directory path in string form
  * @param toFind : name of a file that you want to know if it is in dir_path

@@ -158,6 +158,8 @@ export class Config {
     pythonModulePyPi:string = "";
     // python module name in python
     pythonModuleName:string = "";
+    // where python binaries that are registered by the user are stored
+    pythonRegistryFile:string = "";
     // yes response by user
     yes:string = "yes";
     // no response by user
@@ -226,6 +228,7 @@ export async function getConfig(context:vscode.ExtensionContext):Promise<Config>
         config.no = "no";
 
         // python module stuff
+        config.pythonRegistryFile = path.join(config.extensionInstallPath, "registry", "pythons.json");
         config.pythonModuleName = "UC_Quantum_Lab";
         config.pythonModulePyPi = "UC-Quantum-tools";
         config.minPythonModVer = "0.1.8";

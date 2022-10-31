@@ -11,7 +11,10 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { UCQ } from './panel';
 import { getConfig, Config } from "./config";
-import { setupPython, verifyPython } from "./pythonHandling";
+import { 
+	setupPython, 
+	verifyPython 
+} from "./pythonHandling";
 import { print, error, info, getLastFromPath, mkDir, checkIfFileInDir, waitForTriggerFile, delay } from "./src";
 
 /**
@@ -26,7 +29,7 @@ async function init(config:Config, verbose:boolean=false) {
 	// the config directory exists
 	if (!(fs.existsSync(config.configDir))) {
 		// setting up python if need be, if function returns true then the setup succeeded and vice versa
-		await setupPython(config);
+		// await setupPython(config);
 
 		// prompting the user if they want to make the config directory
 		let choice:string|undefined = await vscode.window.showInformationMessage(`Do you want to initialize your current directory for this extension (will make the dir "${getLastFromPath(config.configDir)}" here)`, config.yes, config.no);
@@ -35,6 +38,7 @@ async function init(config:Config, verbose:boolean=false) {
 		if (choice === config.yes) {
 			// making the config directory
 			await mkDir(config.configDir);
+			await setupPython(config);
 		} else {
 			// can not operate without config directory
 			error("User blocked config directory creation, can not execute without it");
