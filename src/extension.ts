@@ -11,23 +11,24 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { UCQ } from './panel';
 import { getConfig, Config } from "./config";
-import { setupPython, verifyPython } from "./pythonHandling";
-import { print, error, info, getLastFromPath, mkDir, checkIfFileInDir, waitForTriggerFile, delay } from "./src";
+import { verifyPython } from "./pythonHandling";
+import { print, error, info, getLastFromPath, mkDir, checkIfFileInDir} from "./src";
+import { handleLegacy } from './handleLegacy';
+
 
 /**
  * Initializes the workspace/current directory for this extension
  * @param config : configuration of the extension
- * @param verbose : boolean indicating whether to be verbose in messages
  * @returns boolean indicating whether or not this function extension exceeded
  */
-async function init(config:Config, verbose:boolean=false) {
+async function init(config:Config) {
  	print("Running \"init\"");
 	
+	// verifying the selected python environment
+	await verifyPython(config);
+
 	// the config directory exists
 	if (!(fs.existsSync(config.configDir))) {
-		// setting up python if need be, if function returns true then the setup succeeded and vice versa
-		await setupPython(config);
-
 		// prompting the user if they want to make the config directory
 		let choice:string|undefined = await vscode.window.showInformationMessage(`Do you want to initialize your current directory for this extension (will make the dir "${getLastFromPath(config.configDir)}" here)`, config.yes, config.no);
 		
@@ -39,8 +40,6 @@ async function init(config:Config, verbose:boolean=false) {
 			// can not operate without config directory
 			error("User blocked config directory creation, can not execute without it");
 		}
-		// saving user config the config file in the config directory
-		config.userConfig.save();
 
 		// copies template layout file to be displayed in the viewer
 		try {
@@ -50,7 +49,7 @@ async function init(config:Config, verbose:boolean=false) {
 		}
 
 		// getting the template main file name from the template main file path
-		let fname = getLastFromPath(config.templatePythonFile);
+		let fname = `example_${getLastFromPath(config.templatePythonFile)}`;
 
 		// if the main file is not in the current directory
 		if (!(await checkIfFileInDir(config.workspacePath, fname))) {
@@ -79,46 +78,6 @@ async function init(config:Config, verbose:boolean=false) {
 				}
 			}
 		}
-	} else {
-		// if the user config file exists
-		if (fs.existsSync(config.configFile)) {
-			// loading the user config from the file
-			config.userConfig.get();
-
-			try {
-				// checking python setup
-				await verifyPython(config);
-			} catch ( e ) {
-				print("detected faulty config");
-				// asking the user if they want to reinitialize the current directory
-				let choice:string|undefined = await vscode.window.showInformationMessage("Detected faulty config, do you want to reinit the workspace?", config.yes, config.no);
-				// if yes, then reinit it
-				if (choice === config.yes) {
-					// running the reinit command
-					vscode.commands.executeCommand('uc-quantum-lab.reinit');
-				} else if (choice === undefined) {
-					// if the user choose nothing
-					error("Invalid choice for whether or not to reinit");
-				}
-			}
-			if (verbose) {
-				info("Current workspace is already initialized, nothing to do");
-			}
-		// if there is no config file to pull information from
-		} else {
-			print("detected faulty config");
-			// asking the user if they want to reinitialize the current directory
-			let choice:string|undefined = await vscode.window.showInformationMessage("Detected faulty config, do you want to reinit the workspace?", config.yes, config.no);
-			
-			// if yes, then reinit it
-			if (choice === config.yes) {
-				// running the reinit command
-				vscode.commands.executeCommand('uc-quantum-lab.reinit');
-			} else if (choice === undefined) {
-				// if the user choose nothing
-				error("Invalid choice for whether or not to reinit");
-			}
-		}
 	}
 }
 
@@ -136,72 +95,37 @@ export async function activate(context: vscode.ExtensionContext) {
 			try {
 				// loading the configuration from the ./config.ts
 				let config:Config = await getConfig(context);
-			
+				
+				// handles features from previous versions of this extension
+				await handleLegacy(config);
+
 				// if the viewer panel is open and there is an active editor
 				if (UCQ.currentPanel && vscode.window.activeTextEditor) {
 					print("Window is active");
-					// if there is a document open in the text editor
-					if (vscode.window.activeTextEditor.document !== undefined) {
-						// loads python from local config.json
-						config.userConfig.get();
-						// cleaning up config directory, removing trigger file
-						if (fs.existsSync(config.triggerFile)) { 
-							// removes the trigger file
-							try { await fs.promises.rm(config.triggerFile); } 
-							catch ( e ) {
-								error(`caught error while removing trigger file: ${(e as Error).message.replace("\n", " ")}`);
-							}
-						}
-
-						// checking if the active editor file is a python file
-						if (!(vscode.window.activeTextEditor.document.fileName.endsWith(".py"))) {
-							// can not execute non python file, so telling the user that
-							error(`"${vscode.window.activeTextEditor.document.fileName}" is not a python file, can not execute it`);
-							return;
-						} else {
-							// if here, then the file is a python file
-							print("saving active document");
-							await vscode.window.activeTextEditor.document.save();
-							
-							print("executing in termial");
-							// if there is an active terminal in editor
-							if (vscode.window.activeTerminal) {
-								print("Sending to active terminal");
-								// making sure the user can see the terminal
-								vscode.window.activeTerminal.show(true);
-								// sending the python command to active terminal to execute the active python file
-								vscode.window.activeTerminal.sendText(`${config.userConfig.python} ${vscode.window.activeTextEditor.document.fileName}`);
-							} else {
-								// if here, then there was no active terminal so one is made
-								print("creating terminal and sending to it");
-								// creating terminal in vscode
-								let term = vscode.window.createTerminal();
-								// sending the python command to active terminal to execute the active python file
-								term.sendText(`${config.userConfig.python} ${vscode.window.activeTextEditor.document.fileName}`);
-							}
-							print("Waiting for trigger file");
-							
-							// waiting for trigger file to be made by the python module, this extension waits for it then continues
-							await waitForTriggerFile(config);
-
-							// this is temporary, waiting a bit to let things cool down in the filesystem
-							await delay(100); // milliseconds
-
-							// cleaning up config directory, removing trigger file
-							// if (fs.existsSync(config.triggerFile)) { 
-							// 	// removes the trigger file
-							// 	try { await fs.promises.rm(config.triggerFile); } 
-							// 	catch ( e ) {
-							// 		error(`caught error while removing trigger file: ${(e as Error).message.replace("\n", " ")}`);
-							// 	}
-							// }
-							// updating the panel, note: no longer need to pass the config because no longer html from config
-							UCQ.currentPanel.update();
+					// if the config dir was removed
+					if (!(fs.existsSync(config.configDir))) {
+						print("detected faulty config");
+						// asking the user if they want to reinitialize the current directory
+						let choice:string|undefined = await vscode.window.showInformationMessage("Detected faulty config, do you want to reinit the workspace?", config.yes, config.no);
+						
+						// if yes, then reinit it
+						if (choice === config.yes) {
+							// running the reinit command
+							await vscode.commands.executeCommand('uc-quantum-lab.reinit');
+						} else if (choice === undefined) {
+							// if the user choose nothing
+							error("Invalid choice for whether or not to reinit");
 						}
 					} else {
-						// can not execute nothing
-						error("Must have an active document open"); 
-						return; 
+						print("executing in termial");
+						// executing the python file in the terminal with the python extension
+						vscode.commands.executeCommand("python.execInTerminal");
+						// waiting for the layout.json file to be updated
+						let watcher:vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(config.layoutFile, false, false, false);
+						watcher.onDidChange(() => {
+							// updating the panel, when the layout file is updated
+							UCQ.currentPanel?.update();
+						});
 					}
 				} else {
 					// if nothing is opening, first running init to make sure everything is setup correctly
@@ -209,6 +133,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					print("Creating Window");
 					// creating window
 					UCQ.createOrShow(config);
+					//vscode.commands.executeCommand("uc-quantum-lab.execute");
 				}
 			// functions handle their own errors so do not need to do anything here
 			} catch ( e ) {}
@@ -222,7 +147,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				let config:Config = await getConfig(context);
 				
 				// initing the current directory
-				await init(config, true);
+				await init(config);
 			// functions handle their own errors so do not need to do anything here
 			} catch ( e ) {}
 		})

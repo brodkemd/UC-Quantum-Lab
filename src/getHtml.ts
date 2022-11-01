@@ -55,15 +55,12 @@ async function formatMain(main:string):Promise<string> {
 }
 
 async function adjustUri(uri:string, fpath:string):Promise<string> {
-    //print(`start path:${fpath}`);
+    // accounting for windows weird file path norms
     if (os.platform() === "win32") {
-        //print(fpath.indexOf(":").toString());
         fpath = fpath.slice(fpath.indexOf(":")+1, fpath.length);
         fpath = fpath.replace(/\\/gi, "/");
     }
-    //print(`path:${fpath}`);
     uri = uri.replace(fpath, "");
-    //print(`uri:${uri}`);
     return uri;
 }
 
@@ -76,7 +73,7 @@ async function formatSource(source:string):Promise<string> {
     // the keywords to replace in the inputted string, in the string these keywords must be surrounded by brackets
     // i.e. the syntax is {KEYWORD}
     let keywords = new Map<string, string>([
-        ["URI", await adjustUri((await uriIfy(_config.configFile)).toString(), _config.configFile)] // uri for this viewer
+        ["URI", await adjustUri((await uriIfy(_config.configDir)).toString(), _config.configDir)] // uri for this viewer
     ]);
     let before:string = "";
     let after:string = "";
@@ -96,7 +93,7 @@ async function formatSource(source:string):Promise<string> {
             // split the string and stuff
             before = source.slice(0, s);
             after = source.slice(source.indexOf("}", s)+1, source.length);
-            val = keywords.get(source.slice(s+1, source.indexOf("}", s)));
+            val = keywords.get(source.slice(s+1, source.indexOf("}", s)).trim());
             //print(`${before}|${val}|${after}`)
             if (val !== undefined) { source = before.concat(val, after); } 
             else { s++; }
@@ -302,14 +299,12 @@ export async function genHtml(webview:vscode.Webview, config:Config):Promise<str
         format = `<!--${(new Date()).toString()}-->\n${format}`;
 
         // for testing puposes, outputs the html that will be sent to the panel to a file
-        if (true) {
-            try {
-                print(`Writing to: ${config.testCompiledHtmlFile}`);
-                await fs.promises.writeFile(config.testCompiledHtmlFile, format);
-            } catch ( e ) {
-                error(`caught in writing compiled html to file: ${(e as Error).message}`);
-            }
-        }
+        // try {
+        //     print(`Writing to: ${config.testCompiledHtmlFile}`);
+        //     await fs.promises.writeFile(config.testCompiledHtmlFile, format);
+        // } catch ( e ) {
+        //     error(`caught in writing compiled html to file: ${(e as Error).message}`);
+        // }
         return format;
     } catch ( e ) { 
         error((e as Error).message); 

@@ -3,7 +3,6 @@ import * as fs from "fs";
 import * as vscode from 'vscode';
 import * as cp from "child_process";
 import * as util from "util";
-import { Config } from './config';
 
 const execProm = util.promisify(cp.exec);
 
@@ -12,11 +11,6 @@ export let out = vscode.window.createOutputChannel("UC_Q");
 
 // declaring print function (because I am lazy)
 export function print(msg:string) { out.appendLine(`- ${msg}`); }
-
-// declaring types for easy of use later
-export type InfoInnerType = {"path" : string, "exe" : string, "pip" : string, "hasQiskit" : boolean};
-export type InfoType = {[name:string] : InfoInnerType};
-export type ConfigType = {[key : string] : string|boolean};
 
 /**
  * trims everything but the last file/directory of a path
@@ -131,36 +125,6 @@ export async function tryCommand(command:string):Promise<boolean> {
 }
 
 /**
- * Waits for the trigger file (a file that lets the execution of this extension continue)
- * @param config : current configuration of the extension
- */
-export async function waitForTriggerFile(config:Config) {
-    // (<any>vscode.window).onDidWriteTerminalData((e: any) => {
-    //     vscode.window.showInformationMessage(`onDidWriteTerminalData listener attached, check the devtools console to see events`);
-    //     print(`onDidWriteData:${e}`);
-    // });
-    // how many times the loop can run waiting for the trigger file
-    let stop:number = 200;
-    let i:number = 0;
-    // while loop that waits for the file
-    while (true) {
-        if (fs.existsSync(config.triggerFile)) { break; } 
-        else { await delay(100); } /// short delay so things don't get crazy
-        // caps the iterations just in case it runs away
-        if (i === stop) { 
-            error("hit time limit waiting for file, maybe there is a problem or your circuit just takes a bit to execute (no worries if so)");
-            break; 
-        }
-        i++;
-    }
-    // removes the trigger file when done
-    try { await fs.promises.rm(config.triggerFile); } 
-    catch ( e ) {
-        error(`caught error while removing trigger file: ${(e as Error).message.replace("\n", " ")}`);
-    }
-}
-
-/**
  * converts a version string to a float used to compare against another
  * @param version Semantic version string
  * @returns float of the version
@@ -174,6 +138,18 @@ export async function semmanticVersionToNum(version:string):Promise<number> {
     }
     //print(`Version to num: ${toReturn.toString()}`);
     return toReturn;
+}
+
+/**
+ * Extracts the version string from the inputted string, returns the first one it comes across
+ * @param s : string to extract the version from
+ * @returns : the version string or nothing (if there is no version present)
+ */
+export async function getVersionStringFrom(s:string):Promise<string> {
+    let m:string[]|null = s.match(/[0-9]+\.[0-9]+\.*[0-9]*/);
+    if (m !== null) {
+        return m[0].trim(); // the trim is for my peace of mind
+    } else { return "";  }
 }
 
 /**
