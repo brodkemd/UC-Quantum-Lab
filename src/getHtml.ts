@@ -76,7 +76,7 @@ async function formatSource(source:string):Promise<string> {
     // the keywords to replace in the inputted string, in the string these keywords must be surrounded by brackets
     // i.e. the syntax is {KEYWORD}
     let keywords = new Map<string, string>([
-        ["URI", await adjustUri((await uriIfy(_config.configFile)).toString(), _config.configFile)] // uri for this viewer
+        ["URI", await adjustUri((await uriIfy(_config.configDir)).toString(), _config.configDir)] // uri for this viewer
     ]);
     let before:string = "";
     let after:string = "";

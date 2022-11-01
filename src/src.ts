@@ -130,35 +130,35 @@ export async function tryCommand(command:string):Promise<boolean> {
     return toReturn;
 }
 
-/**
- * Waits for the trigger file (a file that lets the execution of this extension continue)
- * @param config : current configuration of the extension
- */
-export async function waitForTriggerFile(config:Config) {
-    // (<any>vscode.window).onDidWriteTerminalData((e: any) => {
-    //     vscode.window.showInformationMessage(`onDidWriteTerminalData listener attached, check the devtools console to see events`);
-    //     print(`onDidWriteData:${e}`);
-    // });
-    // how many times the loop can run waiting for the trigger file
-    let stop:number = 200;
-    let i:number = 0;
-    // while loop that waits for the file
-    while (true) {
-        if (fs.existsSync(config.triggerFile)) { break; } 
-        else { await delay(100); } /// short delay so things don't get crazy
-        // caps the iterations just in case it runs away
-        if (i === stop) { 
-            error("hit time limit waiting for file, maybe there is a problem or your circuit just takes a bit to execute (no worries if so)");
-            break; 
-        }
-        i++;
-    }
-    // removes the trigger file when done
-    try { await fs.promises.rm(config.triggerFile); } 
-    catch ( e ) {
-        error(`caught error while removing trigger file: ${(e as Error).message.replace("\n", " ")}`);
-    }
-}
+// /**
+//  * Waits for the trigger file (a file that lets the execution of this extension continue)
+//  * @param config : current configuration of the extension
+//  */
+// export async function waitForTriggerFile(config:Config) {
+//     // (<any>vscode.window).onDidWriteTerminalData((e: any) => {
+//     //     vscode.window.showInformationMessage(`onDidWriteTerminalData listener attached, check the devtools console to see events`);
+//     //     print(`onDidWriteData:${e}`);
+//     // });
+//     // how many times the loop can run waiting for the trigger file
+//     let stop:number = 200;
+//     let i:number = 0;
+//     // while loop that waits for the file
+//     while (true) {
+//         if (fs.existsSync(config.triggerFile)) { break; } 
+//         else { await delay(100); } /// short delay so things don't get crazy
+//         // caps the iterations just in case it runs away
+//         if (i === stop) { 
+//             error("hit time limit waiting for file, maybe there is a problem or your circuit just takes a bit to execute (no worries if so)");
+//             break; 
+//         }
+//         i++;
+//     }
+//     // removes the trigger file when done
+//     try { await fs.promises.rm(config.triggerFile); } 
+//     catch ( e ) {
+//         error(`caught error while removing trigger file: ${(e as Error).message.replace("\n", " ")}`);
+//     }
+// }
 
 /**
  * converts a version string to a float used to compare against another
