@@ -93,7 +93,7 @@ async function formatSource(source:string):Promise<string> {
             // split the string and stuff
             before = source.slice(0, s);
             after = source.slice(source.indexOf("}", s)+1, source.length);
-            val = keywords.get(source.slice(s+1, source.indexOf("}", s)));
+            val = keywords.get(source.slice(s+1, source.indexOf("}", s)).trim());
             //print(`${before}|${val}|${after}`)
             if (val !== undefined) { source = before.concat(val, after); } 
             else { s++; }

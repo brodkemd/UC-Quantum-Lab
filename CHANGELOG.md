@@ -1,4 +1,21 @@
 # Changelog
+## [0.1.0] - 2022-11-1
+### Notes to user
+- If you have ".trigger" or "config.json" in the extension directory ".UCQ_config", you can delete them. This extension will delete them as well.
+
+### Added
+- improvemened config directory handling
+- improved viewer updating
+- improved info messages and created laoding status objects in the status bar
+- Python api from vscode, this now handles all communication with python
+
+### Removed
+- all original code that communicated to python, this is now done by the python extension and api for vscode
+
+### Changed
+- increased lowest python version library version allowed to 0.1.9 (there were required features added)
+- improved documentation in the README and in the HTMLDOCS files
+
 ## [0.0.7] - 2022-10-28
 ### Added
 - improvemened config directory handling

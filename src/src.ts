@@ -12,11 +12,6 @@ export let out = vscode.window.createOutputChannel("UC_Q");
 // declaring print function (because I am lazy)
 export function print(msg:string) { out.appendLine(`- ${msg}`); }
 
-// declaring types for easy of use later
-// export type InfoInnerType = {"path" : string, "exe" : string, "pip" : string, "hasQiskit" : boolean};
-// export type InfoType = {[name:string] : InfoInnerType};
-// export type ConfigType = {[key : string] : string|boolean};
-
 /**
  * trims everything but the last file/directory of a path
  * @param _path : string representation of a path

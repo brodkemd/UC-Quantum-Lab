@@ -13,6 +13,7 @@ import { UCQ } from './panel';
 import { getConfig, Config } from "./config";
 import { verifyPython } from "./pythonHandling";
 import { print, error, info, getLastFromPath, mkDir, checkIfFileInDir} from "./src";
+import { handleLegacy } from './handleLegacy';
 
 
 /**
@@ -94,6 +95,9 @@ export async function activate(context: vscode.ExtensionContext) {
 			try {
 				// loading the configuration from the ./config.ts
 				let config:Config = await getConfig(context);
+				
+				// handles features from previous versions of this extension
+				await handleLegacy(config);
 
 				// if the viewer panel is open and there is an active editor
 				if (UCQ.currentPanel && vscode.window.activeTextEditor) {
