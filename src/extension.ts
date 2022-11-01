@@ -99,6 +99,9 @@ export async function activate(context: vscode.ExtensionContext) {
 				// handles features from previous versions of this extension
 				await handleLegacy(config);
 
+				// verifyies python is setup correctly
+				//await verifyPython(config);
+
 				// if the viewer panel is open and there is an active editor
 				if (UCQ.currentPanel && vscode.window.activeTextEditor) {
 					print("Window is active");

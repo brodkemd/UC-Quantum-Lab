@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as fs from "fs";
 import { Config } from "./config";
 import { print, error, tryCommand, getOutputOfCommand, semmanticVersionToNum, getVersionStringFrom } from "./src";
 
@@ -44,6 +45,11 @@ export async function verifyPython(config:Config) {
         error("python was not found, please set it in the lower right corner");
     }
     
+    // maybe implement this someday
+    // if (!(await tryCommand(config.userConfig.python)) && !(fs.existsSync(config.userConfig.python))) {
+    //     error("Invalid python interpreter chosen");
+    // }
+
 	// if importing the python module in python succeeds
 	if (await tryCommand(`${config.userConfig.python} -c "import ${config.pythonModuleName}"`)) {
 		// getting the version from the installed package and if it is not the current version, then update it
