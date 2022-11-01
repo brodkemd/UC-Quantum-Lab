@@ -6,7 +6,8 @@ This extension creates the webviewer using html generated from a json file. This
 ### The format of the json file
 The keys in the json file must be from the list below. For an example json file see [examples/json/example_1.json](https://github.com/UC-Advanced-Research-Computing/UC-Quantum-Lab/blob/main/examples/json/example_1.json). NOTE: These keys can be nested as many times as you would like (obviously there is going to be a memory limit at some point).
 - `"top"`
-    - **Description**: Creates a top resizable subwindow whose content is the value of this key. NOTE: this key must be paired with "bottom".
+    - **Description**: Creates a top resizable subwindow whose content is the value of this key.
+        - NOTE: this key must be paired with "bottom".
     - **Value of this key**: The value for this key can be html to render or a json object with the keys in this list.
     - **Example**: (of a .json file to be converted)
         ```json
@@ -26,7 +27,8 @@ The keys in the json file must be from the list below. For an example json file 
         }
         ```
 - `"bottom"`
-    - **Description**: Creates a bottom resizable subwindow whose content is the value of this key. NOTE: this key must be paired with "top".
+    - **Description**: Creates a bottom resizable subwindow whose content is the value of this key.
+        - NOTE: this key must be paired with "top".
     - **Value of this key**: The value for this key can be html to render or a json object with the keys in this list.
     - **Example**: (of a .json file to be converted)
         ```json
@@ -46,7 +48,8 @@ The keys in the json file must be from the list below. For an example json file 
         }
         ```
 - `"right"`
-    - **Description**: Creates a right resizable subwindow whose content is the value of this key. NOTE: this key must be paired with "left".
+    - **Description**: Creates a right resizable subwindow whose content is the value of this key.
+        - NOTE: this key must be paired with "left".
     - **Value of this key**: The value for this key can be html to render or a json object with the keys in this list.
     - **Example**: (of a .json file to be converted)
         ```json
@@ -66,7 +69,8 @@ The keys in the json file must be from the list below. For an example json file 
         }
         ```
 - `"left"`
-    - **Description**: Creates a left resizable subwindow whose content is the value of this key. NOTE: this key must be paired with "right".
+    - **Description**: Creates a left resizable subwindow whose content is the value of this key.
+        - NOTE: this key must be paired with "right".
     - **Value of this key**: The value for this key can be html to render or a json object with the keys in this list.
     - **Example**: (of a .json file to be converted)
         ```json
@@ -86,7 +90,8 @@ The keys in the json file must be from the list below. For an example json file 
         }
         ```
 - `"only"`
-    - **Description**: Creates a single resizable subwindow whose content is the value of this key. NOTE: must be the only key on a level (i.e. can not be paired with anything).
+    - **Description**: Creates a single resizable subwindow whose content is the value of this key.
+        - NOTE: must be the only key on a level (i.e. can not be paired with anything).
     - **Value of this key**: The value for this key can be html to render or a json object with the keys in this list.
     - **Example**: (of a .json file to be converted)
         ```json
@@ -104,7 +109,8 @@ The keys in the json file must be from the list below. For an example json file 
         }
         ```
 - `"style"`
-    - **Description**: The sets the style of the parent window. This key applies the window that the current window is nested in. NOTE: can not be on the first level of the json object.
+    - **Description**: The sets the style of the parent window. This key applies the window that the current window is nested in.
+        - NOTE: can not be on the first level of the json object.
     - **Value of this key**: The value of this key is css with the following added css arguements:
         - size : takes a number from 0 to 1 that sets the fraction of the parent window to fill the window that this key applies to. Example: `size=0.6;`.
     - **Example**: (of a .json file to be converted)
