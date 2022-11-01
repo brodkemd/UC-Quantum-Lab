@@ -1,18 +1,42 @@
 # uc-quantum-lab
-**PLEASE** **PLEASE** report any bugs, features that you may want, or anything else in the github. They will be attended to. This is still an early release so feedback is appreciated.
+**PLEASE** report any bugs, features that you may want, or anything else in the github. They will be attended to. This is still an early release so feedback is appreciated.
 
 This extension provides a UI that allows the results of a quantum circuit created and simulated with qiskit to be presented cleanly and easily. This extension operates with the required python library [UC-Quantum-tools](https://github.com/UC-Advanced-Research-Computing/UC-Quantum-tools) (the extension will auto install this library as long as you have a working python and pip).
-
-NOTE: If you want a feature or you find a bug, create an issue or start a discussion, please.
 
 ### Notes to User
 - If you have ".trigger" or "config.json" in the extension directory ".UCQ_config", you can delete them. These files are left over from a previous version. This extension will delete them as well.
 
 ## Features
-Can display a lot of information about your circuit including:
-- The statevector of your circuit an arbitrary number of times from anywhere in your circuit as long as there is no measurements. (to show more than one just call the `state` function more than once)
-- An image of your circuit an arbitrary number of times from anywhere in your circuit. (to show more than one just call the `display` function more than once)
-- A histogram resprenting the results of the execution of your circuit an arbitrary number of times. Must be used after the circuit is measured. (to show more than one just call the `counts` function more than once)
+Can display a lot of information about the circuit including:
+- The statevector of the circuit an arbitrary number of times from anywhere in the circuit as long as there are no measurements. (to show more than one just call the `state` function more than once).
+    - **Example**: (in a python file)
+        ```python
+        # make a circuit
+        state(circuit)
+        # do more stuff to the circuit
+        state(circuit)
+        ```
+        The state vector will be displayed from both of the above calls.
+- An image of the circuit an arbitrary number of times from anywhere in the circuit. (to show more than one just call the `display` function more than once)
+    - **Example**: (in a python file)
+        ```python
+        # make a circuit
+        display(circuit)
+        # do more stuff to the circuit
+        display(circuit)
+        ```
+        The circuit will be displayed from both of the above calls.
+- A histogram resprenting the results of the execution of the circuit an arbitrary number of times. Must be used after the circuit is measured. (to show more than one just call the `counts` function more than once)
+    - **Example**: (in a python file)
+        ```python
+        # make a circuit
+        # measure the circuit
+        counts(circuit)
+        # make another circuit
+        # do stuff to the new circuit
+        counts(circuit)
+        ```
+        A histogram will be displayed from both of the above calls.
 
 ![interface](docs/images/annotated_ui.png)
 
@@ -37,13 +61,13 @@ This extension builds off of the python extension for vscode (see [python extens
     ```
     **or**, if you have an active editor with a python file in it, click the UC logo at the top of the file.
 4. Answer the prompts. These only show up if the directory has not been initialized yet.
-5. Everytime you want to run the python file, click the UC logo in the editor and it will execute your file with the python extension. You could also set a keybind to do this.
+5. Everytime you want to run the python file, click the UC logo ![interface](docs/images/button_edited.png)in the editor and it will execute your file with the python extension. You could also set a keybind to do this.
     - See [examples/python](https://github.com/UC-Advanced-Research-Computing/UC-Quantum-Lab/tree/main/examples/python) for example python files that can be used with this extension.
 
 ## Extension Commands
 This extension contributes the following commands:
 - `uc-quantum-lab.execute`: execute the extension, will detect if the directory is initialized or not and initializes it if need be. It will also open up a webview panel where it will display content. *If you only ever run this command you should be fine*.
-    - **NOTE:** You should probably only ever have to run this command. You might have to run the `uc-quantum-lab.reinit` command if you encounter an error.
+    - **NOTE:** This should probably be the only command you ever have to run. You might have to run the `uc-quantum-lab.reinit` command if you encounter an error.
 - `uc-quantum-lab.init`: setup the current workspace path for this extension.
 - `uc-quantum-lab.reinit`: if you encounter an error try running this, it will wipe the extension setup in the workspace and setup it up again.
 
