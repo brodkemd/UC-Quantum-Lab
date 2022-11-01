@@ -50,7 +50,7 @@ async function init(config:Config) {
 		}
 
 		// getting the template main file name from the template main file path
-		let fname = getLastFromPath(config.templatePythonFile);
+		let fname = `example_${getLastFromPath(config.templatePythonFile)}`;
 
 		// if the main file is not in the current directory
 		if (!(await checkIfFileInDir(config.workspacePath, fname))) {

@@ -9,7 +9,7 @@ import { print, error, tryCommand, getOutputOfCommand, info, semmanticVersionToN
  * @returns a bool indicating if the install suceeded
  */
 async function pipInstall(pip:string, module:string):Promise<boolean> {
-    return await tryCommand(`${pip} install --quiet ${module}`);
+    return await tryCommand(`${pip} install --no-warn-script-location --quiet ${module}`);
 }
 
 /**
@@ -19,7 +19,7 @@ async function pipInstall(pip:string, module:string):Promise<boolean> {
  * @returns a bool indicating if the update succeeded
  */
 async function pipUpdate(pip:string, module:string):Promise<boolean> {
-    return await tryCommand(`${pip} install --quiet --upgrade ${module}`);
+    return await tryCommand(`${pip} install --quiet --no-warn-script-location --upgrade ${module}`);
 }
 
 /**
@@ -43,18 +43,28 @@ export async function verifyPython(config:Config) {
     if (config.userConfig.python === undefined || !(config.userConfig.python.length)) {
         error("python was not found, please set it in the lower right corner");
     }
+    
 	// if importing the python module in python succeeds
 	if (await tryCommand(`${config.userConfig.python} -c "import ${config.pythonModuleName}"`)) {
 		// getting the version from the installed package and if it is not the current version, then update it
 		if (await semmanticVersionToNum((await getVersionOfPyMod(config.userConfig.pip, config.pythonModulePyPi))) 
 			< await semmanticVersionToNum(config.minPythonModVer)) {
 			// informing the user
-			info(`Updating "${config.pythonModuleName}" for "${config.userConfig.python}" from ${(await getVersionOfPyMod(config.userConfig.pip, config.pythonModulePyPi))} to ${config.minPythonModVer}`);
-			if (await pipUpdate(config.userConfig.pip , config.pythonModulePyPi)) {
-				info("done");
-			} else {
-				error(`error updating "${config.pythonModuleName}" for "${config.userConfig.python}"`);
-			}
+            print(`Updating "${config.pythonModuleName}" for "${config.userConfig.python}" from ${(await getVersionOfPyMod(config.userConfig.pip, config.pythonModulePyPi))} to ${config.minPythonModVer}`);
+
+            // settuping the package, using a loading icon in the status bar (it is simple and clean)
+            vscode.window.withProgress({
+                location: vscode.ProgressLocation.Window,
+                cancellable: false,
+                title: `Updating "${config.pythonModuleName}" from ${(await getVersionOfPyMod(config.userConfig.pip, config.pythonModulePyPi))} to ${config.minPythonModVer}`
+            }, async (progress) => {
+                progress.report({  increment: 0 });
+                // updating the python module with pip
+                if (!(await pipUpdate(config.userConfig.pip , config.pythonModulePyPi))) {
+                    error(`error updating "${config.pythonModuleName}" for "${config.userConfig.python}"`);
+                }
+                progress.report({ increment: 100 });
+            });
 		// if the package is already the right version
 		} else { print(`"${config.pythonModuleName}" is already there for "${config.userConfig.python}" and of the right version, do not need to install`); }
 	// if importing the python module in python did not succeed
