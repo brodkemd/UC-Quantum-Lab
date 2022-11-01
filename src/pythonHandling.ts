@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { Config, UserConfig } from "./config";
-import { print, error, tryCommand, getOutputOfCommand, info, semmanticVersionToNum, InfoType, getVersionStringFrom } from "./src";
+import { Config } from "./config";
+import { print, error, tryCommand, getOutputOfCommand, semmanticVersionToNum, getVersionStringFrom } from "./src";
 
 /**
  * Installs the inputted python module with the inputted pip

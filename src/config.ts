@@ -13,7 +13,7 @@ export class UserConfig {
     // pip executable path or command
     pip:string = "";
 
-    constructor() { }
+    constructor() {}
 }
 
 /**
@@ -36,12 +36,6 @@ export class Config {
     mainHtmlFormatFile:string = "";
     // for testing purposes, file to output viewer html to
     testCompiledHtmlFile:string = "";
-    // file to use to test the viewer rendering
-    testHtmlFile:string = "";
-    // image to display if could not load desired image
-    noDataImage:string = "";
-    // file made by the python module to trigger this extension
-    triggerFile:string = "";
     // css files to include in the compiled html
     cssFiles:string[] = [];
     // java script files to include in the compiled
@@ -64,7 +58,7 @@ export class Config {
     /**
      * 
      * @param workspacePath : path of the open workspace
-     * @param extension_install_path : path to the installation of this extension
+     * @param extensionInstallPath : path to the installation of this extension
      */
     constructor(workspacePath:string|undefined, extensionInstallPath:string|undefined) {
         // checks if the inputs are valid
@@ -94,12 +88,9 @@ export async function getConfig(context:vscode.ExtensionContext):Promise<Config>
          */
         config.configDir = path.join(config.workspacePath, ".UCQ_config");
         config.layoutFile =  path.join(config.configDir, "layout.json"); // needs to be json
-        config.triggerFile = path.join(config.configDir, ".trigger");
         config.templateLayoutFile = path.join(config.extensionInstallPath, "templates", "layout.json");
         config.templatePythonFile = path.join(config.extensionInstallPath, "templates", "main.py");
-        config.noDataImage = path.join(config.extensionInstallPath, "media", "no_img.jpg");
         config.mainHtmlFormatFile = path.join(config.extensionInstallPath, "media", "format.html");
-        config.testHtmlFile = path.join(config.extensionInstallPath, "media", "test.html");
         config.testCompiledHtmlFile = path.join(config.configDir, "out.html");
         config.cssFiles = [
             path.join(config.extensionInstallPath, "media",  "reset.css"), 
@@ -135,7 +126,7 @@ export async function getConfig(context:vscode.ExtensionContext):Promise<Config>
         // python module stuff
         config.pythonModuleName = "UC_Quantum_Lab";
         config.pythonModulePyPi = "UC-Quantum-tools";
-        config.minPythonModVer = "0.1.8";
+        config.minPythonModVer = "0.1.9";
         config.minPythonVer = "3.6.0";
 
         return config;

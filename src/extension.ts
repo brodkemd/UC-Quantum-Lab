@@ -11,9 +11,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { UCQ } from './panel';
 import { getConfig, Config } from "./config";
-import { 
-	verifyPython 
-} from "./pythonHandling";
+import { verifyPython } from "./pythonHandling";
 import { print, error, info, getLastFromPath, mkDir, checkIfFileInDir} from "./src";
 
 
@@ -116,10 +114,12 @@ export async function activate(context: vscode.ExtensionContext) {
 						}
 					} else {
 						print("executing in termial");
+						// executing the python file in the terminal with the python extension
 						vscode.commands.executeCommand("python.execInTerminal");
+						// waiting for the layout.json file to be updated
 						let watcher:vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(config.layoutFile, false, false, false);
 						watcher.onDidChange(() => {
-							// updating the panel
+							// updating the panel, when the layout file is updated
 							UCQ.currentPanel?.update();
 						});
 					}

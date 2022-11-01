@@ -88,6 +88,7 @@ export class UCQ {
         // Clean up our resources
         this._panel.dispose();
 
+        // disposing of the disposables
         while (this._disposables.length) {
             const x = this._disposables.pop();
             if (x) { x.dispose(); }
@@ -98,9 +99,16 @@ export class UCQ {
      * Updates the panel with new html
      */
     public async update() {
-        // updates user options
-        this._panel.webview.html = await this._getHtmlForWebview();
         print("Updating webview panel");
+        try {
+            // updates user options
+            this._panel.webview.html = await this._getHtmlForWebview();
+        } catch ( e ) {
+            // if an error occurred then inform the user
+            this._panel.webview.html = `<!DOCTYPE html>\n<html>\n<body>\n<h1>ERROR OCCURED: No Content to Display</h1>\n</body>\n</html>`;
+            // raise the same error
+            throw e;
+        }
     }
 
     /**
@@ -110,6 +118,7 @@ export class UCQ {
     private async _getHtmlForWebview() {
         print("getting html for the page");
         // getting the html
+
         let source:string = await genHtml(this._panel.webview, this._config);
         // if something was returned from the html generator, return it
         if (source.length) { return source; }
