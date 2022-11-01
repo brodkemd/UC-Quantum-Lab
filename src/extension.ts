@@ -16,6 +16,7 @@ import {
 	verifyPython 
 } from "./pythonHandling";
 import { print, error, info, getLastFromPath, mkDir, checkIfFileInDir, waitForTriggerFile, delay } from "./src";
+import { ProposedExtensionAPI } from "./pythonApiTypes";
 
 /**
  * Initializes the workspace/current directory for this extension
@@ -141,6 +142,17 @@ export async function activate(context: vscode.ExtensionContext) {
 				// loading the configuration from the ./config.ts
 				let config:Config = await getConfig(context);
 			
+				const extension = vscode.extensions.getExtension('ms-python.python');
+				if (extension) {
+					if (!extension.isActive) {
+						await extension.activate();
+					}
+					const pythonApi: ProposedExtensionAPI = extension.exports as ProposedExtensionAPI;
+					// This will return something like /usr/bin/python
+					const environmentPath = pythonApi.environments.getActiveEnvironmentPath();
+					print(environmentPath.path);
+
+				} else { error("python extension is not active and it must be to use this extension"); }
 				// if the viewer panel is open and there is an active editor
 				if (UCQ.currentPanel && vscode.window.activeTextEditor) {
 					print("Window is active");
