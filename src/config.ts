@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 import { print, error } from "./src";
+import { ProposedExtensionAPI } from "./pythonApiTypes";
 
 /**
  * Class to store information about the current configuration for the user
@@ -14,108 +15,110 @@ export class UserConfig {
     // pip executable path or command
     pip:string = "";
 
-    // setting the userfile
-    constructor(userConfigFile:string|undefined) {
-        if (userConfigFile!==undefined) { 
-            this.userFile = userConfigFile; 
-        }
-    }
-    /**
-     * gets the current user config from the user config file and sets attributes of this class
-     */
-    get() {
-        print(`Loading user config from ${this.userFile}`);
-        // reading the json file
-        try {
-            let readIn = JSON.parse(fs.readFileSync(this.userFile, "utf8"));
-            // checks python exe read from the file
-            if (readIn["python"] !== undefined) {
-                // if the python interpreter path exists or it is a command, set the attribute
-                if (fs.existsSync(readIn["python"]) || readIn["python"].indexOf(path.sep) === -1) {
-                    this.python = readIn["python"]; 
-                } else {
-                    error(`python path from user config "${readIn["python"]}" does not exist`);
-                }
-            } else { 
-                error(`python was not found in the user config file`);
-            }
+    constructor() { }
 
-            // checks pip exe read from the file
-            if (readIn["pip"] !== undefined) {
-                /** 
-                 * do not need to check if pip path exists (more trouble that is worth)
-                 */ 
-                // if the pip executable path exists or it is a command, set the attribute
-                //if (fs.existsSync(readIn["pip"]) || readIn["pip"].indexOf(path.sep) === -1) { 
-                this.pip = readIn["pip"];
-                // } else {
-                //     this.errorEncountered = true;
-                //     this.errorMessage = `the pip path from user config ${readIn["pip"]} does not exist, config file is ${this.userFile}`;
-                // }
-            } else {
-                error(`pip was not found in the user config file`);
-            }
-        } catch ( e ) {
-            error(`user config file not found, try running the reinit command of this extension (uc-quantum-lab.reinit) in the command palete`);
-        }
-    }
+    // // setting the userfile
+    // constructor(userConfigFile:string|undefined) {
+    //     if (userConfigFile!==undefined) { 
+    //         this.userFile = userConfigFile; 
+    //     }
+    // }
+    // /**
+    //  * gets the current user config from the user config file and sets attributes of this class
+    //  */
+    // get() {
+    //     print(`Loading user config from ${this.userFile}`);
+    //     // reading the json file
+    //     try {
+    //         let readIn = JSON.parse(fs.readFileSync(this.userFile, "utf8"));
+    //         // checks python exe read from the file
+    //         if (readIn["python"] !== undefined) {
+    //             // if the python interpreter path exists or it is a command, set the attribute
+    //             if (fs.existsSync(readIn["python"]) || readIn["python"].indexOf(path.sep) === -1) {
+    //                 this.python = readIn["python"]; 
+    //             } else {
+    //                 error(`python path from user config "${readIn["python"]}" does not exist`);
+    //             }
+    //         } else { 
+    //             error(`python was not found in the user config file`);
+    //         }
 
-    /**
-     * takes the attributes of this class and puts them in a dictionary
-     * @returns a dictionary containing the attributes of this class
-     */
-    toDict():{[name:string] : string|boolean} {
-        let toReturn:{[name:string] : string|boolean} = {};
-        toReturn["pip"] = this.pip;
-        toReturn["python"] = this.python;
-        return toReturn;
-    }
-    /**
-     * sets the attributes of this class from the inputted dictionary
-     * @param dict : dictionary that contains information that you want to use to set the attributes of this class
-     */
-    setFromDict(dict:{[name:string] : string|boolean}) {
-        // checks python exe
-        if (typeof dict["python"] === "string") {
-            // if the python interpreter path exists or it is a command, set the attribute
-            if (fs.existsSync(dict["python"]) || dict["python"].indexOf(path.sep) === -1) { 
-                this.python = dict["python"]; 
-            } else {
-                error(`python variable from dict "${dict["python"]}" does not exist`);
-            }
-        } else { 
-            error(`python variable must be a string`);
-        }
+    //         // checks pip exe read from the file
+    //         if (readIn["pip"] !== undefined) {
+    //             /** 
+    //              * do not need to check if pip path exists (more trouble that is worth)
+    //              */ 
+    //             // if the pip executable path exists or it is a command, set the attribute
+    //             //if (fs.existsSync(readIn["pip"]) || readIn["pip"].indexOf(path.sep) === -1) { 
+    //             this.pip = readIn["pip"];
+    //             // } else {
+    //             //     this.errorEncountered = true;
+    //             //     this.errorMessage = `the pip path from user config ${readIn["pip"]} does not exist, config file is ${this.userFile}`;
+    //             // }
+    //         } else {
+    //             error(`pip was not found in the user config file`);
+    //         }
+    //     } catch ( e ) {
+    //         error(`user config file not found, try running the reinit command of this extension (uc-quantum-lab.reinit) in the command palete`);
+    //     }
+    // }
 
-        // checks pip exe
-        if (typeof dict["pip"] === "string") {
-            // if the pip exe path exists or it is a command, set the attribute
-            if (fs.existsSync(dict["pip"]) || dict["pip"].indexOf(path.sep) === -1) { 
-                this.python = dict["pip"]; 
-            } else {
-                error(`pip variable from dict "${dict["pip"]}" does not exist`);
-            }
-        } else { 
-            error(`pip variable must be a string`);
-        }
-        // saving this class to the user config file
-        this.save();
-    }
-    /**
-     * Saves this class to the user config file
-     */
-    save() {
-        print(`saving user config to ${this.userFile}`);
-        // creating config from attributes of this class
-        let config:{[name:string]:string|boolean} = {"python" : this.python, 
-                                                     "pip" : this.pip};
-        // write data to user config file
-        fs.writeFile(this.userFile, JSON.stringify(config, null, 4), err => {
-            if (err) {
-                error(`could not save user config back to file, with message ${err.message}`);
-            }
-        });
-    }
+    // /**
+    //  * takes the attributes of this class and puts them in a dictionary
+    //  * @returns a dictionary containing the attributes of this class
+    //  */
+    // toDict():{[name:string] : string|boolean} {
+    //     let toReturn:{[name:string] : string|boolean} = {};
+    //     toReturn["pip"] = this.pip;
+    //     toReturn["python"] = this.python;
+    //     return toReturn;
+    // }
+    // /**
+    //  * sets the attributes of this class from the inputted dictionary
+    //  * @param dict : dictionary that contains information that you want to use to set the attributes of this class
+    //  */
+    // setFromDict(dict:{[name:string] : string|boolean}) {
+    //     // checks python exe
+    //     if (typeof dict["python"] === "string") {
+    //         // if the python interpreter path exists or it is a command, set the attribute
+    //         if (fs.existsSync(dict["python"]) || dict["python"].indexOf(path.sep) === -1) { 
+    //             this.python = dict["python"]; 
+    //         } else {
+    //             error(`python variable from dict "${dict["python"]}" does not exist`);
+    //         }
+    //     } else { 
+    //         error(`python variable must be a string`);
+    //     }
+
+    //     // checks pip exe
+    //     if (typeof dict["pip"] === "string") {
+    //         // if the pip exe path exists or it is a command, set the attribute
+    //         if (fs.existsSync(dict["pip"]) || dict["pip"].indexOf(path.sep) === -1) { 
+    //             this.python = dict["pip"]; 
+    //         } else {
+    //             error(`pip variable from dict "${dict["pip"]}" does not exist`);
+    //         }
+    //     } else { 
+    //         error(`pip variable must be a string`);
+    //     }
+    //     // saving this class to the user config file
+    //     this.save();
+    // }
+    // /**
+    //  * Saves this class to the user config file
+    //  */
+    // save() {
+    //     print(`saving user config to ${this.userFile}`);
+    //     // creating config from attributes of this class
+    //     let config:{[name:string]:string|boolean} = {"python" : this.python, 
+    //                                                  "pip" : this.pip};
+    //     // write data to user config file
+    //     fs.writeFile(this.userFile, JSON.stringify(config, null, 4), err => {
+    //         if (err) {
+    //             error(`could not save user config back to file, with message ${err.message}`);
+    //         }
+    //     });
+    // }
 }
 
 /**
@@ -129,7 +132,7 @@ export class Config {
     // the user config directory
     configDir:string = "";
     // the user config file
-    configFile:string = "";
+    // configFile:string = "";
     // the file containing the layout of the viewer
     layoutFile:string = "";
     // template config file to load into the user config directory with it is made
@@ -159,13 +162,14 @@ export class Config {
     // python module name in python
     pythonModuleName:string = "";
     // where python binaries that are registered by the user are stored
-    pythonRegistryFile:string = "";
+    // pythonRegistryFile:string = "";
     // yes response by user
     yes:string = "yes";
     // no response by user
     no:string = "no";
     // constructing user config class
-    userConfig:UserConfig = new UserConfig(undefined);
+    //userConfig:UserConfig = new UserConfig(undefined);
+    userConfig:UserConfig = new UserConfig();
 
     /**
      * 
@@ -184,12 +188,12 @@ export class Config {
         }
     }
 
-    /**
-     * constructs the user config class attribute of this class
-     */
-    initUserConfig() {
-        this.userConfig = new UserConfig(this.configFile);
-    }
+    // /**
+    //  * constructs the user config class attribute of this class
+    //  */
+    // initUserConfig() {
+    //     this.userConfig = new UserConfig(this.configFile);
+    // }
 }
 
 /**
@@ -206,7 +210,7 @@ export async function getConfig(context:vscode.ExtensionContext):Promise<Config>
          * For a description of what the attributes do, see the above class definition
          */
         config.configDir = path.join(config.workspacePath, ".UCQ_config");
-		config.configFile = path.join(config.configDir, "config.json"); // needs to be json
+		// config.configFile = path.join(config.configDir, "config.json"); // needs to be json
         config.layoutFile =  path.join(config.configDir, "layout.json"); // needs to be json
         config.triggerFile = path.join(config.configDir, ".trigger");
         config.templateLayoutFile = path.join(config.extensionInstallPath, "templates", "template_config", "layout.json");
@@ -227,19 +231,32 @@ export async function getConfig(context:vscode.ExtensionContext):Promise<Config>
         config.yes = "yes";
         config.no = "no";
 
+        const extension = vscode.extensions.getExtension('ms-python.python');
+        if (extension) {
+            if (!extension.isActive) {
+                await extension.activate();
+            }
+            const pythonApi: ProposedExtensionAPI = extension.exports as ProposedExtensionAPI;
+            // This will return something like /usr/bin/python
+            const environmentPath = pythonApi.environments.getActiveEnvironmentPath();
+            print(environmentPath.path);
+            config.userConfig.python = environmentPath.path;
+            config.userConfig.pip = `${config.userConfig.python} -m pip`;
+
+        } else { error("python extension is not active and it must be to use this extension"); }
         // python module stuff
-        config.pythonRegistryFile = path.join(config.extensionInstallPath, "registry", "pythons.json");
+        // config.pythonRegistryFile = path.join(config.extensionInstallPath, "registry", "pythons.json");
         config.pythonModuleName = "UC_Quantum_Lab";
         config.pythonModulePyPi = "UC-Quantum-tools";
-        config.minPythonModVer = "0.1.8";
+        config.minPythonModVer = "0.1.9";
         config.minPythonVer = "3.6.0";
 
         // initializing user config
-        config.initUserConfig();
+        //config.initUserConfig();
 
         return config;
     } else {
-        // returning a class that has no info
+        error("must have an open folder in the workspace");
         return new Config(undefined, undefined);
     }
 }

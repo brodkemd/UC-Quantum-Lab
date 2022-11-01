@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import { Config } from "./config";
-import { checkIfCondaInstalled, getCondaEnvs } from "./condaHandling";
+//import { checkIfCondaInstalled, getCondaEnvs } from "./condaHandling";
 import { print, error, tryCommand, getOutputOfCommand, info, semmanticVersionToNum, InfoType, getVersionStringFrom } from "./src";
 import { exit } from "process";
 /**
@@ -10,7 +10,7 @@ import { exit } from "process";
  * @param module : python module to install
  * @returns a bool indicating if the install suceeded
  */
- export async function pipInstall(pip:string, module:string):Promise<boolean> {
+export async function pipInstall(pip:string, module:string):Promise<boolean> {
     return await tryCommand(`${pip} install --quiet ${module}`);
 }
 
@@ -20,7 +20,7 @@ import { exit } from "process";
  * @param module : python module to update
  * @returns a bool indicating if the update succeeded
  */
- export async function pipUpdate(pip:string, module:string):Promise<boolean> {
+export async function pipUpdate(pip:string, module:string):Promise<boolean> {
     return await tryCommand(`${pip} install --quiet --upgrade ${module}`);
 }
 
@@ -30,7 +30,7 @@ import { exit } from "process";
  * @param module : string name of module to check
  * @returns current version of the provided module
  */
- export async function getVersionOfPythonModuleWithName(pip:string, module:string):Promise<string> {
+export async function getVersionOfPyMod(pip:string, module:string):Promise<string> {
     // parsing the output and getting the version
     return await getVersionStringFrom(await getOutputOfCommand(`${pip} show ${module}`));
 }
@@ -44,10 +44,10 @@ export async function verifyPython(config:Config) {
 	// if importing the python module in python succeeds
 	if (await tryCommand(`${config.userConfig.python} -c "import ${config.pythonModuleName}"`)) {
 		// getting the version from the installed package and if it is not the current version, then update it
-		if (await semmanticVersionToNum((await getVersionOfPythonModuleWithName(config.userConfig.pip, config.pythonModulePyPi))) 
+		if (await semmanticVersionToNum((await getVersionOfPyMod(config.userConfig.pip, config.pythonModulePyPi))) 
 			< await semmanticVersionToNum(config.minPythonModVer)) {
 			// informing the user
-			info(`Updating "${config.pythonModuleName}" for "${config.userConfig.python}" from ${(await getVersionOfPythonModuleWithName(config.userConfig.pip, config.pythonModulePyPi))} to ${config.minPythonModVer}`);
+			info(`Updating "${config.pythonModuleName}" for "${config.userConfig.python}" from ${(await getVersionOfPyMod(config.userConfig.pip, config.pythonModulePyPi))} to ${config.minPythonModVer}`);
 			if (await pipUpdate(config.userConfig.pip , config.pythonModulePyPi)) {
 				info("done");
 			} else {
@@ -68,86 +68,86 @@ export async function verifyPython(config:Config) {
 	}
 }
 
-/**
- * Sets up python for this extension
- * @param config : configuration of the extension
- * @returns boolean indicating whether or not this function extension exceeded
- */
-export async function setupPython(config:Config) {
-    if (!(fs.existsSync(config.pythonRegistryFile))) {
-        error(`python interpreter registry file "${config.pythonRegistryFile}" does not exist`);
-    }
-    let out = JSON.parse(await fs.promises.readFile(config.pythonRegistryFile, "utf8"));
-    if (out.pythons !== undefined) {
-        let pythons:string[] = out.pythons;
-        let enterInterpreter = "+ Enter Interpreter Path";
-        let registerNewInterpreter = "+ Register Interpreter";
-        let arr:vscode.QuickPickItem[] = [];
-        arr.push({
-            label:enterInterpreter
-        });
-        arr.push({
-            label:registerNewInterpreter
-        });
-        for (let python in out.pythons) {
-            // if qiskit is installed in an environment show it in the array, look and vscode api reference for this format
-            if (fs.existsSync(python)) {
-                if (await tryCommand(`${python} -c "import qiskit"`)) {
-                    arr.push({
-                        label: python,
-                        description: "suggested"
-                        //detail : `located at "${dict[key]["path"]}"`
-                    });
-                } else {
-                    arr.push({
-                        label: python
-                        //description: "suggested"
-                        //detail : `located at "${dict[key]["path"]}"`
-                    });
-                }
-            }
-        }
+// /**
+//  * Sets up python for this extension
+//  * @param config : configuration of the extension
+//  * @returns boolean indicating whether or not this function extension exceeded
+//  */
+// export async function setupPython(config:Config) {
+//     if (!(fs.existsSync(config.pythonRegistryFile))) {
+//         error(`python interpreter registry file "${config.pythonRegistryFile}" does not exist`);
+//     }
+//     let out = JSON.parse(await fs.promises.readFile(config.pythonRegistryFile, "utf8"));
+//     if (out.pythons !== undefined) {
+//         let pythons:string[] = out.pythons;
+//         let enterInterpreter = "+ Enter Interpreter Path";
+//         let registerNewInterpreter = "+ Register Interpreter";
+//         let arr:vscode.QuickPickItem[] = [];
+//         arr.push({
+//             label:enterInterpreter
+//         });
+//         arr.push({
+//             label:registerNewInterpreter
+//         });
+//         for (let python in out.pythons) {
+//             // if qiskit is installed in an environment show it in the array, look and vscode api reference for this format
+//             if (fs.existsSync(python)) {
+//                 if (await tryCommand(`${python} -c "import qiskit"`)) {
+//                     arr.push({
+//                         label: python,
+//                         description: "suggested"
+//                         //detail : `located at "${dict[key]["path"]}"`
+//                     });
+//                 } else {
+//                     arr.push({
+//                         label: python
+//                         //description: "suggested"
+//                         //detail : `located at "${dict[key]["path"]}"`
+//                     });
+//                 }
+//             }
+//         }
 
-        let result:vscode.QuickPickItem|undefined = await vscode.window.showQuickPick(
-                                                            arr, 
-                                                            {
-                                                                placeHolder: 'choose the python interpreter that you want to use from the list', 
-                                                                title:"Choose python interpreter"
-                                                            }
-                                                        );
-        if (result !== undefined) {
-            if (result.label === enterInterpreter) {
-                let interpreter:string|undefined = await vscode.window.showInputBox({placeHolder : "enter interpreter path"});
-                print(`interpreter: ${interpreter}`);
-                if (interpreter !== undefined) {
-                    if (fs.existsSync(interpreter)) {
-                        config.userConfig.python = interpreter;
-                    } else {
-                        error("inputted interpreter path is not valid");
-                    }
-                } else {
-                    error("must enter an interpreter path");
-                }
-            } else if (result.label === registerNewInterpreter) {
-                await vscode.window.showInformationMessage(`see the project repo README for guide on registering a python interpreter, at https://github.com/UC-Advanced-Research-Computing/UC-Quantum-Lab`);
-                exit(0);
-                // if (interpreter !== undefined) {
-                //     if (fs.existsSync(interpreter)) {
-                //         config.userConfig.python = interpreter;
-                //     }
-                // } else {
-                //     error("must enter an interpreter path");
-                // }
-            } else {
-                config.userConfig.python = result.label;
-            }
-        } else {
-            error("can not run extension without specifying which python to use");
-        }
-    } else {
-        print("Error: registry file is not valid");
-    }
-}
+//         let result:vscode.QuickPickItem|undefined = await vscode.window.showQuickPick(
+//                                                             arr, 
+//                                                             {
+//                                                                 placeHolder: 'choose the python interpreter that you want to use from the list', 
+//                                                                 title:"Choose python interpreter"
+//                                                             }
+//                                                         );
+//         if (result !== undefined) {
+//             if (result.label === enterInterpreter) {
+//                 let interpreter:string|undefined = await vscode.window.showInputBox({placeHolder : "enter interpreter path"});
+//                 print(`interpreter: ${interpreter}`);
+//                 if (interpreter !== undefined) {
+//                     if (fs.existsSync(interpreter)) {
+//                         config.userConfig.python = interpreter;
+//                     } else {
+//                         error("inputted interpreter path is not valid");
+//                     }
+//                 } else {
+//                     error("must enter an interpreter path");
+//                 }
+//             } else if (result.label === registerNewInterpreter) {
+//                 await vscode.window.showInformationMessage(`see the project repo README for guide on registering a python interpreter, at https://github.com/UC-Advanced-Research-Computing/UC-Quantum-Lab`);
+//                 exit(0);
+//                 // if (interpreter !== undefined) {
+//                 //     if (fs.existsSync(interpreter)) {
+//                 //         config.userConfig.python = interpreter;
+//                 //     }
+//                 // } else {
+//                 //     error("must enter an interpreter path");
+//                 // }
+//             } else {
+//                 config.userConfig.python = result.label;
+//             }
+//         } else {
+//             error("can not run extension without specifying which python to use");
+//         }
+//     } else {
+//         print("Error: registry file is not valid");
+//     }
+// }
 
 /**
  * 

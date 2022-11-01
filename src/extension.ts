@@ -12,11 +12,11 @@ import * as fs from 'fs';
 import { UCQ } from './panel';
 import { getConfig, Config } from "./config";
 import { 
-	setupPython, 
+	//setupPython, 
 	verifyPython 
 } from "./pythonHandling";
 import { print, error, info, getLastFromPath, mkDir, checkIfFileInDir, waitForTriggerFile, delay } from "./src";
-import { ProposedExtensionAPI } from "./pythonApiTypes";
+
 
 /**
  * Initializes the workspace/current directory for this extension
@@ -39,13 +39,14 @@ async function init(config:Config, verbose:boolean=false) {
 		if (choice === config.yes) {
 			// making the config directory
 			await mkDir(config.configDir);
-			await setupPython(config);
+			await verifyPython(config);
+			//await setupPython(config);
 		} else {
 			// can not operate without config directory
 			error("User blocked config directory creation, can not execute without it");
 		}
 		// saving user config the config file in the config directory
-		config.userConfig.save();
+		// config.userConfig.save();
 
 		// copies template layout file to be displayed in the viewer
 		try {
@@ -86,9 +87,9 @@ async function init(config:Config, verbose:boolean=false) {
 		}
 	} else {
 		// if the user config file exists
-		if (fs.existsSync(config.configFile)) {
+		if (fs.existsSync(config.configDir)) {
 			// loading the user config from the file
-			config.userConfig.get();
+			//config.userConfig.get();
 
 			try {
 				// checking python setup
@@ -141,25 +142,14 @@ export async function activate(context: vscode.ExtensionContext) {
 			try {
 				// loading the configuration from the ./config.ts
 				let config:Config = await getConfig(context);
-			
-				const extension = vscode.extensions.getExtension('ms-python.python');
-				if (extension) {
-					if (!extension.isActive) {
-						await extension.activate();
-					}
-					const pythonApi: ProposedExtensionAPI = extension.exports as ProposedExtensionAPI;
-					// This will return something like /usr/bin/python
-					const environmentPath = pythonApi.environments.getActiveEnvironmentPath();
-					print(environmentPath.path);
 
-				} else { error("python extension is not active and it must be to use this extension"); }
 				// if the viewer panel is open and there is an active editor
 				if (UCQ.currentPanel && vscode.window.activeTextEditor) {
 					print("Window is active");
 					// if there is a document open in the text editor
 					if (vscode.window.activeTextEditor.document !== undefined) {
 						// loads python from local config.json
-						config.userConfig.get();
+						// config.userConfig.get();
 						// cleaning up config directory, removing trigger file
 						if (fs.existsSync(config.triggerFile)) { 
 							// removes the trigger file
@@ -180,21 +170,22 @@ export async function activate(context: vscode.ExtensionContext) {
 							await vscode.window.activeTextEditor.document.save();
 							
 							print("executing in termial");
+							vscode.commands.executeCommand("python.execInTerminal");
 							// if there is an active terminal in editor
-							if (vscode.window.activeTerminal) {
-								print("Sending to active terminal");
-								// making sure the user can see the terminal
-								vscode.window.activeTerminal.show(true);
-								// sending the python command to active terminal to execute the active python file
-								vscode.window.activeTerminal.sendText(`${config.userConfig.python} ${vscode.window.activeTextEditor.document.fileName}`);
-							} else {
-								// if here, then there was no active terminal so one is made
-								print("creating terminal and sending to it");
-								// creating terminal in vscode
-								let term = vscode.window.createTerminal();
-								// sending the python command to active terminal to execute the active python file
-								term.sendText(`${config.userConfig.python} ${vscode.window.activeTextEditor.document.fileName}`);
-							}
+							// if (vscode.window.activeTerminal) {
+							// 	print("Sending to active terminal");
+							// 	// making sure the user can see the terminal
+							// 	vscode.window.activeTerminal.show(true);
+							// 	// sending the python command to active terminal to execute the active python file
+							// 	vscode.window.activeTerminal.sendText(`${config.userConfig.python} ${vscode.window.activeTextEditor.document.fileName}`);
+							// } else {
+							// 	// if here, then there was no active terminal so one is made
+							// 	print("creating terminal and sending to it");
+							// 	// creating terminal in vscode
+							// 	let term = vscode.window.createTerminal();
+							// 	// sending the python command to active terminal to execute the active python file
+							// 	term.sendText(`${config.userConfig.python} ${vscode.window.activeTextEditor.document.fileName}`);
+							// }
 							print("Waiting for trigger file");
 							
 							// waiting for trigger file to be made by the python module, this extension waits for it then continues
