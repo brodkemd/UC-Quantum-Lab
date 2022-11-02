@@ -10,7 +10,7 @@ import { print, error, tryCommand, getOutputOfCommand, semmanticVersionToNum, ge
  * @returns a bool indicating if the install suceeded
  */
 async function pipInstall(pip:string, module:string):Promise<boolean> {
-    return await tryCommand(`${pip} install --no-warn-script-location --quiet ${module}`);
+    return await tryCommand(`${pip} install --disable-pip-version-check --no-warn-script-location --quiet ${module}`);
 }
 
 /**
@@ -20,7 +20,7 @@ async function pipInstall(pip:string, module:string):Promise<boolean> {
  * @returns a bool indicating if the update succeeded
  */
 async function pipUpdate(pip:string, module:string):Promise<boolean> {
-    return await tryCommand(`${pip} install --quiet --no-warn-script-location --upgrade ${module}`);
+    return await tryCommand(`${pip} install --quiet --no-warn-script-location --disable-pip-version-check --upgrade ${module}`);
 }
 
 /**
