@@ -126,8 +126,8 @@ export async function getConfig(context:vscode.ExtensionContext):Promise<Config>
         // python module stuff
         config.pythonModuleName = "UC_Quantum_Lab";
         config.pythonModulePyPi = "UC-Quantum-tools";
-        config.minPythonModVer = "0.1.9";
-        config.minPythonVer = "3.6.0";
+        config.minPythonModVer = "0.1.10";
+        config.minPythonVer = "3.8.0";
 
         return config;
     } else {
