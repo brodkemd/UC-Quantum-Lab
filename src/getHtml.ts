@@ -276,12 +276,12 @@ export async function genHtml(webview:vscode.Webview, config:Config):Promise<str
     _webview = webview;
     // reading from the main format file to get an html template
     print(`Reading format from: ${config.mainHtmlFormatFile}`);
-    let format:string = (await fs.promises.readFile(config.mainHtmlFormatFile)).toString();
+    let format:string = (await vscode.workspace.fs.readFile(vscode.Uri.file(config.mainHtmlFormatFile))).toString();
     
-    try {  
+    try {
         print(`Reading layout from ${config.layoutFile}`);
         // parsing the json
-        let directions = JSON.parse((await fs.promises.readFile(config.layoutFile)).toString());
+        let directions = JSON.parse((await vscode.workspace.fs.readFile(vscode.Uri.file(config.layoutFile))).toString());
         // starting the recursive class that generates the html
         // must be in this order
         let obj:Content = new Content(directions);
@@ -299,12 +299,12 @@ export async function genHtml(webview:vscode.Webview, config:Config):Promise<str
         format = `<!--${(new Date()).toString()}-->\n${format}`;
 
         // for testing puposes, outputs the html that will be sent to the panel to a file
-        // try {
-        //     print(`Writing to: ${config.testCompiledHtmlFile}`);
-        //     await fs.promises.writeFile(config.testCompiledHtmlFile, format);
-        // } catch ( e ) {
-        //     error(`caught in writing compiled html to file: ${(e as Error).message}`);
-        // }
+        try {
+            print(`Writing to: ${config.testCompiledHtmlFile}`);
+            await fs.promises.writeFile(config.testCompiledHtmlFile, format);
+        } catch ( e ) {
+            error(`caught in writing compiled html to file: ${(e as Error).message}`);
+        }
         return format;
     } catch ( e ) { 
         error((e as Error).message); 

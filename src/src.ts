@@ -1,5 +1,5 @@
 import * as path from 'path';
-import * as fs from "fs";
+//import * as fs from "fs";
 import * as vscode from 'vscode';
 import * as cp from "child_process";
 import * as util from "util";
@@ -161,16 +161,18 @@ export async function getVersionStringFrom(s:string):Promise<string> {
 export async function checkIfFileInDir(dirPath : string, toFind : string):Promise<boolean>  {
     try {
         // Loop them all with the new for...of
-        for( const entry of await fs.promises.readdir(dirPath) ) {
-            // Get the full paths
-            if (entry === toFind) {
-                if(!((await fs.promises.stat(path.join(dirPath, entry))).isFile())){ return false; } 
-                else { return true; }
+        for (const entry of await vscode.workspace.fs.readDirectory(vscode.Uri.file(dirPath))){
+            //Get the full paths
+            // print(`entry:${entry[0]};${((await vscode.workspace.fs.stat(vscode.Uri.file(path.join(dirPath, entry[0])))).type) === vscode.FileType.File}`);
+            if (entry[0] === toFind) {
+                return true;
+                // if(((await vscode.workspace.fs.stat(vscode.Uri.file(path.join(dirPath, entry[0])))).type) === vscode.FileType.File) { 
+                //     return false; 
+                // } else { return true; }
             }
         }
-    }
     // Catch anything bad that happens
-    catch( e ) { print(`caught error in check_if_file_in_dir: ${e}`); }
+    } catch( e ) { print(`caught error in check_if_file_in_dir: ${e}`); }
     // default return
     return false;
 }
@@ -182,9 +184,15 @@ export async function checkIfFileInDir(dirPath : string, toFind : string):Promis
  */
 export async function mkDir(dir:string){
     //making config directory, catches errors, if no errors then continues to building
-    fs.mkdir(dir, (err) => {
-        if (err) {
-            error(`Error making "${dir}" with message: ${err.message}`);
-        }
-    });
+
+    try{
+        vscode.workspace.fs.createDirectory(vscode.Uri.file(dir));
+    } catch ( e ) {
+        error(`while making "${dir}" with message ${(e as Error).message}`);
+    }
+    // fs.mkdir(dir, (err) => {
+    //     if (err) {
+    //         error(`Error making "${dir}" with message: ${err.message}`);
+    //     }
+    // });
 }

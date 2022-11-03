@@ -23,9 +23,6 @@ import { handleLegacy } from './handleLegacy';
  */
 async function init(config:Config) {
  	print("Running \"init\"");
-	
-	// verifying the selected python environment
-	await verifyPython(config);
 
 	// the config directory exists
 	if (!(fs.existsSync(config.configDir))) {
@@ -43,7 +40,8 @@ async function init(config:Config) {
 
 		// copies template layout file to be displayed in the viewer
 		try {
-			await fs.promises.copyFile(config.templateLayoutFile, config.layoutFile);
+			await vscode.workspace.fs.copy(vscode.Uri.file(config.templateLayoutFile), vscode.Uri.file(config.layoutFile));
+			//await fs.promises.copyFile(config.templateLayoutFile, config.layoutFile);
 		} catch ( e ) {
 			error(`while trying to copy template layout file to config dir: ${(e as Error).message}`);
 		}
@@ -60,13 +58,21 @@ async function init(config:Config) {
 			if (selection === config.yes) {
 				print("Making main file");
 				// copying template file to current directory
-				fs.copyFile(config.templatePythonFile, 
-							path.join(config.workspacePath, fname), 
-							(err) => {
-					if (err){
-						error(`Error copying "${config.templatePythonFile}" to "${fname}"`);
-					}
-				});
+				try{
+					vscode.workspace.fs.copy(
+						vscode.Uri.file(config.templatePythonFile), 
+						vscode.Uri.file(path.join(config.workspacePath, fname))
+					);
+				} catch ( e ) {
+					error(`Error copying "${config.templatePythonFile}" to "${fname}" with message: ${(e as Error).message}`);
+				}
+				// fs.copyFile(config.templatePythonFile, 
+				// 			path.join(config.workspacePath, fname), 
+				// 			(err) => {
+				// 	if (err){
+				// 		error(`Error copying "${config.templatePythonFile}" to "${fname}"`);
+				// 	}
+				// });
 				// opening the example file in the editor
 				let documet:vscode.TextDocument|undefined = await vscode.workspace.openTextDocument(path.join(config.workspacePath, fname));
 				if (documet === undefined) {
@@ -99,8 +105,8 @@ export async function activate(context: vscode.ExtensionContext) {
 				// handles features from previous versions of this extension
 				await handleLegacy(config);
 
-				// verifyies python is setup correctly
-				//await verifyPython(config);
+				// verifying the selected python environment
+				await verifyPython(config);
 
 				// if the viewer panel is open and there is an active editor
 				if (UCQ.currentPanel && vscode.window.activeTextEditor) {
@@ -170,8 +176,10 @@ export async function activate(context: vscode.ExtensionContext) {
 					// if they agreed to the previous message
 					if (choice === config.yes) {
 						// removing the config directory and catching errors
-						try { fs.rmSync(config.configDir, { recursive: true, force: true }); }
-						catch ( e ) { error(`error encountered when deleting config directory, with message: ${e}`); }
+						try { 
+							await vscode.workspace.fs.delete(vscode.Uri.file(config.configDir), {recursive:true});
+							//fs.rmSync(config.configDir, { recursive: true, force: true }); 
+						} catch ( e ) { error(`error encountered when deleting config directory, with message: ${e}`); }
 
 					} else if (choice === undefined) {
 						// the user can not choose nothing

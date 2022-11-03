@@ -86,7 +86,7 @@ Resizable.ContentWindow = class{
     /**
      * My additions
      */
-    console.log(div.id)
+    //console.log(div.id)
     if (div.id == "main") { this.getDiv().style.overflow = "auto"; } 
     else { this.getDiv().style.overflow = "auto"; }
     //console.log(div.id);

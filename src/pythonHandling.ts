@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import * as fs from "fs";
+//import * as fs from "fs";
 import { Config } from "./config";
 import { print, error, tryCommand, getOutputOfCommand, semmanticVersionToNum, getVersionStringFrom } from "./src";
 

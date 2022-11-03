@@ -4,10 +4,9 @@
 This extension provides a UI that allows the results of a quantum circuit created and simulated with qiskit to be presented cleanly and easily. This extension operates with the required python library [UC-Quantum-tools](https://github.com/UC-Advanced-Research-Computing/UC-Quantum-tools) (the extension will auto install this library as long as you have a working python and pip).
 
 ### Notes to User
-- If you have ".trigger" or "config.json" in the extension directory ".UCQ_config", you can delete them. These files are left over from a previous version. This extension will delete them as well.
-
+- All images and assests are saved in the ".UCQ_config" directory. They can be copied if you so choose. Also, the latex code for the statevector is in the layout.json file in this directory (if you want to copy to an actual latex file).
 ## Features
-Can display a lot of information about the circuit including:
+Can display a lot of information about the circuit including (see [UC-Quantum-tools](https://github.com/UC-Advanced-Research-Computing/UC-Quantum-tools) for a complete command list):
 - The statevector of the circuit an arbitrary number of times from anywhere in the circuit as long as there are no measurements. (to show more than one just call the `state` function more than once).
     - **Example**: (in a python file)
         ```python
