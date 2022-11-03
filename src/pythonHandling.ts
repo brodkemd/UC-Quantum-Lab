@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+//import * as fs from "fs";
 import { Config } from "./config";
 import { print, error, tryCommand, getOutputOfCommand, semmanticVersionToNum, getVersionStringFrom } from "./src";
 
@@ -9,7 +10,7 @@ import { print, error, tryCommand, getOutputOfCommand, semmanticVersionToNum, ge
  * @returns a bool indicating if the install suceeded
  */
 async function pipInstall(pip:string, module:string):Promise<boolean> {
-    return await tryCommand(`${pip} install --no-warn-script-location --quiet ${module}`);
+    return await tryCommand(`${pip} install --disable-pip-version-check --no-warn-script-location --quiet ${module}`);
 }
 
 /**
@@ -19,7 +20,7 @@ async function pipInstall(pip:string, module:string):Promise<boolean> {
  * @returns a bool indicating if the update succeeded
  */
 async function pipUpdate(pip:string, module:string):Promise<boolean> {
-    return await tryCommand(`${pip} install --quiet --no-warn-script-location --upgrade ${module}`);
+    return await tryCommand(`${pip} install --quiet --no-warn-script-location --disable-pip-version-check --upgrade ${module}`);
 }
 
 /**
@@ -30,7 +31,7 @@ async function pipUpdate(pip:string, module:string):Promise<boolean> {
  */
 async function getVersionOfPyMod(pip:string, module:string):Promise<string> {
     // parsing the output and getting the version
-    return await getVersionStringFrom(await getOutputOfCommand(`${pip} show ${module}`));
+    return await getVersionStringFrom(await getOutputOfCommand(`${pip} show --disable-pip-version-check ${module}`));
 }
 
 /**
@@ -44,6 +45,11 @@ export async function verifyPython(config:Config) {
         error("python was not found, please set it in the lower right corner");
     }
     
+    // maybe implement this someday
+    // if (!(await tryCommand(config.userConfig.python)) && !(fs.existsSync(config.userConfig.python))) {
+    //     error("Invalid python interpreter chosen");
+    // }
+
 	// if importing the python module in python succeeds
 	if (await tryCommand(`${config.userConfig.python} -c "import ${config.pythonModuleName}"`)) {
 		// getting the version from the installed package and if it is not the current version, then update it

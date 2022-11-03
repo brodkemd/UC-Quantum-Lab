@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as fs from "fs";
+import * as vscode from "vscode";
 import { Config } from "./config";
 import { print } from "./src";
 
@@ -17,7 +18,8 @@ export async function handleLegacy(config:Config) {
     // removing the no longer needed files
     for (let file of legacyFiles) {
         if (fs.existsSync(file)) { 
-            await fs.promises.rm(file);
+            await vscode.workspace.fs.delete(vscode.Uri.file(file));
+            //await fs.promises.rm(file);
             print(`> removed: ${file}`);
         }
     }

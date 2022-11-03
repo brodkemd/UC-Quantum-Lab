@@ -1,4 +1,8 @@
 # Changelog
+## [0.1.1] - 2022-11-1
+- increased python module minimum version to "0.1.10" (has bug fixes required)
+- increased python minimum version to "3.8.0"
+
 ## [0.1.0] - 2022-11-1
 ### Notes to user
 - If you have ".trigger" or "config.json" in the extension directory ".UCQ_config", you can delete them. This extension will delete them as well.

@@ -40,6 +40,7 @@ async function formatMain(main:string):Promise<string> {
     }
 
     // inserting joined lists at the prescribed location is the provided format
+    // print(`Replacing content with item of len:${html.length}`);
     main = main.replace("STYLES", styles.join("\n        "));
     main = main.replace("CONTENTS", html.join("\n").trim());
     main = main.replace("CSS", css.join("\n        ").trim());
@@ -51,6 +52,8 @@ async function formatMain(main:string):Promise<string> {
     css = [];
     sizes = [];
     count = 0;
+    scripts = [];
+    styles = [];
     return main;
 }
 
@@ -276,12 +279,12 @@ export async function genHtml(webview:vscode.Webview, config:Config):Promise<str
     _webview = webview;
     // reading from the main format file to get an html template
     print(`Reading format from: ${config.mainHtmlFormatFile}`);
-    let format:string = (await fs.promises.readFile(config.mainHtmlFormatFile)).toString();
+    let format:string = (await vscode.workspace.fs.readFile(vscode.Uri.file(config.mainHtmlFormatFile))).toString();
     
-    try {  
+    try {
         print(`Reading layout from ${config.layoutFile}`);
         // parsing the json
-        let directions = JSON.parse((await fs.promises.readFile(config.layoutFile)).toString());
+        let directions = JSON.parse((await vscode.workspace.fs.readFile(vscode.Uri.file(config.layoutFile))).toString());
         // starting the recursive class that generates the html
         // must be in this order
         let obj:Content = new Content(directions);
