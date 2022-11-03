@@ -21,7 +21,7 @@ import { handleLegacy } from './handleLegacy';
  * @param config : configuration of the extension
  * @returns boolean indicating whether or not this function extension exceeded
  */
-async function init(config:Config) {
+async function init(config:Config, verbose:boolean) {
  	print("Running \"init\"");
 
 	// the config directory exists
@@ -84,6 +84,8 @@ async function init(config:Config) {
 				}
 			}
 		}
+	} else if (verbose) {
+		info("Nothing to init, done");
 	}
 }
 
@@ -97,6 +99,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// adding the command to vscode
 	context.subscriptions.push(
 		vscode.commands.registerCommand("uc-quantum-lab.execute", async () => {
+			
 			print("--- executing ---");
 			try {
 				// loading the configuration from the ./config.ts
@@ -107,6 +110,15 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				// verifying the selected python environment
 				await verifyPython(config);
+				// let watcher:vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(config.layoutFile, false, false, false);
+				// context.subscriptions.push(watcher);
+				// watcher.onDidCreate(() => {
+				// 	// updating the panel, when the layout file is updated
+				// 	UCQ.currentPanel?.update();
+				// });
+				// watcher.onDidDelete(() =>{
+				// 	watcher.dispose();
+				// });
 
 				// if the viewer panel is open and there is an active editor
 				if (UCQ.currentPanel && vscode.window.activeTextEditor) {
@@ -128,17 +140,38 @@ export async function activate(context: vscode.ExtensionContext) {
 					} else {
 						print("executing in termial");
 						// executing the python file in the terminal with the python extension
-						vscode.commands.executeCommand("python.execInTerminal");
+						// vscode.commands.executeCommand("python.execInTerminal");
+						// if here, then the file is a python file
+						print("saving active document");
+						await vscode.window.activeTextEditor.document.save();
+						
+						print("executing in termial");
+						// if there is an active terminal in editor
+						if (vscode.window.activeTerminal) {
+							print("Sending to active terminal");
+							// making sure the user can see the terminal
+							vscode.window.activeTerminal.show(true);
+							// sending the python command to active terminal to execute the active python file
+							vscode.window.activeTerminal.sendText(`${config.userConfig.python} ${vscode.window.activeTextEditor.document.fileName}`);
+						} else {
+							// if here, then there was no active terminal so one is made
+							print("creating terminal and sending to it");
+							// creating terminal in vscode
+							let term = vscode.window.createTerminal();
+							// sending the python command to active terminal to execute the active python file
+							term.sendText(`${config.userConfig.python} ${vscode.window.activeTextEditor.document.fileName}`);
+						}
 						// waiting for the layout.json file to be updated
 						let watcher:vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(config.layoutFile, false, false, false);
 						watcher.onDidChange(() => {
 							// updating the panel, when the layout file is updated
 							UCQ.currentPanel?.update();
+							watcher.dispose();	
 						});
 					}
 				} else {
 					// if nothing is opening, first running init to make sure everything is setup correctly
-					await init(config);
+					await init(config, false);
 					print("Creating Window");
 					// creating window
 					UCQ.createOrShow(config);
@@ -156,7 +189,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				let config:Config = await getConfig(context);
 				
 				// initing the current directory
-				await init(config);
+				await init(config, true);
 			// functions handle their own errors so do not need to do anything here
 			} catch ( e ) {}
 		})
@@ -188,7 +221,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					}
 				}
 				// initing the current directory, do not to wrap the function call in an "if" because the function will handle its own errors
-				await init(config);
+				await init(config, true);
 			// functions handle their own errors so do not need to do anything here
 			} catch ( e ) {}
 		})

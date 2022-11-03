@@ -40,6 +40,7 @@ async function formatMain(main:string):Promise<string> {
     }
 
     // inserting joined lists at the prescribed location is the provided format
+    // print(`Replacing content with item of len:${html.length}`);
     main = main.replace("STYLES", styles.join("\n        "));
     main = main.replace("CONTENTS", html.join("\n").trim());
     main = main.replace("CSS", css.join("\n        ").trim());
@@ -51,6 +52,8 @@ async function formatMain(main:string):Promise<string> {
     css = [];
     sizes = [];
     count = 0;
+    scripts = [];
+    styles = [];
     return main;
 }
 
@@ -299,12 +302,12 @@ export async function genHtml(webview:vscode.Webview, config:Config):Promise<str
         format = `<!--${(new Date()).toString()}-->\n${format}`;
 
         // for testing puposes, outputs the html that will be sent to the panel to a file
-        try {
-            print(`Writing to: ${config.testCompiledHtmlFile}`);
-            await fs.promises.writeFile(config.testCompiledHtmlFile, format);
-        } catch ( e ) {
-            error(`caught in writing compiled html to file: ${(e as Error).message}`);
-        }
+        // try {
+        //     print(`Writing to: ${config.testCompiledHtmlFile}`);
+        //     await fs.promises.writeFile(config.testCompiledHtmlFile, format);
+        // } catch ( e ) {
+        //     error(`caught in writing compiled html to file: ${(e as Error).message}`);
+        // }
         return format;
     } catch ( e ) { 
         error((e as Error).message); 

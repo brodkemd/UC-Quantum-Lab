@@ -31,7 +31,7 @@ async function pipUpdate(pip:string, module:string):Promise<boolean> {
  */
 async function getVersionOfPyMod(pip:string, module:string):Promise<string> {
     // parsing the output and getting the version
-    return await getVersionStringFrom(await getOutputOfCommand(`${pip} show ${module}`));
+    return await getVersionStringFrom(await getOutputOfCommand(`${pip} show --disable-pip-version-check ${module}`));
 }
 
 /**
