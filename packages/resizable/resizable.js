@@ -90,6 +90,11 @@ Resizable.ContentWindow = class{
     if (div.id == "main") { this.getDiv().style.overflow = "auto"; } 
     else { this.getDiv().style.overflow = "auto"; }
     //console.log(div.id);
+    /**
+     * End: My additions
+     */
+
+
     this.children = [];
     this.isSplitHorizontally = false;
     this.isSplitVertically = false;

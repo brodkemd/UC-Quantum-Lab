@@ -16,13 +16,21 @@ Can display a lot of information about the circuit including (see [UC-Quantum-to
         state(circuit)
         ```
         The state vector will be displayed from both of the above calls.
-- An image of the circuit an arbitrary number of times from anywhere in the circuit. (to show more than one just call the `display` function more than once)
+- An image of the circuit an arbitrary number of times from anywhere in the circuit. (to show more than one just call the `display` function more than once). This function can also display a matplotplib figures.
     - **Example**: (in a python file)
         ```python
         # make a circuit
         display(circuit)
         # do more stuff to the circuit
         display(circuit)
+        # or
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        # fill in the figure
+        display(fig)
+        # or
+        plt.plot(x, y)
+        display()
         ```
         The circuit will be displayed from both of the above calls.
 - A histogram resprenting the results of the execution of the circuit an arbitrary number of times. Must be used after the circuit is measured. (to show more than one just call the `counts` function more than once)
@@ -60,7 +68,7 @@ This extension builds off of the python extension for vscode (see [python extens
     ```
     **or**, if you have an active editor with a python file in it, click the UC logo at the top of the file.
 4. Answer the prompts. These only show up if the directory has not been initialized yet.
-5. Everytime you want to run the python file, click the UC logo ![interface](docs/images/button_edited.png)in the editor and it will execute your file with the python extension. You could also set a keybind to do this.
+5. Everytime you want to run the python file and have its output updated in the viewer, click the UC logo ![interface](docs/images/button_edited.png)in the editor and it will execute your file with the python extension. You could also set a keybind to do this.
     - See [examples/python](https://github.com/UC-Advanced-Research-Computing/UC-Quantum-Lab/tree/main/examples/python) for example python files that can be used with this extension.
 
 ## Extension Commands
@@ -81,6 +89,8 @@ See the examples folder, it contains the following:
 See [HTMLDOCS.md](https://github.com/UC-Advanced-Research-Computing/UC-Quantum-Lab/blob/main/HTMLDOCS.md).
 
 ## Known Issues
+- The horizontal scroll bar of a subwindow is sometimes hidden by a scroll bar of the parent window.
+    - It you encounter this just scroll down in the parent window and it should be there. (If someone who is good at JavaScript wants to help fix this that would be greatly appreciated).
 - Since this extension is so reliant on the python extension see [python extension issues](https://github.com/microsoft/vscode-python/issues) for current issues and solutions.
 
 ## Credits

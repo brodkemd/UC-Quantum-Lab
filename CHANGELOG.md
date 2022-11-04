@@ -1,4 +1,9 @@
 # Changelog
+## [0.1.2] - 2022-11-4
+- increased python module minimum version to "0.1.11" (has bug fixes required)
+- fixed bug with viewer not being able to scroll with only images on it.
+- fixed bug with the viewer updating
+
 ## [0.1.1] - 2022-11-1
 - increased python module minimum version to "0.1.10" (has bug fixes required)
 - increased python minimum version to "3.8.0"
