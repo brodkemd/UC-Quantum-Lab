@@ -110,15 +110,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				// verifying the selected python environment
 				await verifyPython(config);
-				// let watcher:vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(config.layoutFile, false, false, false);
-				// context.subscriptions.push(watcher);
-				// watcher.onDidCreate(() => {
-				// 	// updating the panel, when the layout file is updated
-				// 	UCQ.currentPanel?.update();
-				// });
-				// watcher.onDidDelete(() =>{
-				// 	watcher.dispose();
-				// });
 
 				// if the viewer panel is open and there is an active editor
 				if (UCQ.currentPanel && vscode.window.activeTextEditor) {
@@ -163,7 +154,9 @@ export async function activate(context: vscode.ExtensionContext) {
 						}
 						// waiting for the layout.json file to be updated
 						let watcher:vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(config.layoutFile, false, false, false);
+						print("created watcher");
 						watcher.onDidChange(() => {
+							print("caught change");
 							// updating the panel, when the layout file is updated
 							UCQ.currentPanel?.update();
 							watcher.dispose();	
