@@ -96,15 +96,28 @@ async function init(config:Config, verbose:boolean) {
 export async function activate(context: vscode.ExtensionContext) {
 	print("In activate");
 
+	// let executing:boolean = false;
+
+	// let globalConfig:Config = await getConfig(context);;
+
+	// let layoutWatcher:vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(globalConfig.layoutFile, false, false, false);
+	// layoutWatcher.onDidChange(() => {
+	// 	if (UCQ.currentPanel) {
+	// 		UCQ.currentPanel?.update();
+	// 	}
+	// });
+	// context.subscriptions.push(
+
+	// );
+
 	// adding the command to vscode
 	context.subscriptions.push(
 		vscode.commands.registerCommand("uc-quantum-lab.execute", async () => {
-			
 			print("--- executing ---");
 			try {
 				// loading the configuration from the ./config.ts
 				let config:Config = await getConfig(context);
-				
+				// globalConfig = config;
 				// handles features from previous versions of this extension
 				await handleLegacy(config);
 
@@ -135,6 +148,15 @@ export async function activate(context: vscode.ExtensionContext) {
 						// if here, then the file is a python file
 						print("saving active document");
 						await vscode.window.activeTextEditor.document.save();
+
+						// waiting for the layout.json file to be updated
+						let watcher:vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(config.layoutFile, false, false, false);
+						print("created watcher for execute");
+						watcher.onDidChange(() => {
+							// updating the panel, when the layout file is updated
+							UCQ.currentPanel?.update();
+							watcher.dispose();	
+						});
 						
 						print("executing in termial");
 						// if there is an active terminal in editor
@@ -152,15 +174,6 @@ export async function activate(context: vscode.ExtensionContext) {
 							// sending the python command to active terminal to execute the active python file
 							term.sendText(`${config.userConfig.python} ${vscode.window.activeTextEditor.document.fileName}`);
 						}
-						// waiting for the layout.json file to be updated
-						let watcher:vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(config.layoutFile, false, false, false);
-						print("created watcher");
-						watcher.onDidChange(() => {
-							print("caught change");
-							// updating the panel, when the layout file is updated
-							UCQ.currentPanel?.update();
-							watcher.dispose();	
-						});
 					}
 				} else {
 					// if nothing is opening, first running init to make sure everything is setup correctly
@@ -170,6 +183,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					UCQ.createOrShow(config);
 					//vscode.commands.executeCommand("uc-quantum-lab.execute");
 				}
+
 			// functions handle their own errors so do not need to do anything here
 			} catch ( e ) {}
 		})
@@ -180,7 +194,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			try {
 				// loading the config from "./config.ts"
 				let config:Config = await getConfig(context);
-				
+				// globalConfig = config;
 				// initing the current directory
 				await init(config, true);
 			// functions handle their own errors so do not need to do anything here
@@ -193,7 +207,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			try {
 				// loading the config from "./config.ts"
 				let config:Config = await getConfig(context);
-
+				// globalConfig = config;
 				// if the config directory exists in the current directory
 				if (fs.existsSync(config.configDir)) {
 					// prompting user with what it will do to the config directory
