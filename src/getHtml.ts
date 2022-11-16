@@ -104,10 +104,10 @@ async function formatSource(source:string):Promise<string> {
         lastS = s;
 
         // caps the iterations just in case it runs away
-        if (i === stop) { 
-            error("hit iteration limit in format source, reduce number of keywords to replace");
-            break; 
-        }
+        // if (i === stop) { 
+        //     error("hit iteration limit in format source, reduce number of keywords to replace");
+        //     break; 
+        // }
         i++;
 
     }
