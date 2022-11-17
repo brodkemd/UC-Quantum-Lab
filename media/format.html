@@ -6,6 +6,7 @@
 		<title>UCQ Viewer</title>
 		STYLES
 		SCRIPTS
+		<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script> -->
 		<script> 
 			$(function () {
 			  var includes = $('[data-include]')
@@ -20,9 +21,13 @@
         .contentWindow{position:absolute;object-fit:contain;padding:10px;}
 		/*body { background-color:#9999;}*/
 		/*img {padding-left:10px;padding-right:10px;padding-top:10px;padding-bottom:10px;}*/
-        .resizer{position:absolute;z-index:100;background-color:var(--vscode-button-secondaryHoverBackground);}
-        .verticalResizer{cursor:ns-resize;}
-        .horizontalResizer{cursor:ew-resize;}
+		.myViewport {cursor:grab;display:flex;align-items:center;justify-content:center;}
+        .myContent {position:relative;display:flex;align-items:center;}
+        .myContent img {display:block;width:auto;height:auto;margin:auto;align-self:center;flex-shrink:0;}
+        .myContent div {position:absolute;font-size:80px;}
+        .resizer {position:absolute;z-index:100;background-color:var(--vscode-button-secondaryHoverBackground);}
+        .verticalResizer {cursor:ns-resize;}
+        .horizontalResizer {cursor:ew-resize;}
 		CSS
 		</style>
 	</head>

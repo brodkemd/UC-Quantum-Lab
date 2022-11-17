@@ -302,12 +302,12 @@ export async function genHtml(webview:vscode.Webview, config:Config):Promise<str
         format = `<!--${(new Date()).toString()}-->\n${format}`;
 
         // for testing puposes, outputs the html that will be sent to the panel to a file
-        // try {
-        //     print(`Writing to: ${config.testCompiledHtmlFile}`);
-        //     await fs.promises.writeFile(config.testCompiledHtmlFile, format);
-        // } catch ( e ) {
-        //     error(`caught in writing compiled html to file: ${(e as Error).message}`);
-        // }
+        try {
+            print(`Writing to: ${config.testCompiledHtmlFile}`);
+            await fs.promises.writeFile(config.testCompiledHtmlFile, format);
+        } catch ( e ) {
+            error(`caught in writing compiled html to file: ${(e as Error).message}`);
+        }
         return format;
     } catch ( e ) { 
         error((e as Error).message); 
