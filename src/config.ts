@@ -95,14 +95,15 @@ export async function getConfig(context:vscode.ExtensionContext):Promise<Config>
         config.cssFiles = [
             path.join(config.extensionInstallPath, "packages", "bootstrap", "bootstrap.css"),
             path.join(config.extensionInstallPath, "media",  "reset.css"), 
-            path.join(config.extensionInstallPath, "media", "vscode.css")
+            path.join(config.extensionInstallPath, "media", "vscode.css"),
+            path.join(config.extensionInstallPath, "packages", "zoomist", "dist", "zoomist.min.css")
         ];
         config.scriptFiles = [
             path.join(config.extensionInstallPath, "packages", "resizable", "resizable.js"), // makes the resizable panels
             path.join(config.extensionInstallPath, "packages", "mathjax"  , "tex-chtml.js"), // allows latex to render
             path.join(config.extensionInstallPath, "packages", "jquery"   , "jquery.js"), // used for loading other html files
-            path.join(config.extensionInstallPath, "packages","wheel-zoom", "wheel-zoom.js"),
-            path.join(config.extensionInstallPath, "media", "main.js")
+            path.join(config.extensionInstallPath, "packages", "zoomist", "dist", "zoomist.min.js")
+            // path.join(config.extensionInstallPath, "media", "main.js")
         ];
         config.yes = "yes";
         config.no = "no";

@@ -2,7 +2,7 @@
   "name": "uc-quantum-lab",
   "displayName": "UC Quantum Lab",
   "description": "An extension to make quantum development easier",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "publisher": "UCQuantumLab",
   "author": {
     "name": "Marek Brodke",
