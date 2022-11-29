@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zoomist.js</title>
+  <link rel="stylesheet" href="./packages/zoomist/zoomist.min.css">
+  <script src="./packages/zoomist/zoomist.min.js"></script>
+  <style>
+    body {
+        display: block;
+    }
+    .myZoomist {
+        width: auto;
+    }
+  </style>
+</head>
+<body>
+    <div class="myZoomist" data-zoomist-src="./media/uc.png"></div>
+    <div class="myZoomist" data-zoomist-src="./media/uc.png"></div>
+    <script>
+        var imgs = document.getElementsByClassName("myZoomist");
+        for (var i = 0, n = imgs.length; i < n; ++i) {
+            new Zoomist(imgs[i], {
+                height: '75%',
+                slider: {},
+                zoomer: {}
+            });
+        }
+    </script>
+</body>
+</html>
