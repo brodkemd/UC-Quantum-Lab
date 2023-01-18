@@ -98,6 +98,7 @@ See [HTMLDOCS.md](https://github.com/UC-Advanced-Research-Computing/UC-Quantum-L
 - The horizontal scroll bar of a sub-window is sometimes hidden by a scroll bar of the parent window.
     - It you encounter this just scroll down in the parent window and it should be there. (If someone who is good at JavaScript wants to help fix this that would be greatly appreciated).
 - Since this extension is so reliant on the python extension see [python extension issues](https://github.com/microsoft/vscode-python/issues) for current issues and solutions.
+- if the \# symbol is in a file it will not work for some reason, working on this
 
 ## Credits
 - https://github.com/Tom-Rawlings/Resizable.js for the amazing js library that made the UI possible.
