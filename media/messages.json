@@ -1,0 +1,9 @@
+{
+  "messages": [
+    {
+      "shown": true,
+      "showOnce": true,
+      "message": "Hello from UC Quantum Lab! If you are experiencing any issues try updating to the latest python package by running the command\n\"pip install --upgrade UC-Quantum-tools\""
+    }
+  ]
+}

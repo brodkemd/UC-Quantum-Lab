@@ -1,4 +1,7 @@
 # Changelog
+## [0.1.4] - 2023-1-18
+- added messages to the user to inform them of import info
+
 ## [0.1.3] - 2023-1-17
 - removed pip functionality
 - updated example python file

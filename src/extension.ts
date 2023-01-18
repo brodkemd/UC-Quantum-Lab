@@ -90,12 +90,44 @@ async function init(config:Config, verbose:boolean) {
 }
 
 /**
+ * This function handles providing messages to the user
+ * @param config : configuration of the extension
+ * @returns nothing
+ */
+async function messages(config:Config) {
+	print("handling messages");
+	// wrapping in try to stop it from stopping the program if error is encountered
+	try {
+		// reading messages to send
+		let data = JSON.parse((await vscode.workspace.fs.readFile(vscode.Uri.file(config.messageFile))).toString());
+		// iterating through the messages
+		for (let item of data.messages) {
+			// if the message has not been shown and it must only be shown once, then showing it
+			if (!(item.shown) && item.showOnce) {
+				item.shown = true; // remembering that it has been shown
+				info(item.message);
+
+			// if the message can be shown more than once, then showing it
+			} else if (!(item.showOnce)) {
+				item.shown = true; // remembering that it has been shown
+				info(item.message);
+			}
+		}
+		// saving the modified message info back to the messages file
+		print(`Writing to: ${config.messageFile}`);
+		await fs.promises.writeFile(config.messageFile, JSON.stringify(data, undefined, 2));
+	} catch ( e ) {
+		print("Error: can not handle messages, this is not fatal so continuing");
+	}
+	return;
+}
+
+/**
  * This is essentially the main function for this extension, vscode calls this when
  * the extension is activated
  */
 export async function activate(context: vscode.ExtensionContext) {
 	print("In activate");
-
 	// let executing:boolean = false;
 
 	// let globalConfig:Config = await getConfig(context);
@@ -127,6 +159,10 @@ export async function activate(context: vscode.ExtensionContext) {
 				// if the viewer panel is open and there is an active editor
 				if (UCQ.currentPanel && vscode.window.activeTextEditor) {
 					print("Window is active");
+					
+					// showing messages here
+					await messages(config);
+
 					// if the config dir was removed
 					if (!(fs.existsSync(config.configDir))) {
 						print("detected faulty config");

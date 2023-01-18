@@ -42,6 +42,10 @@ export class Config {
     cssFiles:string[] = [];
     // java script files to include in the compiled
     scriptFiles:string[] = [];
+    // file that contains the messages to send to the user
+    messageFile:string = "";
+    // testing for messages
+    outMessageFile:string = "";
     // the minimum allowed version of the python module
     // minPythonModVer:string = "";
     // // minimum allowed version of python
@@ -93,7 +97,8 @@ export async function getConfig(context:vscode.ExtensionContext):Promise<Config>
         config.templateLayoutFile = path.join(config.extensionInstallPath, "templates", "layout.json");
         config.templatePythonFile = path.join(config.extensionInstallPath, "templates", "main.py");
         config.mainHtmlFormatFile = path.join(config.extensionInstallPath, "media", "format.html");
-
+        config.messageFile = path.join(config.extensionInstallPath, "media", "messages.json");
+        config.outMessageFile = config.testCompiledHtmlFile = path.join(config.configDir, "out.json");
         config.outputHtml = false;
         config.testCompiledHtmlFile = path.join(config.configDir, "out.html");
         
