@@ -1,5 +1,9 @@
 # Changelog
-## [0.1.3] - 2022-11-28
+## [0.1.3] - 2023-1-17
+- removed pip functionality
+- updated example python file
+- increased iteration limit on html formatter, so a user has capabilities
+- updated README
 
 ## [0.1.2] - 2022-11-4
 - increased python module minimum version to "0.1.11" (has bug fixes required)
@@ -15,9 +19,9 @@
 - If you have ".trigger" or "config.json" in the extension directory ".UCQ_config", you can delete them. This extension will delete them as well.
 
 ### Added
-- improvemened config directory handling
+- improved config directory handling
 - improved viewer updating
-- improved info messages and created laoding status objects in the status bar
+- improved info messages and created loading status objects in the status bar
 - Python api from vscode, this now handles all communication with python
 
 ### Removed
@@ -29,7 +33,7 @@
 
 ## [0.0.7] - 2022-10-28
 ### Added
-- improvemened config directory handling
+- improved config directory handling
 - increased lowest python version library version allowed to 0.1.8 (there were required features added)
 - improved viewer updating
 
@@ -56,7 +60,7 @@
 - improvements to the UX and UI, mostly with regard to anaconda
 - improved version detection of python package
 - improved error and information messages
-- improved marketplace represention in package.json (added logo and some other stuff)
+- improved marketplace representation in package.json (added logo and some other stuff)
 
 ## [0.0.3] - 2022-10-26
 ### Added
@@ -65,7 +69,7 @@
 - will auto update python package
 - a bunch of small bug fixes
 ### Removed
-- many redunant lines of code
+- many redundant lines of code
 
 ## [0.0.2] - 2022-10-25
 ### Added
@@ -75,8 +79,8 @@
 
 ## [0.0.1] - 2022-10-24
 ### Added
-- Cross platform capabality with Windows and Linux, have not tested mac os yet
+- Cross platform capability with Windows and Linux, have not tested mac os yet
 ### Changed
 - how python is setup in the extension, made play nicer with windows system python and also windows anaconda pip
 ### Removed
-- python module from this extension, it is now in a seperate repo at https://github.com/brodkemd/UCQ_tools
+- python module from this extension, it is now in a separate repo at https://github.com/brodkemd/UCQ_tools

@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import { Config } from "./config";
 import { print, error } from "./src";
 
-// global variables (here for ease of use in recurssion)
+// global variables (here for ease of use in recursion)
 let html:string[] = [];
 let css:string[] = [];
 let sizes:string[] = [];
@@ -47,7 +47,7 @@ async function formatMain(main:string):Promise<string> {
     main = main.replace("SIZES", sizes.join(",").trim());
     main = main.replace("SCRIPTS", scripts.join("\n        "));
 
-    // reseting the values, if you do not do this, things get messy
+    // resetting the values, if you do not do this, things get messy
     html = [];
     css = [];
     sizes = [];
@@ -85,7 +85,7 @@ async function formatSource(source:string):Promise<string> {
     let lastS:number = 0;
 
     // used to limit the number of iterations the while loop can do
-    let stop:number = 100;
+    let stop:number = 1000000;
     let i:number = 0;
     while (true) {
         // parsing the source and replacing keywords
@@ -104,14 +104,14 @@ async function formatSource(source:string):Promise<string> {
         lastS = s;
 
         // caps the iterations just in case it runs away
-        // if (i === stop) { 
-        //     error("hit iteration limit in format source, reduce number of keywords to replace");
-        //     break; 
-        // }
+        if (i === stop) { 
+            error("hit iteration limit in format source, reduce number of keywords to replace");
+            break; 
+        }
         i++;
 
     }
-    // returns the input string with the keyowrds replaced
+    // returns the input string with the keywords replaced
     return source;
 }
 
@@ -159,7 +159,7 @@ class Content {
                 if (typeof obj.style !== "string") {
                     throw new SyntaxError(`"style" must be string`);
                 } else {
-                    // parsing style to get size becasue that goes somewhere else and not in css
+                    // parsing style to get size because that goes somewhere else and not in css
                     let components:string[] = obj.style.split(";");
                     let toRemove:number[] = [];
                     for (let i = 0; i < components.length; i++) {
@@ -183,7 +183,7 @@ class Content {
      * shifts _styles and _sizes up to the parent object recursively
      * @param level : current level of recursion
      */
-    async perculate(level:number=0) {
+    async percolate(level:number=0) {
         let thisLevel:number = level;
         for (let obj of this._contents) {
             if (typeof obj !== "string") {
@@ -195,7 +195,7 @@ class Content {
                     obj._styles = [];
                     obj._sizes = [];
                 }
-                await obj.perculate(level=thisLevel+1); // recursion
+                await obj.percolate(level=thisLevel+1); // recursion
             }
         }
         // setting the sizes
@@ -234,20 +234,20 @@ class Content {
                 }
                 // setting css style of pane is defined
                 if (this._styles[i] !== undefined) {
-                    // the spacing are just a formating choice, it makes pretty html
+                    // the spacing are just a formatting choice, it makes pretty html
                     css.push(`        #win${count} {${this._styles[i]}}`);
                 }
             }
             // if there is source html
             if (this._contents[i]._source.length) {
-                // "pre" and the spacing are just a formating choice, it makes pretty html
+                // "pre" and the spacing are just a formatting choice, it makes pretty html
                 html.push(`${pre}    ${await formatSource(this._contents[i]._source)}`);
             } else {
                 await this._contents[i].getHtml(thisLevel+1); // recursion
             }
             // ends the div previously created
             if (this._locations[i] !== "only") {
-                // "pre" is a formating choice, it makes pretty html
+                // "pre" is a formatting choice, it makes pretty html
                 html.push(`${pre}</div>`);
             }
         }
@@ -289,7 +289,7 @@ export async function genHtml(webview:vscode.Webview, config:Config):Promise<str
         // must be in this order
         let obj:Content = new Content(directions);
         // shifting all of the styles and sizes to their corresponding pane
-        await obj.perculate();
+        await obj.percolate();
         // generating the html from the class, recursively
         await obj.getHtml();
         // printing it out
@@ -299,15 +299,17 @@ export async function genHtml(webview:vscode.Webview, config:Config):Promise<str
         format = await formatMain(format);
 
         // putting the time string in the html so that it forces html to update the webview html
-        // (gaurantees the html to be different)
+        // (guarantees the html to be different)
         format = `<!--${(new Date()).toString()}-->\n${format}`;
         
-        // for testing puposes, outputs the html that will be sent to the panel to a file
-        try {
-            print(`Writing to: ${config.testCompiledHtmlFile}`);
-            await fs.promises.writeFile(config.testCompiledHtmlFile, format);
-        } catch ( e ) {
-            error(`caught in writing compiled html to file: ${(e as Error).message}`);
+        // for testing purposes, outputs the html that will be sent to the panel to a file if I want it to
+        if (config.outputHtml) {
+            try {
+                print(`Writing to: ${config.testCompiledHtmlFile}`);
+                await fs.promises.writeFile(config.testCompiledHtmlFile, format);
+            } catch ( e ) {
+                error(`caught in writing compiled html to file: ${(e as Error).message}`);
+            }
         }
         return format;
     } catch ( e ) { 

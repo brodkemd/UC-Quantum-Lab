@@ -1,10 +1,34 @@
 # uc-quantum-lab
 **PLEASE** report any bugs, features that you may want, or anything else in the github. They will be attended to. This is still an early release so feedback is appreciated.
 
-This extension provides a UI that allows the results of a quantum circuit created and simulated with qiskit to be presented cleanly and easily. This extension operates with the required python library [UC-Quantum-tools](https://github.com/UC-Advanced-Research-Computing/UC-Quantum-tools) (the extension will auto install this library as long as you have a working python and pip).
+This extension provides a UI that allows the results of a quantum circuit created and simulated with qiskit to be presented cleanly and easily. This extension operates with the required python library [UC-Quantum-tools](https://github.com/UC-Advanced-Research-Computing/UC-Quantum-tools).
 
 ### Notes to User
-- All images and assests are saved in the ".UCQ_config" directory. They can be copied if you so choose. Also, the latex code for the statevector is in the layout.json file in this directory (if you want to copy to an actual latex file).
+- All images and assets are saved in the ".UCQ_config" directory. They can be copied if you so choose. Also, the latex code for the statevector is in the layout.json file in this directory (if you want to copy to an actual latex file).
+- This extension no longer handles pip installs for you (to many edge case bugs possible that I can not account for). So you must now install the required package. It is in the "Quick Start" section below.
+
+## Quick Start
+1. Open a folder in vscode.
+2. Install the required python package
+    ```
+    pip install UC-Quantum-tools
+    ```
+3. Set python interpreter to your desired one to via the python extension for vscode. <!-- The python package will be installed for this interpreter. -->
+    - To do this you can either run the following command in the command  palette:
+        ```
+        python.setInterpreter
+        ```
+        **or** in the lower bar you can select the "python interpreter" button.
+    - For more help see: [using python environments](https://marketplace.visualstudio.com/items?itemName=ms-python.python#:~:text=Set%20up%20your%20environment)
+4. Open the command palette and run 
+    ```
+    uc-quantum-lab.execute
+    ```
+    **or**, if you have an active editor with a python file in it, click the UC logo at the top of the file.
+5. Answer the prompts. These only show up if the directory has not been initialized yet.
+6. Every time you want to run the python file and have its output updated in the viewer, click the UC logo ![interface](docs/images/button_edited.png)in the editor and it will execute your file with the python extension. You could also set a key-bind to do this.
+    - See [examples/python](https://github.com/UC-Advanced-Research-Computing/UC-Quantum-Lab/tree/main/examples/python) for example python files that can be used with this extension.
+
 ## Features
 Can display a lot of information about the circuit including (see [UC-Quantum-tools](https://github.com/UC-Advanced-Research-Computing/UC-Quantum-tools) for a complete command list):
 - The statevector of the circuit an arbitrary number of times from anywhere in the circuit as long as there are no measurements. (to show more than one just call the `state` function more than once).
@@ -33,7 +57,7 @@ Can display a lot of information about the circuit including (see [UC-Quantum-to
         display()
         ```
         The circuit will be displayed from both of the above calls.
-- A histogram resprenting the results of the execution of the circuit an arbitrary number of times. Must be used after the circuit is measured. (to show more than one just call the `counts` function more than once)
+- A histogram representing the results of the execution of the circuit an arbitrary number of times. Must be used after the circuit is measured. (to show more than one just call the `counts` function more than once)
     - **Example**: (in a python file)
         ```python
         # make a circuit
@@ -53,24 +77,6 @@ This extension builds off of the python extension for vscode (see [python extens
     - **NOTE**: we strongly recommend using anaconda for this (see [anaconda](https://www.anaconda.com/)) and it *must* be installed as user *not* as root (this is the better way to do it anyway). For a good tutorial on anaconda go to [anaconda tutorial](https://www.upgrad.com/blog/python-anaconda-tutorial/).
 - Python extension, for install instructions and a tutorial see [python extension](https://code.visualstudio.com/docs/languages/python). It should be auto installed by this extension if it is not already installed.
 
-## Using the extension
-1. Open a folder in vscode.
-2. Set python interpreter to your desired one to via the python extension for vscode. The python package will be installed for this interpreter.
-    - To do this you can either run the following command in the command  palette:
-        ```
-        python.setInterpreter
-        ```
-        **or** in the lower bar you can select the "python interpreter" button.
-    - For more help see: [using python environments](https://marketplace.visualstudio.com/items?itemName=ms-python.python#:~:text=Set%20up%20your%20environment)
-3. Open the command palette and run 
-    ```
-    uc-quantum-lab.execute
-    ```
-    **or**, if you have an active editor with a python file in it, click the UC logo at the top of the file.
-4. Answer the prompts. These only show up if the directory has not been initialized yet.
-5. Everytime you want to run the python file and have its output updated in the viewer, click the UC logo ![interface](docs/images/button_edited.png)in the editor and it will execute your file with the python extension. You could also set a keybind to do this.
-    - See [examples/python](https://github.com/UC-Advanced-Research-Computing/UC-Quantum-Lab/tree/main/examples/python) for example python files that can be used with this extension.
-
 ## Extension Commands
 This extension contributes the following commands:
 - `uc-quantum-lab.execute`: execute the extension, will detect if the directory is initialized or not and initializes it if need be. It will also open up a webview panel where it will display content. *If you only ever run this command you should be fine*.
@@ -89,7 +95,7 @@ See the examples folder, it contains the following:
 See [HTMLDOCS.md](https://github.com/UC-Advanced-Research-Computing/UC-Quantum-Lab/blob/main/HTMLDOCS.md).
 
 ## Known Issues
-- The horizontal scroll bar of a subwindow is sometimes hidden by a scroll bar of the parent window.
+- The horizontal scroll bar of a sub-window is sometimes hidden by a scroll bar of the parent window.
     - It you encounter this just scroll down in the parent window and it should be there. (If someone who is good at JavaScript wants to help fix this that would be greatly appreciated).
 - Since this extension is so reliant on the python extension see [python extension issues](https://github.com/microsoft/vscode-python/issues) for current issues and solutions.
 
@@ -99,4 +105,4 @@ See [HTMLDOCS.md](https://github.com/UC-Advanced-Research-Computing/UC-Quantum-L
 - https://github.com/mathjax/MathJax for a feature rich api that allows latex to displayed in html.
 
 ## Release Notes
-See changelog for the lastest on this extension
+See changelog for the latest on this extension

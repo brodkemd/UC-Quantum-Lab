@@ -11,7 +11,7 @@ export class UserConfig {
     // the python interpreter path or command
     python:string= "";
     // pip executable path or command
-    pip:string = "";
+    //pip:string = "";
 
     constructor() {}
 }
@@ -34,6 +34,8 @@ export class Config {
     templatePythonFile:string = "";
     // html format file to load and use as a template for the viewer's html
     mainHtmlFormatFile:string = "";
+    // if an output of the html to be rendered should be created
+    outputHtml:boolean = false;
     // for testing purposes, file to output viewer html to
     testCompiledHtmlFile:string = "";
     // css files to include in the compiled html
@@ -41,13 +43,13 @@ export class Config {
     // java script files to include in the compiled
     scriptFiles:string[] = [];
     // the minimum allowed version of the python module
-    minPythonModVer:string = "";
-    // minimum allowed version of python
-    minPythonVer:string = "";
-    // python module name on the python index
-    pythonModulePyPi:string = "";
-    // python module name in python
-    pythonModuleName:string = "";
+    // minPythonModVer:string = "";
+    // // minimum allowed version of python
+    // minPythonVer:string = "";
+    // // python module name on the python index
+    // pythonModulePyPi:string = "";
+    // // python module name in python
+    // pythonModuleName:string = "";
     // yes response by user
     yes:string = "yes";
     // no response by user
@@ -91,18 +93,21 @@ export async function getConfig(context:vscode.ExtensionContext):Promise<Config>
         config.templateLayoutFile = path.join(config.extensionInstallPath, "templates", "layout.json");
         config.templatePythonFile = path.join(config.extensionInstallPath, "templates", "main.py");
         config.mainHtmlFormatFile = path.join(config.extensionInstallPath, "media", "format.html");
+
+        config.outputHtml = false;
         config.testCompiledHtmlFile = path.join(config.configDir, "out.html");
+        
         config.cssFiles = [
             // path.join(config.extensionInstallPath, "packages", "bootstrap", "bootstrap.min.css"),
             path.join(config.extensionInstallPath, "media",  "reset.css"), 
-            path.join(config.extensionInstallPath, "media", "vscode.css"),
-            path.join(config.extensionInstallPath, "packages", "zoomist", "zoomist.css")
+            path.join(config.extensionInstallPath, "media", "vscode.css")
+            //path.join(config.extensionInstallPath, "packages", "zoomist", "zoomist.css") // working on this
         ];
         config.scriptFiles = [
             path.join(config.extensionInstallPath, "packages", "resizable", "resizable.js"), // makes the resizable panels
             path.join(config.extensionInstallPath, "packages", "mathjax"  , "tex-chtml.js"), // allows latex to render
-            path.join(config.extensionInstallPath, "packages", "jquery"   , "jquery.js"), // used for loading other html files
-            path.join(config.extensionInstallPath, "packages", "zoomist", "zoomist.min.js")
+            path.join(config.extensionInstallPath, "packages", "jquery"   , "jquery.js") // used for loading other html files
+            //path.join(config.extensionInstallPath, "packages", "zoomist", "zoomist.min.js") // working on this
             // path.join(config.extensionInstallPath, "media", "main.js")
         ];
         config.yes = "yes";
@@ -124,14 +129,14 @@ export async function getConfig(context:vscode.ExtensionContext):Promise<Config>
             
             // setting the required attributes
             config.userConfig.python = environmentPath.path;
-            config.userConfig.pip = `${config.userConfig.python} -m pip`;
+            // config.userConfig.pip = `${config.userConfig.python} -m pip`;
         } else { error("python extension is not available and it must installed to use this extension"); }
         
         // python module stuff
-        config.pythonModuleName = "UC_Quantum_Lab";
-        config.pythonModulePyPi = "UC-Quantum-tools";
-        config.minPythonModVer = "0.1.11";
-        config.minPythonVer = "3.8.0";
+        // config.pythonModuleName = "UC_Quantum_Lab";
+        // config.pythonModulePyPi = "UC-Quantum-tools";
+        // config.minPythonModVer = "0.1.11";
+        // config.minPythonVer = "3.8.0";
 
         return config;
     } else {
